@@ -13,7 +13,6 @@ import { SystemStatsPopup } from "./components/SystemStatsPopup";
 import { Header } from "./components/Header";
 
 import { PageSwitcher } from "./pages/PageSwitcher";
-import { Farm } from "./pages/Farm";
 import { RiskyTrovesPage } from "./pages/RiskyTrovesPage";
 import { RedemptionPage } from "./pages/RedemptionPage";
 
@@ -64,9 +63,6 @@ export const LiquityFrontend: React.FC<LiquityFrontendProps> = ({ loader }) => {
                     <Switch>
                       <Route path="/" exact>
                         <PageSwitcher />
-                      </Route>
-                      <Route path="/farm">
-                        <Farm />
                       </Route>
                       <Route path="/risky-troves">
                         <RiskyTrovesPage />

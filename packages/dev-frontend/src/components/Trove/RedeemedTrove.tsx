@@ -20,17 +20,17 @@ export const RedeemedTrove: React.FC = () => {
 
   return (
     <Card>
-      <Heading>Trove</Heading>
+      <Heading>Loan</Heading>
       <Box sx={{ p: [2, 3] }}>
-        <InfoMessage title="Your Trove has been redeemed.">
+        <InfoMessage title="Your Loan has been redeemed.">
           {hasSurplusCollateral
-            ? "Please reclaim your remaining collateral before opening a new Trove."
-            : "You can borrow LUSD by opening a Trove."}
+            ? "Please reclaim your remaining collateral before opening a new Loan."
+            : "You can borrow ARTH by opening a Loan."}
         </InfoMessage>
 
         <Flex variant="layout.actions">
           {hasSurplusCollateral && <CollateralSurplusAction />}
-          {!hasSurplusCollateral && <Button onClick={handleOpenTrove}>Open Trove</Button>}
+          {!hasSurplusCollateral && <Button onClick={handleOpenTrove}>Open Loan</Button>}
         </Flex>
       </Box>
     </Card>

@@ -56,14 +56,14 @@ const userTroveStatusFrom = (backendStatus: BackendTroveStatus): UserTroveStatus
   backendStatus === BackendTroveStatus.nonExistent
     ? "nonExistent"
     : backendStatus === BackendTroveStatus.active
-    ? "open"
-    : backendStatus === BackendTroveStatus.closedByOwner
-    ? "closedByOwner"
-    : backendStatus === BackendTroveStatus.closedByLiquidation
-    ? "closedByLiquidation"
-    : backendStatus === BackendTroveStatus.closedByRedemption
-    ? "closedByRedemption"
-    : panic(new Error(`invalid backendStatus ${backendStatus}`));
+      ? "open"
+      : backendStatus === BackendTroveStatus.closedByOwner
+        ? "closedByOwner"
+        : backendStatus === BackendTroveStatus.closedByLiquidation
+          ? "closedByLiquidation"
+          : backendStatus === BackendTroveStatus.closedByRedemption
+            ? "closedByRedemption"
+            : panic(new Error(`invalid backendStatus ${backendStatus}`));
 
 const decimalify = (bigNumber: BigNumber) => Decimal.fromBigNumberString(bigNumber.toHexString());
 const numberify = (bigNumber: BigNumber) => bigNumber.toNumber();

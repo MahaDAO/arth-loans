@@ -94,7 +94,7 @@ export const SystemStats: React.FC<SystemStatsProps> = ({ variant = "info", show
 
       <Statistic
         name="Borrowing Fee"
-        tooltip="The Borrowing Fee is a one-off fee charged as a percentage of the borrowed amount (in LUSD) and is part of a Trove's debt. The fee varies between 0.5% and 5% depending on LUSD redemption volumes."
+        tooltip="The Borrowing Fee is a one-off fee charged as a percentage of the borrowed amount (in ARTH) and is part of a Loan's debt. The fee varies between 0.5% and 5% depending on ARTH redemption volumes."
       >
         {borrowingFeePct.toString(2)}
       </Statistic>
@@ -108,16 +108,16 @@ export const SystemStats: React.FC<SystemStatsProps> = ({ variant = "info", show
           &nbsp;(${Decimal.from(total.collateral.mul(price)).shorten()})
         </Text>
       </Statistic>
-      <Statistic name="Troves" tooltip="The total number of active Troves in the system.">
+      <Statistic name="Loans" tooltip="The total number of active Loans in the system.">
         {Decimal.from(numberOfTroves).prettify(0)}
       </Statistic>
-      <Statistic name="LUSD supply" tooltip="The total LUSD minted by the Liquity Protocol.">
+      <Statistic name="ARTH supply" tooltip="The total ARTH minted by the Liquity Protocol.">
         {total.debt.shorten()}
       </Statistic>
       {lusdInStabilityPoolPct && (
         <Statistic
-          name="LUSD in Stability Pool"
-          tooltip="The total LUSD currently held in the Stability Pool, expressed as an amount and a fraction of the LUSD supply.
+          name="ARTH in Stability Pool"
+          tooltip="The total ARTH currently held in the Stability Pool, expressed as an amount and a fraction of the ARTH supply.
         "
         >
           {lusdInStabilityPool.shorten()}
@@ -138,7 +138,7 @@ export const SystemStats: React.FC<SystemStatsProps> = ({ variant = "info", show
       </Statistic>
       <Statistic
         name="Recovery Mode"
-        tooltip="Recovery Mode is activated when the Total Collateral Ratio (TCR) falls below 150%. When active, your Trove can be liquidated if its collateral ratio is below the TCR. The maximum collateral you can lose from liquidation is capped at 110% of your Trove's debt. Operations are also restricted that would negatively impact the TCR."
+        tooltip="Recovery Mode is activated when the Total Collateral Ratio (TCR) falls below 150%. When active, your Loan can be liquidated if its collateral ratio is below the TCR. The maximum collateral you can lose from liquidation is capped at 110% of your Loan's debt. Operations are also restricted that would negatively impact the TCR."
       >
         {total.collateralRatioIsBelowCritical(price) ? <Box color="danger">Yes</Box> : "No"}
       </Statistic>

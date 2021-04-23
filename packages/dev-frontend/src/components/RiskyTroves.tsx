@@ -38,7 +38,7 @@ const liquidatableInRecoveryMode = (
   if (collateralRatio.gte(MINIMUM_COLLATERAL_RATIO) && collateralRatio.lt(totalCollateralRatio)) {
     return [
       trove.debt.lte(lusdInStabilityPool),
-      "There's not enough LUSD in the Stability pool to cover the debt"
+      "There's not enough ARTH in the Stability pool to cover the debt"
     ] as const;
   } else {
     return liquidatableInNormalMode(trove, price);
@@ -156,7 +156,7 @@ export const RiskyTroves: React.FC<RiskyTrovesProps> = ({ pageSize }) => {
   return (
     <Card sx={{ width: "100%" }}>
       <Heading>
-        <Abbreviation short="Troves">Risky Troves</Abbreviation>
+        <Abbreviation short="Loans">Risky Loans</Abbreviation>
 
         <Flex sx={{ alignItems: "center" }}>
           {numberOfTroves !== 0 && (
@@ -196,7 +196,7 @@ export const RiskyTroves: React.FC<RiskyTrovesProps> = ({ pageSize }) => {
       {!troves || troves.length === 0 ? (
         <Box sx={{ p: [2, 3] }}>
           <Box sx={{ p: 4, fontSize: 3, textAlign: "center" }}>
-            {!troves ? "Loading..." : "There are no Troves yet"}
+            {!troves ? "Loading..." : "There are no Loans yet"}
           </Box>
         </Box>
       ) : (
@@ -243,8 +243,8 @@ export const RiskyTroves: React.FC<RiskyTrovesProps> = ({ pageSize }) => {
             <tbody>
               {troves.map(
                 trove =>
-                  !trove.isEmpty && ( // making sure the Trove hasn't been liquidated
-                    // (TODO: remove check after we can fetch multiple Troves in one call)
+                  !trove.isEmpty && ( // making sure the Loan hasn't been liquidated
+                    // (TODO: remove check after we can fetch multiple Loans in one call)
                     <tr key={trove.ownerAddress}>
                       <td
                         style={{

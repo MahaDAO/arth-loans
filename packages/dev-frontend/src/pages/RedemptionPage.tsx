@@ -27,7 +27,7 @@ export const RedemptionPage: React.FC = () => {
                 emerge.
               </Paragraph>
               <Paragraph sx={{ mt: 2 }}>
-                Most of the time you will get a better rate for converting LUSD to ETH on{" "}
+                Most of the time you will get a better rate for converting ARTH to ETH on{" "}
                 <Link href={uniLink(addresses["lusdToken"])} target="_blank">
                   Uniswap <Icon name="external-link-alt" size="xs" />
                 </Link>{" "}
@@ -35,7 +35,7 @@ export const RedemptionPage: React.FC = () => {
               </Paragraph>
               <Paragraph sx={{ mt: 2 }}>
                 <strong>Note</strong>: Redemption is not for repaying your loan. To repay your loan,
-                adjust your Trove on the <Link href="#/">Dashboard</Link>.
+                adjust your Loan on the <Link href="#/">Dashboard</Link>.
               </Paragraph>
             </InfoMessage>
           </Box>
