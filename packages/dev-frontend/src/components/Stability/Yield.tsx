@@ -37,7 +37,7 @@ export const Yield: React.FC = () => {
 
   if (hasZeroValue || lqtyPrice === undefined) return null;
 
-  const yearlyHalvingSchedule = 0.5; // 50% see LQTY distribution schedule for more info
+  const yearlyHalvingSchedule = 0.5; // 50% see MAHA distribution schedule for more info
   const remainingLqtyOneYear = remainingStabilityPoolLQTYReward.mul(yearlyHalvingSchedule);
   const remainingLqtyInUSD = remainingLqtyOneYear.mul(lqtyPrice);
   const aprPercentage = remainingLqtyInUSD.div(lusdInStabilityPool).mul(100);
@@ -46,12 +46,12 @@ export const Yield: React.FC = () => {
 
   return (
     <Badge>
-      <Text>LQTY APR {aprPercentage.toString(2)}%</Text>
+      <Text>MAHA APR {aprPercentage.toString(2)}%</Text>
       <InfoIcon
         tooltip={
           <Card variant="tooltip" sx={{ width: ["220px", "518px"] }}>
             <Paragraph>
-              An <Text sx={{ fontWeight: "bold" }}>estimate</Text> of the LQTY return on the ARTH
+              An <Text sx={{ fontWeight: "bold" }}>estimate</Text> of the MAHA return on the ARTH
               deposited to the Stability Pool over the next year, not including your ETH gains from
               liquidations.
             </Paragraph>

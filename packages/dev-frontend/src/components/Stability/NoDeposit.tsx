@@ -22,7 +22,7 @@ export const NoDeposit: React.FC = props => {
       </Heading>
       <Box sx={{ p: [2, 3] }}>
         <InfoMessage title="You have no ARTH in the Stability Pool.">
-          You can earn ETH and LQTY rewards by depositing ARTH.
+          You can earn ETH and MAHA rewards by depositing ARTH.
         </InfoMessage>
 
         <Flex variant="layout.actions">
