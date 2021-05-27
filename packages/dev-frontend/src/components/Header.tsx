@@ -4,6 +4,7 @@ import { useLiquitySelector } from "@liquity/lib-react";
 import { Container, Flex } from "theme-ui";
 import { AddressZero } from "@ethersproject/constants";
 import { useLiquity } from "../hooks/LiquityContext";
+import styled from 'styled-components';
 
 import { Nav } from "./Nav";
 import { SideNav } from "./SideNav";
@@ -18,10 +19,9 @@ export const Header: React.FC = ({ children }) => {
   } = useLiquity();
   const { frontend } = useLiquitySelector(select);
   const isFrontendRegistered = frontendTag === AddressZero || frontend.status === "registered";
-
   return (
-    <Container variant="header">
-      <Flex sx={{ alignItems: "center", flex: 1 }}>
+    <TopBarContainer>
+      <Flex sx={{ alignItems: "center", flex: 1}}>
         {isFrontendRegistered && (
           <>
             <SideNav />
@@ -31,6 +31,20 @@ export const Header: React.FC = ({ children }) => {
       </Flex>
 
       {children}
-    </Container>
+    </TopBarContainer>
   );
 };
+
+const TopBarContainer = styled(Container)`
+  position: fixed;
+  z-index: 100;
+  display: flex;
+  flex-direction: row;
+  background: rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  // opacity: 0.7;
+  height: 72px;
+  width: 100%;
+  top: 0;
+  padding:0 16px;
+`;

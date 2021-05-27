@@ -1,15 +1,17 @@
 import React from "react";
 import { Web3ReactProvider } from "@web3-react/core";
-import { Flex, Spinner, Heading, ThemeProvider, Paragraph, Link } from "theme-ui";
-
+import { Flex, Spinner, Heading, ThemeProvider as ThemeUIThemeProvider, Paragraph, Link } from "theme-ui";
+import { ThemeProvider } from 'styled-components';
+import ModalsProvider from './components/Modals/index';
+import { SnackbarProvider } from 'notistack';
 import { BatchedWebSocketAugmentedWeb3Provider } from "@liquity/providers";
 import { LiquityProvider } from "./hooks/LiquityContext";
 import { WalletConnector } from "./components/WalletConnector";
 import { TransactionProvider } from "./components/Transaction";
 import { Icon } from "./components/Icon";
 import { getConfig } from "./config";
-import theme from "./theme";
-
+import themeUITheme from "./theme";
+import theme from "./theme/index";
 import { DisposableWalletProvider } from "./testUtils/DisposableWalletProvider";
 import { LiquityFrontend } from "./LiquityFrontend";
 
@@ -98,19 +100,32 @@ const App = () => {
 
   return (
     <EthersWeb3ReactProvider>
-      <ThemeProvider theme={theme}>
-        <WalletConnector loader={loader}>
-          <LiquityProvider
-            loader={loader}
-            unsupportedNetworkFallback={unsupportedNetworkFallback}
-            unsupportedMainnetFallback={<UnsupportedMainnetFallback />}
-          >
-            <TransactionProvider>
-              <LiquityFrontend loader={loader} />
-            </TransactionProvider>
-          </LiquityProvider>
-        </WalletConnector>
-      </ThemeProvider>
+      <ThemeUIThemeProvider theme={themeUITheme}>
+        <ThemeProvider theme={theme}>
+          <WalletConnector loader={loader}>
+            <ModalsProvider>
+              <SnackbarProvider
+                anchorOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                maxSnack={2}
+                autoHideDuration={2500}
+              >
+                <LiquityProvider
+                  loader={loader}
+                  unsupportedNetworkFallback={unsupportedNetworkFallback}
+                  unsupportedMainnetFallback={<UnsupportedMainnetFallback />}
+                >
+                  <TransactionProvider>
+                    <LiquityFrontend loader={loader} />
+                  </TransactionProvider>
+                </LiquityProvider>
+              </SnackbarProvider>
+            </ModalsProvider>
+          </WalletConnector>
+        </ThemeProvider>
+      </ThemeUIThemeProvider>
     </EthersWeb3ReactProvider>
   );
 };
