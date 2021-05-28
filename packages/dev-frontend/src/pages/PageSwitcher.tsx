@@ -6,7 +6,7 @@ import { useLiquitySelector } from "@liquity/lib-react";
 
 import { useLiquity } from "../hooks/LiquityContext";
 
-import { Dashboard } from "./Dashboard";
+import Home from "./Loan/index";
 import { UnregisteredFrontend } from "./UnregisteredFrontend";
 import { FrontendRegistration } from "./FrontendRegistration";
 import { FrontendRegistrationSuccess } from "./FrontendRegistrationSuccess";
@@ -39,6 +39,6 @@ export const PageSwitcher: React.FC = () => {
       return <UnregisteredFrontend />;
     }
   } else {
-    return <Dashboard />;
+    return <Home />;
   }
 };

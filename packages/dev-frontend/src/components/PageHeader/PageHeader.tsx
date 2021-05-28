@@ -15,35 +15,37 @@ interface PageHeaderProps {
   learnMoreLink?: string;
   parentLink?: string;
   parentLinkTitle?: string;
+  centeredHeader?: boolean;
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({
- icon,
- subtitle,
- title,
- secondParaTitle,
- secondParaDescription,
- learnMoreLink,
- parentLink,
- parentLinkTitle
+  icon,
+  subtitle,
+  title,
+  secondParaTitle,
+  secondParaDescription,
+  learnMoreLink,
+  parentLink,
+  parentLinkTitle,
+  centeredHeader
 }) => {
 
-  const isDesktopOrLaptop = useMediaQuery({query: '(min-device-width: 800px)'});
+  const isDesktopOrLaptop = useMediaQuery({ query: '(min-device-width: 800px)' });
 
   return (
-    <StyledPageHeader>
+    <StyledPageHeader style={centeredHeader && { width: undefined, textAlign: 'center' }}>
       <Container size="lg">
-        <StyledPageContent>
+        <StyledPageContent style={centeredHeader && { width: undefined, textAlign: 'center' }}>
           <StyledTextContainer>
             {(isDesktopOrLaptop && parentLink) && (
               <StyledNav>
                 <StyledNavLink to={parentLink}>{parentLinkTitle}</StyledNavLink>
-                <KeyboardArrowRight style={{color: theme.color.grey[500]}} />
+                <KeyboardArrowRight style={{ color: theme.color.grey[500] }} />
                 <StyledNavTitle>{title}</StyledNavTitle>
               </StyledNav>
             )}
             <StyledTitle>{title}</StyledTitle>
-            <StyledSubtitle>
+            <StyledSubtitle style={centeredHeader && { maxWidth: undefined, textAlign: 'center' }}>
               {subtitle}
               {learnMoreLink && <LearnMore href={learnMoreLink} target="">
                 &nbsp; Learn more.
@@ -143,7 +145,7 @@ const StyledSubtitle = styled.h3`
   padding-top: 10px;
   font-weight: 300;
   margin: 0;
-  max-width: 500px;
+  // max-width: 500px;
   padding: 0;
 `;
 const SecondParaDescription = styled.h3`

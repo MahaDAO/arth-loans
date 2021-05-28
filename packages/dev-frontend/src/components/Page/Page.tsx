@@ -5,11 +5,8 @@ import chakra from '../../assets/svg/BG.svg';
 const Page: React.FC = ({ children }) => (
   <StyledPage>
     <GradientDiv />
-    {/* <StyledImg src={chakra} height={'1400px'} alt="chakra"
-      // className="chakra-home"
-    /> */}
     <div className="chakra-home">
-      <img src={chakra} height={1400} alt="chakra" />
+      <img src={chakra} height={1900} alt="chakra" />
     </div>
     <StyledMain>{children}</StyledMain>
   </StyledPage>
@@ -21,7 +18,8 @@ const GradientDiv = styled.div`
   position: absolute;
   // border: 1px solid;
   width: 100%;
-  z-index: -5;
+  z-index: 5;
+  top: 72px;
 `;
 
 const StyledPage = styled.div`
@@ -37,9 +35,10 @@ const StyledMain = styled.div`
   display: flex;
   flex-direction: column;
   // background-color: red;
-  min-height: calc(100vh - ${(props) => props?.theme?.topBarSize * 2 || 72 * 2}px);
+  min-height: calc(100vh - 72px);
   // padding-bottom: ${(props) => props?.theme?.spacing[5] || 32}px;
   padding-top: 72px;
+  z-index: 5;
 `;
 
 const StyledImg = styled.img`
