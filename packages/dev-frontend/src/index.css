@@ -93,6 +93,32 @@ code {
   padding: 0px 6px !important;
 }
 
+.only-colored-border-box {
+  position:relative;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(21px);
+  padding: 32px;
+  border-radius: 12px;
+}
+
+.only-colored-border-box::before {
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  border-radius: 12px;
+  padding:1px;
+  background: linear-gradient(180deg, rgba(255, 116, 38, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  z-index: -1;
+}
+
 .custom-mahadao-box {
   position:relative;
   background: rgba(255, 255, 255, 0.02);

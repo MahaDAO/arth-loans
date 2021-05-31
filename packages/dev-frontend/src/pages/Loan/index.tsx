@@ -43,7 +43,7 @@ const Home = (props: any) => {
                             <RedeemGrid type={type} setType={setType} />
                         }
                         <StabilityPool />
-                        <Staking />
+                        {/* <Staking /> */}
                     </Container>
                 </Grid>
                 <Grid item lg={4} md={12} sm={12} xs={12}>

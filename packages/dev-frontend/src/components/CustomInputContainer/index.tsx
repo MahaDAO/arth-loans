@@ -11,15 +11,15 @@ import { correctString } from './RegexValidation';
 
 type props = {
   ILabelValue: string;
-  IBalanceValue: string;
+  IBalanceValue?: string;
   showBalance?: boolean;
   ILabelInfoValue?: string;
   value?: string;
   DefaultValue: string;
-  LogoSymbol: string;
-  hasDropDown: boolean;
+  LogoSymbol?: string;
+  hasDropDown?: boolean;
   disabled?: boolean;
-  SymbolText: string;
+  SymbolText?: string;
   setText?: (val: string) => void;
   inputMode?: 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search';
   tagText?: string;
@@ -162,7 +162,7 @@ const CustomInputContainer: React.FC<props> = (props) => {
               {tagText}
             </MaxTagConatiner>
           )}
-          <IFieldRightContainer
+          {(LogoSymbol || symbols) && <IFieldRightContainer
             onClick={() => {
               if (hasDropDown) setModalOpen(!modalOpen);
             }}
@@ -208,7 +208,7 @@ const CustomInputContainer: React.FC<props> = (props) => {
                 ondropDownValueChange={ondropDownValueChange}
               />
             )}
-          </IFieldRightContainer>
+          </IFieldRightContainer>}
         </IFieldConatiner>
         {ICStates.IMsg !== '' && (
           <p className={`input-font-${ICStates.IState}`}>{ICStates.IMsg}</p>

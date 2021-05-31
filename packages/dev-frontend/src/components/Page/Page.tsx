@@ -33,6 +33,7 @@ const StyledPage = styled.div`
 const StyledMain = styled.div`
   align-items: center;
   display: flex;
+  height: 100%;
   flex-direction: column;
   // background-color: red;
   min-height: calc(100vh - 72px);
