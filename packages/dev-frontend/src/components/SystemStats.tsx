@@ -238,6 +238,7 @@ export const SystemStats: React.FC<SystemStatsProps> = ({ variant = "info", show
 
 const RightTopCard = styled.div`
   width: 100%;
+  height: 464px;
   @media (max-width: 600px) {
     margin-top: 8px;
   }

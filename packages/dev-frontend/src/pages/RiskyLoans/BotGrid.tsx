@@ -64,7 +64,7 @@ export default () => {
 
 
 const RightTopCard = styled.div`
-    height: 100%;
+  max-height: 464px;
   @media (max-width: 600px) {
     margin-top: 8px;
   }
@@ -97,11 +97,12 @@ color: rgba(255, 255, 255, 0.64);
 
 const LeftTopCard = styled.div`
   width: 100%;
+  max-height: 300px;
 `;
 
 const StabilityCardHeader = styled.div`
-  padding-top: 24px;
-  padding-bottom: 24px;
+  padding-top: 18px;
+  padding-bottom: 18px;
 `;
 
 const HeaderTitle = styled.div`

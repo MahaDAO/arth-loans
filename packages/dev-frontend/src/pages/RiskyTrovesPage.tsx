@@ -27,22 +27,22 @@ export const RiskyTrovesPage = () => {
           style={{ marginBlock: 24 }}
         >
           <Grid item lg={1} />
-          <Grid item lg={8}>
+          <Grid item lg={9}>
             <Grid container
-              spacing={5}
-              style={{height: '100%'}}
+              spacing={3}
+              // style={{ maxHeight: '500px' }}
               direction={isMobile ? 'column' : 'row'}
               justify={'center'}
             >
               <Grid item lg={5} sm={12}>
                 <BotGrid />
               </Grid>
-              <Grid item lg={5} sm={12}>
+              <Grid item lg={5} sm={12} style={{ marginTop: isMobile ? 24 : 0 }}>
                 <SystemStats />
               </Grid>
             </Grid>
             <Grid item sm={12} lg={12}>
-              {/* <OwnerList /> */}
+              <OwnerList />
             </Grid>
           </Grid>
           <Grid item lg={1} />
