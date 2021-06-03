@@ -24,24 +24,24 @@ export const RiskyTrovesPage = () => {
         <Grid
           container
           justify={'center'}
-          style={{ marginBlock: 24 }}
+          style={{ marginBlock: 24, maxWidth: '1500px' }}
         >
           <Grid item lg={1} />
           <Grid item lg={9}>
             <Grid container
               spacing={3}
-              // style={{ maxHeight: '500px' }}
+              style={{ padding: 0 }}
               direction={isMobile ? 'column' : 'row'}
               justify={'center'}
             >
-              <Grid item lg={5} sm={12}>
+              <Grid item lg={6} sm={12}>
                 <BotGrid />
               </Grid>
-              <Grid item lg={5} sm={12} style={{ marginTop: isMobile ? 24 : 0 }}>
+              <Grid item lg={6} sm={12} style={{ marginTop: isMobile ? 24 : 0 }}>
                 <SystemStats />
               </Grid>
             </Grid>
-            <Grid item sm={12} lg={12}>
+            <Grid item>
               <OwnerList />
             </Grid>
           </Grid>
@@ -49,5 +49,27 @@ export const RiskyTrovesPage = () => {
         </Grid>
       </Page>
     </>
+    //   <Container variant="columns">
+    //     <Container variant="left">
+    //       <Card>
+    //         <Box sx={{ p: [2, 3] }}>
+    //           <InfoMessage title="Bot functionality">
+    //             <Paragraph>Liquidation is expected to be carried out by bots.</Paragraph>
+    //             <Paragraph>
+    //               Early on you may be able to manually liquidate Loans, but as the system matures this
+    //               will become less likely.
+    //         </Paragraph>
+    //           </InfoMessage>
+    //         </Box>
+    //       </Card>
+    //       <LiquidationManager />
+    //     </Container>
+
+    //     <Container variant="right">
+    //       <SystemStats />
+    //     </Container>
+    //     <RiskyTroves pageSize={10} />
+    //   </Container>
+    // </>
   )
 }

@@ -3,12 +3,18 @@ import styled from 'styled-components';
 import warningYellow from '../../assets/svg/warning-yellow.svg';
 import Button from '../../components/Button';
 import CustomInputContainer from '../../components/CustomInputContainer';
+import { Transaction } from '../../components/Transaction';
+import { useLiquity } from '../../hooks/LiquityContext';
 
 export default () => {
     const headertext = `Liquidation is expected to be carried out by bots.
     Early on you may be able to manually liquidate Loans, but as the system matures this will become less likely.`
 
-    const [liquidateValue, setLiquidate] = useState('0')
+    const {
+        liquity: { send: liquity }
+    } = useLiquity();
+    const [numberOfTrovesToLiquidate, setNumberOfTrovesToLiquidate] = useState("0");
+
 
     return (
         <>
@@ -38,21 +44,33 @@ export default () => {
                     <LeftTopCardContainer className={'custom-mahadao-container-content'}>
                         <CustomInputContainer
                             ILabelValue={'Enter Collateral'}
-                            IBalanceValue={'`${getDisplayBalance(0, 0)}`'}
+                            showBalance={false}
                             ILabelInfoValue={''}
-                            DefaultValue={liquidateValue.toString()}
+                            DefaultValue={numberOfTrovesToLiquidate.toString()}
                             SymbolText={'ARTH'}
                             inputMode={'numeric'}
                             setText={(val: string) => {
-                                setLiquidate(val);
+                                setNumberOfTrovesToLiquidate(val);
                             }}
                         />
                         <div style={{ marginTop: 32 }}>
-                            <Button
-                                text={'Liquidate'}
-                                variant={'default'}
-                                size={'lg'}
-                            />
+                            <Transaction
+                                id="batch-liquidate"
+                                tooltip="Liquidate"
+                                tooltipPlacement="bottom"
+                                send={overrides => {
+                                    if (!numberOfTrovesToLiquidate) {
+                                        throw new Error("Invalid number");
+                                    }
+                                    return liquity.liquidateUpTo(parseInt(numberOfTrovesToLiquidate, 10), overrides);
+                                }}
+                            >
+                                <Button
+                                    text={'Liquidate'}
+                                    variant={'default'}
+                                    size={'lg'}
+                                />
+                            </Transaction>
                         </div>
                     </LeftTopCardContainer>
                 </LeftTopCard>

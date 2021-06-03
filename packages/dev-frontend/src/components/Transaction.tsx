@@ -14,6 +14,7 @@ import { useLiquity } from "../hooks/LiquityContext";
 
 import { Icon } from "./Icon";
 import { Tooltip, TooltipProps, Hoverable } from "./Tooltip";
+import CustomToolTip from "./CustomToolTip";
 
 const strokeWidth = 10;
 
@@ -209,16 +210,16 @@ export function Transaction<C extends React.ReactElement<ButtonlikeProps & Hover
   const clonedTrigger =
     showFailure === "asChildText"
       ? React.cloneElement(
-          trigger,
-          {
-            disabled: true,
-            variant: "danger"
-          },
-          failureReasons[0]
-        )
+        trigger,
+        {
+          disabled: true,
+          variant: "danger"
+        },
+        failureReasons[0]
+      )
       : showFailure === "asTooltip"
-      ? React.cloneElement(trigger, { disabled: true })
-      : React.cloneElement(trigger, { onClick: sendTransaction });
+        ? React.cloneElement(trigger, { disabled: true })
+        : React.cloneElement(trigger, { onClick: sendTransaction });
 
   if (showFailure === "asTooltip") {
     tooltip = failureReasons[0];
@@ -226,9 +227,9 @@ export function Transaction<C extends React.ReactElement<ButtonlikeProps & Hover
 
   return tooltip ? (
     <>
-      <Tooltip message={tooltip} placement={tooltipPlacement || "right"}>
+      <CustomToolTip toolTipText={tooltip}>
         {clonedTrigger}
-      </Tooltip>
+      </CustomToolTip>
     </>
   ) : (
     clonedTrigger
@@ -403,10 +404,10 @@ export const TransactionMonitor: React.FC = () => {
           transactionState.type === "confirmed"
             ? "success"
             : transactionState.type === "cancelled"
-            ? "warning"
-            : transactionState.type === "failed"
-            ? "danger"
-            : "primary",
+              ? "warning"
+              : transactionState.type === "failed"
+                ? "danger"
+                : "primary",
         p: 3,
         pl: 4,
         position: "fixed",
@@ -423,10 +424,10 @@ export const TransactionMonitor: React.FC = () => {
         {transactionState.type === "waitingForConfirmation"
           ? "Waiting for confirmation"
           : transactionState.type === "cancelled"
-          ? "Cancelled"
-          : transactionState.type === "failed"
-          ? transactionState.error.message
-          : "Confirmed"}
+            ? "Cancelled"
+            : transactionState.type === "failed"
+              ? transactionState.error.message
+              : "Confirmed"}
       </Text>
     </Flex>
   );

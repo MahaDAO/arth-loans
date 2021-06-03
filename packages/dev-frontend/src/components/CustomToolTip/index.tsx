@@ -6,12 +6,13 @@ import HtmlTooltip from '../HtmlTooltip';
 type props = {
   toolTipText?: string;
   iconStyle?: object;
+  children?: any;
 };
 
 const CustomToolTip: React.FC<props> = (props) => {
-  const { toolTipText, iconStyle } = props;
+  const { toolTipText, iconStyle, children } = props;
 
-//   return <div />;
+  //   return <div />;
 
   if (!toolTipText) {
     return <InfoIcon fontSize="default" style={{ transform: 'scale(0.6)' }} />;
@@ -25,10 +26,10 @@ const CustomToolTip: React.FC<props> = (props) => {
         </React.Fragment>
       }
     >
-      <InfoIcon
+      {!children ? <InfoIcon
         fontSize="default"
         style={{ transform: 'scale(0.6)', cursor: 'pointer', marginBottom: '2px' }}
-      />
+      /> : children}
     </HtmlTooltip>
   );
 };
