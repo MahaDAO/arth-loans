@@ -1,5 +1,5 @@
 // import { Container } from "theme-ui";
-import React, { useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import styled from 'styled-components';
 // import { withSnackbar, WithSnackbarProps } from 'notistack';
 import { useParams } from 'react-router-dom';
@@ -23,14 +23,137 @@ import CustomToolTip from '../../components/CustomToolTip';
 import warningYellow from '../../assets/svg/warning-yellow.svg';
 import prettyNumber from '../../components/PrettyNumber';
 import { useMediaQuery } from 'react-responsive';
+import { StabilityView } from '../../components/Stability/context/types';
+import { useStabilityView } from '../../components/Stability/context/StabilityViewContext';
+import { LiquityStoreUpdate, useLiquityReducer, useLiquitySelector } from '@liquity/lib-react';
+import { Decimal, Decimalish, LiquityStoreState } from '@liquity/lib-base';
+import {
+    selectForStabilityDepositChangeValidation,
+    validateStabilityDepositChange
+} from "../../components/Stability/validation/validateStabilityDepositChange";
+import { useMyTransactionState } from '../../components/Transaction';
+
+const init = ({ stabilityDeposit }: LiquityStoreState) => ({
+    originalDeposit: stabilityDeposit,
+    editedLUSD: stabilityDeposit.currentLUSD,
+    changePending: false
+});
+
+type StabilityDepositManagerState = ReturnType<typeof init>;
+type StabilityDepositManagerAction =
+    | LiquityStoreUpdate
+    | { type: "startChange" | "finishChange" | "revert" }
+    | { type: "setDeposit"; newValue: Decimalish };
+
+const reduceWith = (action: StabilityDepositManagerAction) => (
+    state: StabilityDepositManagerState
+): StabilityDepositManagerState => reduce(state, action);
+
+const finishChange = reduceWith({ type: "finishChange" });
+const revert = reduceWith({ type: "revert" });
+
+const reduce = (
+    state: StabilityDepositManagerState,
+    action: StabilityDepositManagerAction
+): StabilityDepositManagerState => {
+    // console.log(state);
+    // console.log(action);
+
+    const { originalDeposit, editedLUSD, changePending } = state;
+
+    switch (action.type) {
+        case "startChange": {
+            console.log("changeStarted");
+            return { ...state, changePending: true };
+        }
+
+        case "finishChange":
+            return { ...state, changePending: false };
+
+        case "setDeposit":
+            return { ...state, editedLUSD: Decimal.from(action.newValue) };
+
+        case "revert":
+            return { ...state, editedLUSD: originalDeposit.currentLUSD };
+
+        case "updateStore": {
+            const {
+                stateChange: { stabilityDeposit: updatedDeposit }
+            } = action;
+
+            if (!updatedDeposit) {
+                return state;
+            }
+
+            const newState = { ...state, originalDeposit: updatedDeposit };
+
+            const changeCommitted =
+                !updatedDeposit.initialLUSD.eq(originalDeposit.initialLUSD) ||
+                updatedDeposit.currentLUSD.gt(originalDeposit.currentLUSD) ||
+                updatedDeposit.collateralGain.lt(originalDeposit.collateralGain) ||
+                updatedDeposit.lqtyReward.lt(originalDeposit.lqtyReward);
+
+            if (changePending && changeCommitted) {
+                return finishChange(revert(newState));
+            }
+
+            return {
+                ...newState,
+                editedLUSD: updatedDeposit.apply(originalDeposit.whatChanged(editedLUSD))
+            };
+        }
+    }
+};
+
+const transactionId = "stability-deposit";
+
 interface Props {
     noArth?: boolean
-
+    view?: StabilityView
 }
 const StabilityPool = (props: Props) => {
+
+    const [{ originalDeposit, editedLUSD, changePending }, dispatch] = useLiquityReducer(reduce, init);
+    const validationContext = useLiquitySelector(selectForStabilityDepositChangeValidation);
     const [noArth, setNoArth] = useState<boolean>(props.noArth || true)
     const [stabilityValue, setStabilityValue] = useState('0')
     let isMobile = useMediaQuery({ 'maxWidth': '768px' })
+    const { dispatchEvent } = useStabilityView();
+
+    const handleOpenTrove = useCallback(() => { // not much impo for our case
+        dispatchEvent("DEPOSIT_PRESSED");
+    }, [dispatchEvent]);
+
+
+    const handleCancel = useCallback(() => {
+        dispatchEvent("CANCEL_PRESSED");
+    }, [dispatchEvent]);
+
+    const [validChange, description] = validateStabilityDepositChange(
+        originalDeposit,
+        editedLUSD,
+        validationContext
+    );
+
+    const makingNewDeposit = originalDeposit.isEmpty;
+
+    const myTransactionState = useMyTransactionState(transactionId);
+
+
+    useEffect(() => {
+        if (
+            myTransactionState.type === "waitingForApproval" ||
+            myTransactionState.type === "waitingForConfirmation"
+        ) {
+            dispatch({ type: "startChange" });
+        } else if (myTransactionState.type === "failed" || myTransactionState.type === "cancelled") {
+            dispatch({ type: "finishChange" });
+        } else if (myTransactionState.type === "confirmedOneShot") {
+            dispatchEvent("DEPOSIT_CONFIRMED");
+        }
+    }, [myTransactionState.type, dispatch, dispatchEvent]);
+
+
     return (
         <div style={{ marginTop: 20 }}>
             <LeftTopCard className={'custom-mahadao-container'}>
@@ -203,7 +326,7 @@ const StabilityPool = (props: Props) => {
                                             }}
                                         >
                                             <div style={{
-                                                display:'flex',
+                                                display: 'flex',
                                                 width: '100%',
                                                 marginRight: isMobile ? 0 : 10,
                                                 marginTop: isMobile ? 10 : 0
@@ -223,8 +346,8 @@ const StabilityPool = (props: Props) => {
                                                 />
                                             </div>
                                             <div style={{
-                                                display:'flex',
-                                                width: '100%',                                
+                                                display: 'flex',
+                                                width: '100%',
                                                 marginLeft: isMobile ? 0 : 10,
                                                 marginBottom: isMobile ? 10 : 0
                                             }}>

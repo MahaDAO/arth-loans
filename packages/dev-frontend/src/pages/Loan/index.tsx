@@ -20,8 +20,11 @@ import arrowDown from '../../../assets/svg/arrowDown.svg';
 import Button from '../../components/Button';
 import { getDisplayBalance } from '../../utils/formatBalance';
 import StabilityPool from './Stability'
+import { useStabilityView } from '../../components/Stability/context/StabilityViewContext';
 const Home = (props: any) => {
     const [type, setType] = useState<'loan' | 'redeem'>('loan')
+    const { view } = useStabilityView();
+
     return (
         <Page>
             <PageHeader
@@ -42,7 +45,7 @@ const Home = (props: any) => {
                             :
                             <RedeemGrid type={type} setType={setType} />
                         }
-                        <StabilityPool />
+                        <StabilityPool view={view}/>
                         {/* <Staking /> */}
                     </Container>
                 </Grid>

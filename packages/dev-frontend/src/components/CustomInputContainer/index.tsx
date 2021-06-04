@@ -10,12 +10,12 @@ import { Link } from 'react-router-dom';
 import { correctString } from './RegexValidation';
 
 type props = {
-  ILabelValue: string;
+  ILabelValue?: string;
   IBalanceValue?: string;
   showBalance?: boolean;
   ILabelInfoValue?: string;
   value?: string;
-  DefaultValue: string;
+  DefaultValue?: string;
   LogoSymbol?: string;
   hasDropDown?: boolean;
   disabled?: boolean;
@@ -35,6 +35,10 @@ type props = {
   msg?: string;
   DisableMsg?: string;
   errorCallback?: (flag: boolean) => void;
+  InfoOnlyMode?: boolean
+  InfoLeft?: string,
+  InfoRightValue?: string,
+  InfoRightUnit?: string
 };
 
 interface ICStatesInterface {
@@ -61,6 +65,10 @@ const CustomInputContainer: React.FC<props> = (props) => {
     Istate = 'default',
     msg = '',
     DisableMsg = '',
+    InfoOnlyMode = false,
+    InfoLeft,
+    InfoRightValue,
+    InfoRightUnit
   } = props;
   const [ICStates, setICStates] = useState<ICStatesInterface>({ IState: Istate, IMsg: msg });
   const [modalOpen, setModalOpen] = useState<boolean>(false);
@@ -124,95 +132,103 @@ const CustomInputContainer: React.FC<props> = (props) => {
     <div style={{ position: 'relative' }}>
       {DisableMsg !== '' && <TotalDisable><DMsg>{DisableMsg}</DMsg></TotalDisable>}
       <IConatiner style={IConatinerStyle()}>
-        <ILabelContainer>
-          <ILabelLeft>
-            <ILabel>{ILabelValue}</ILabel>
-            {ILabelInfoValue !== '' && Redirection()}
-          </ILabelLeft>
-          <ILabelRight>
-            {showBalance && <ILabelBalance>{`Balance  ${Number(IBalanceValue).toLocaleString()}`}</ILabelBalance>}
-          </ILabelRight>
-        </ILabelContainer>
-        <IFieldConatiner className={`input-${ICStates.IState}`}>
-          <InputBase
-            inputMode={props?.inputMode}
-            placeholder={DefaultValue || '0'}
-            // defaultValue={DefaultValue}
-            value={DefaultValue}
-            inputProps={{ 'aria-label': 'naked' }}
-            style={{
-              padding: '8px 12px',
-              color: '#FFFFFF',
-              flex: 1,
-              fontFamily: 'Inter !important',
-            }}
-            type={'number'}
-            onChange={(event) => {
-              const proceed = checkForErrors(event.target.value);
-              if (Number(event.target.value) && Number(event.target.value) < 0) return
-              if (proceed) props?.setText(event.target.value.length > 1 ? correctString(event.target.value) : event.target.value);
-            }}
-          />
-          {tagText !== '' && (
-            <MaxTagConatiner
-              onClick={() => {
-                props?.setText(IBalanceValue.toString());
-              }}
-            >
-              {tagText}
-            </MaxTagConatiner>
-          )}
-          {(LogoSymbol || symbols) && <IFieldRightContainer
-            onClick={() => {
-              if (hasDropDown) setModalOpen(!modalOpen);
-            }}
-          >
-            {/*<Select
-              width='500px'
-              style={{
-                background: 'red'
-              }}
-              options={options}
-              defaultValue={options[0]}
-              components={{ Option: IconOption, Menu }}
-              menuColor='red'
-            />*/}
-            <IFieldRightContainerLogo>
-              {multiIcons && symbols ? (
-                <LLabel>
-                  {symbols.map((s, index) => (
-                    <TokenSymbol key={s} symbol={s} size={25} style={index === 1 ? { zIndex: 2, marginLeft: -5 } : { zIndex: 2 }} />
-                  ))}
-                </LLabel>
-              ) : (
-                <TokenSymbol symbol={LogoSymbol} size={25} />
-              )}
-            </IFieldRightContainerLogo>
-            <IFieldRightContainerText>{SymbolText}</IFieldRightContainerText>
-            {hasDropDown && (
-              <IFieldRightContainerDropDown>
-                {/*<KeyboardArrowDown fontSize='default' />*/}
-                <img alt="arrow" src={DownArrow} height={20} style={{ marginLeft: 10 }} />
-              </IFieldRightContainerDropDown>
-            )}
-            {modalOpen && hasDropDown && ondropDownValueChange && (
-              <BackgroundAbsolute
-                onClick={() => {
-                  setModalOpen(!modalOpen);
+        {!InfoOnlyMode ?
+          <>
+            <ILabelContainer>
+              <ILabelLeft>
+                <ILabel>{ILabelValue}</ILabel>
+                {ILabelInfoValue !== '' && Redirection()}
+              </ILabelLeft>
+              <ILabelRight>
+                {showBalance && <ILabelBalance>{`Balance  ${Number(IBalanceValue).toLocaleString()}`}</ILabelBalance>}
+              </ILabelRight>
+            </ILabelContainer>
+            <IFieldConatiner className={`input-${ICStates.IState}`}>
+              <InputBase
+                inputMode={props?.inputMode}
+                placeholder={DefaultValue || '0'}
+                // defaultValue={DefaultValue}
+                value={DefaultValue}
+                inputProps={{ 'aria-label': 'naked' }}
+                style={{
+                  padding: '8px 12px',
+                  color: '#FFFFFF',
+                  flex: 1,
+                  fontFamily: 'Inter !important',
+                }}
+                type={'number'}
+                onChange={(event) => {
+                  const proceed = checkForErrors(event.target.value);
+                  if (Number(event.target.value) && Number(event.target.value) < 0) return
+                  if (proceed) props?.setText(event.target.value.length > 1 ? correctString(event.target.value) : event.target.value);
                 }}
               />
+              {tagText !== '' && (
+                <MaxTagConatiner
+                  onClick={() => {
+                    props?.setText(IBalanceValue.toString());
+                  }}
+                >
+                  {tagText}
+                </MaxTagConatiner>
+              )}
+              {(LogoSymbol || symbols) && <IFieldRightContainer
+                onClick={() => {
+                  if (hasDropDown) setModalOpen(!modalOpen);
+                }}
+              >
+                <IFieldRightContainerLogo>
+                  {multiIcons && symbols ? (
+                    <LLabel>
+                      {symbols.map((s, index) => (
+                        <TokenSymbol key={s} symbol={s} size={25} style={index === 1 ? { zIndex: 2, marginLeft: -5 } : { zIndex: 2 }} />
+                      ))}
+                    </LLabel>
+                  ) : (
+                    <TokenSymbol symbol={LogoSymbol} size={25} />
+                  )}
+                </IFieldRightContainerLogo>
+                <IFieldRightContainerText>{SymbolText}</IFieldRightContainerText>
+                {hasDropDown && (
+                  <IFieldRightContainerDropDown>
+                    {/*<KeyboardArrowDown fontSize='default' />*/}
+                    <img alt="arrow" src={DownArrow} height={20} style={{ marginLeft: 10 }} />
+                  </IFieldRightContainerDropDown>
+                )}
+                {modalOpen && hasDropDown && ondropDownValueChange && (
+                  <BackgroundAbsolute
+                    onClick={() => {
+                      setModalOpen(!modalOpen);
+                    }}
+                  />
+                )}
+                {modalOpen && hasDropDown && ondropDownValueChange && (
+                  <CustomDropDown
+                    dropDownValues={dropDownValues}
+                    ondropDownValueChange={ondropDownValueChange}
+                  />
+                )}
+              </IFieldRightContainer>}
+            </IFieldConatiner>
+            {ICStates.IMsg !== '' && (
+              <p className={`input-font-${ICStates.IState}`}>{ICStates.IMsg}</p>
             )}
-            {modalOpen && hasDropDown && ondropDownValueChange && (
-              <CustomDropDown
-                dropDownValues={dropDownValues}
-                ondropDownValueChange={ondropDownValueChange}
-              />
-            )}
-          </IFieldRightContainer>}
-        </IFieldConatiner>
-        {ICStates.IMsg !== '' && (
-          <p className={`input-font-${ICStates.IState}`}>{ICStates.IMsg}</p>
-        )}
+          </> :
+          <>
+            <ILabelContainer style={{ justifyContent: 'space-between' }}>
+              <InfoLabelLeft>
+                {InfoLeft && <ILabel>{InfoLeft}</ILabel>}
+                {/* {ILabelInfoValue !== '' && Redirection()} */}
+              </InfoLabelLeft>
+              <ILabelRight>
+                {InfoRightValue &&
+                  <ILabelBalance>
+                    <InfoLabelRight>{InfoRightValue}</InfoLabelRight>
+                    {InfoRightUnit && <TagChips>{InfoRightUnit}</TagChips>}
+                  </ILabelBalance>}
+              </ILabelRight>
+            </ILabelContainer>
+          </>}
       </IConatiner>
     </div>
   );
@@ -234,6 +250,39 @@ const TotalDisable = styled.div`
   justify-content: center;
   align-items: center;
   border: 1px solid #FFFFFF29;
+`;
+
+const InfoLabelLeft = styled.div`
+font-family: Inter;
+font-style: normal;
+font-weight: normal;
+font-size: 18px;
+line-height: 135%;
+color: #FFFFFF;
+opacity: 0.64;
+`;
+
+const InfoLabelRight = styled.div`
+font-family: Inter;
+font-style: normal;
+font-weight: 600;
+font-size: 18px;
+line-height: 24px;
+text-align: right;
+color: rgba(255, 255, 255, 0.88);
+`;
+
+const TagChips = styled.div`
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 24px;
+  color: rgba(255, 255, 255, 0.64);
+  margin-left: 5px;
 `;
 
 const DMsg = styled.p`
@@ -264,7 +313,7 @@ const BackgroundAbsolute = styled.div`
 const IConatiner = styled.div`
   background: rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  padding: 12px;
+  padding: 6px 12px;
 `;
 const ILabelContainer = styled.div`
   display: flex;
@@ -276,7 +325,11 @@ const ILabelLeft = styled.div`
   align-items: center;
   flex: 1;
 `;
-const ILabelRight = styled.div``;
+const ILabelRight = styled.div`
+display: flex;
+flex-direction: row;
+`;
+
 const ILabel = styled.p`
   font-family: Inter;
   font-style: normal;
@@ -305,6 +358,9 @@ const ILabelBalance = styled.p`
   text-align: right;
   color: rgba(255, 255, 255, 0.64);
   margin-bottom: 12px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 `;
 const LLabel = styled.div`
   display: flex;

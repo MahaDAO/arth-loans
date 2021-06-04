@@ -24,10 +24,11 @@ export interface InputProps {
   buttonType?: 'default' | 'transparent' | 'outlined' | 'rounded';
   buttonHref?: string; /* if want to redirect button to other website */
   buttonTo?: string; /* if want to redirect to other page */
+  buttonCustomOnClick?: () => void
 }
 
 const CustomSuccessModal: React.FC<InputProps> = (props) => {
-  const { modalOpen, setModalOpen, title, subTitle, subTitleLink, buttonText, subsubTitle, buttonType = 'transparent', buttonHref, buttonTo } = props;
+  const { modalOpen, setModalOpen, title, subTitle, subTitleLink, buttonText, subsubTitle, buttonType = 'transparent', buttonHref, buttonTo, buttonCustomOnClick } = props;
 
   let buttonRedirection: object;
 
@@ -68,7 +69,13 @@ const CustomSuccessModal: React.FC<InputProps> = (props) => {
             {subTitle}
           </ContentSubtitle>
         </ContentConatiner>
-        {buttonText && <Button text={buttonText} size={'lg'} variant={buttonType} onClick={() => setModalOpen()} {...buttonRedirection} />}
+        {buttonText && <Button text={buttonText} size={'lg'} variant={buttonType} onClick={() => {
+          if (buttonCustomOnClick){
+            buttonCustomOnClick()
+            return
+          }
+          setModalOpen()
+        }} {...buttonRedirection} />}
       </MainContainer>
 
     </CustomModal>

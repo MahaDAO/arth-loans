@@ -12,7 +12,7 @@ import { Stability } from "../../components/Stability/Stability";
 import { SystemStats } from "../../components/SystemStats";
 import { PriceManager } from "../../components/PriceManager";
 import { Staking } from "../../components/Staking/Staking";
-import { Grid } from '@material-ui/core';
+import { Divider, Grid } from '@material-ui/core';
 import { withSnackbar } from 'notistack';
 import arrowDown from '../../assets/svg/arrowDown.svg';
 import warningYellow from '../../assets/svg/warning-yellow.svg';
@@ -20,17 +20,28 @@ import Button from '../../components/Button';
 import { getDisplayBalance } from '../../utils/formatBalance';
 import CustomToolTip from '../CustomToolTip';
 import CustomModal from '../CustomModal';
+import TransparentInfoDiv from '../InfoDiv'
+import { useMediaQuery } from 'react-responsive';
+import CustomSuccessModal from '../CustomSuccessModal';
+
 interface LoanProps {
     type: 'loan' | 'redeem'
     setType: (val: 'loan' | 'redeem') => void
 }
 
 const LoanGrid = (props: LoanProps) => {
+    let isMobile = useMediaQuery({ 'maxWidth': '600px' })
     const [collateralValue, setCollateralValue] = useState('0')
     const [stabilityValue, setStabilityValue] = useState('0')
     const [debtValue, setDebtValue] = useState('0')
     const [noArthBorrowed, setNoArthBorrow] = useState(true);
     const [noArthinStability, setNoArthStability] = useState(true);
+    const [loanTaken, setLoanTaken] = useState(true)
+    const [modifyMode, setModifyMode] = useState(false)
+    const [collateralRatio, setCollRatio] = useState(150);
+    const [action, setAction] = useState<'Loan' | 'Modify' | 'Close'>('Close')
+    const [modal, setModal] = useState(false)
+    const [successModal, setSuccessModal] = useState(true)
 
     const LoanPool = () => {
         return (
@@ -47,11 +58,16 @@ const LoanGrid = (props: LoanProps) => {
                     </div>
                 </LeftTopCardHeader>
                 <LeftTopCardContainer className={'custom-mahadao-container-content'}>
-                    {noArthBorrowed && <Warning onClick={() => setNoArthBorrow(false)}>
+                    {noArthBorrowed ? <Warning onClick={() => setNoArthBorrow(false)}>
                         <img src={warningYellow} height={24} style={{ marginRight: 5 }} />
                         <div>You haven't borrowed any ARTH yet.</div>
-                    </Warning>}
-                    <CustomInputContainer
+                    </Warning> :
+                        collateralRatio < 150 ? <Warning onClick={() => setNoArthBorrow(false)}>
+                            <img src={warningYellow} height={24} style={{ marginRight: 5 }} />
+                            <div>Keeping your CR above 150% can help avoid liquidation under Recovery Mode.</div>
+                        </Warning> : <></>
+                    }
+                    {!loanTaken ? <CustomInputContainer
                         ILabelValue={'Enter Collateral'}
                         IBalanceValue={'`${getDisplayBalance(0, 0)}`'}
                         ILabelInfoValue={''}
@@ -79,11 +95,18 @@ const LoanGrid = (props: LoanProps) => {
                         }}
                         tagText={'MAX'}
                     // errorCallback={(flag: boolean) => { setIsInputFieldError(flag) }}
-                    />
+                    /> :
+                        <CustomInputContainer
+                            InfoOnlyMode
+                            InfoLeft={'Collateral'}
+                            InfoRightUnit={'ETH'}
+                            InfoRightValue={'2.00'}
+                        />
+                    }
                     <PlusMinusArrow>
                         <img src={arrowDown} alt="arrow" />
                     </PlusMinusArrow>
-                    <CustomInputContainer
+                    {!loanTaken ? <CustomInputContainer
                         ILabelValue={'Enter Debt Amount'}
                         IBalanceValue={'`${getDisplayBalance(0, 0)}`'}
                         ILabelInfoValue={''}
@@ -111,7 +134,14 @@ const LoanGrid = (props: LoanProps) => {
                         }}
                     // tagText={'MAX'}
                     // errorCallback={(flag: boolean) => { setIsInputFieldError(flag) }}
-                    />
+                    /> :
+                        <CustomInputContainer
+                            InfoOnlyMode
+                            InfoLeft={'Total Debt'}
+                            InfoRightUnit={'ARTH'}
+                            InfoRightValue={'5432'}
+                        />
+                    }
                     <div>
                         <TcContainer>
                             <OneLineInputwomargin>
@@ -160,18 +190,18 @@ const LoanGrid = (props: LoanProps) => {
                                     </TextWithIcon>
                                 </div>
                                 <OneLineInputwomargin>
-                                    <BeforeChip>
+                                    <BeforeChip style={{ color: collateralRatio >= 150 ? '#20C974' : '#FA4C69' }}>
                                         {
                                             // Number(getDisplayBalance(tradingFee, 18, 6))
                                             //     .toLocaleString('en-US', { maximumFractionDigits: 6 })
-                                            Number('180.65')
+                                            Number(collateralRatio)
                                         }%
                                     </BeforeChip>
                                     <TagChips>ARTH</TagChips>
                                 </OneLineInputwomargin>
                             </OneLineInputwomargin>
                         </TcContainer>
-                        <div style={{ marginTop: '32px' }}>
+                        <div style={{ marginTop: '32px', display: 'flex', flexDirection: isMobile ? 'column-reverse' : 'row', width: '100%' }}>
                             {
                                 !true ? (
                                     <Button
@@ -207,19 +237,37 @@ const LoanGrid = (props: LoanProps) => {
                                             <br />
                                         </>
                                     ) : (
-                                        <Button
-                                            text={'Take Loan'}
-                                            size={'lg'}
-                                            variant={'default'}
-                                            disabled={
-                                                // mintCR.lt(1e6) ||
-                                                // isInputFieldError ||
-                                                // !isCollatApproved ||
-                                                !Number(debtValue) ||
-                                                !(Number(collateralValue))
-                                            }
-                                        // onClick={() => setOpenModal(1)}
-                                        />
+                                        <>
+                                            {loanTaken && <div style={{ display: 'flex', marginTop: isMobile ? 10 : 0, marginRight: isMobile ? 0 : 10, width: '100%' }}>
+                                                <Button
+                                                    text={'Close Loan'}
+                                                    size={'lg'}
+                                                    variant={'transparent'}
+                                                    onClick={() => {
+                                                        setAction('Close')
+                                                        setModal(true)
+                                                    }}
+                                                />
+                                            </div>}
+                                            <div style={{ display: 'flex', marginLeft: isMobile ? 0 : 10, width: '100%' }}>
+                                                <Button
+                                                    text={loanTaken ? 'Modify Loan' : 'Take Loan'}
+                                                    size={'lg'}
+                                                    variant={'default'}
+                                                    disabled={
+                                                        // mintCR.lt(1e6) ||
+                                                        // isInputFieldError ||
+                                                        // !isCollatApproved ||
+                                                        (!loanTaken && (!Number(debtValue) ||
+                                                            !(Number(collateralValue))))
+                                                    }
+                                                    onClick={() => {
+                                                        setAction('Modify')
+                                                        setModal(true)
+                                                    }}
+                                                />
+                                            </div>
+                                        </>
                                     )
                                 )
                             }
@@ -230,181 +278,218 @@ const LoanGrid = (props: LoanProps) => {
         )
     }
 
-    const StabilityPool = () => {
-        return (
-            <div style={{ marginTop: 20 }}>
-                <LeftTopCard className={'custom-mahadao-container'}>
-                    <StabilityCardHeader className={'custom-mahadao-container-header'}>
-                        <HeaderTitle>
-                            <div>
-                                {'Stability Pool'}
-                                {/* <CustomToolTip toolTipText={'loreum ipsum'} /> */}
-                            </div>
-                        </HeaderTitle>
-                        <HeaderSubtitle>
-                            {/* {prettyNumber(getDisplayBalance(arthxRecollateralizeAmount, 18, 3))} <HardChip>ARTHX</HardChip>{' '} */}
-                            <TextForInfoTitle>You can earn ETH and MAHA rewards by depositing ARTH.</TextForInfoTitle>
-                        </HeaderSubtitle>
-                    </StabilityCardHeader>
-                    <LeftTopCardContainer className={'custom-mahadao-container-content'}>
-                        {noArthinStability && <Warning onClick={() => setNoArthStability(false)}>
-                            <img src={warningYellow} height={24} style={{ marginRight: 5 }} />
-                            <div>You haven't borrowed any ARTH yet.</div>
-                        </Warning>}
-                        <CustomInputContainer
-                            ILabelValue={'Enter Collateral'}
-                            IBalanceValue={'`${getDisplayBalance(0, 0)}`'}
-                            ILabelInfoValue={''}
-                            // disabled={mintCR.lt(1e6)}
-                            DefaultValue={stabilityValue.toString()}
-                            LogoSymbol={'ARTH'}
-                            hasDropDown={true}
-                            // dropDownValues={collateralTypes}
-                            // ondropDownValueChange={(data: string) => {
-                            //     setSelectedCollateralCoin(data);
-                            //     setTimeout(() => {
-                            //         onCollateralValueChange(collateralValue.toString());
-                            //     }, 1000);
-                            // }}
-                            // DisableMsg={
-                            //     mintCR.lt(1e6)
-                            //         ? 'Currently Mint Collateral ratio is not 100%'
-                            //         : ''
-                            // }
-                            // SymbolText={selectedCollateralCoin}
-                            SymbolText={'ARTH'}
-                            inputMode={'numeric'}
-                            setText={(val: string) => {
-                                setStabilityValue(val);
-                            }}
-                            tagText={'MAX'}
-                        // errorCallback={(flag: boolean) => { setIsInputFieldError(flag) }}
-                        />
-                        <div>
-                            <TcContainer>
-                                <OneLineInputwomargin>
-                                    <div style={{ flex: 1 }}>
-                                        <TextWithIcon>
-                                            Reward
-                                        <CustomToolTip toolTipText={'lol boi'} />
-                                        </TextWithIcon>
-                                    </div>
-                                    <OneLineInputwomargin>
-                                        <BeforeChip>
-                                            {
-                                                // Number(getDisplayBalance(tradingFee, 18, 6))
-                                                //     .toLocaleString('en-US', { maximumFractionDigits: 6 })
-                                                Number('0.00')
-                                            }
-                                        </BeforeChip>
-                                        <TagChips>MAHA</TagChips>
-                                    </OneLineInputwomargin>
-                                </OneLineInputwomargin>
-
-                                <OneLineInputwomargin>
-                                    <div style={{ flex: 1 }}>
-                                        <TextWithIcon>
-                                            Pool Share
-                                        <CustomToolTip toolTipText={'lol boi'} />
-                                        </TextWithIcon>
-                                    </div>
-                                    <OneLineInputwomargin>
-                                        <BeforeChip>
-                                            {
-                                                // Number(getDisplayBalance(tradingFee, 18, 6))
-                                                //     .toLocaleString('en-US', { maximumFractionDigits: 6 })
-                                                Number('0.0')
-                                            }%
-                                        </BeforeChip>
-                                        {/* <TagChips>ARTH</TagChips> */}
-                                    </OneLineInputwomargin>
-                                </OneLineInputwomargin>
-
-                                <OneLineInputwomargin>
-                                    <div style={{ flex: 1 }}>
-                                        <TextWithIcon>
-                                            MAHA Apy
-                                        <CustomToolTip toolTipText={'lol boi'} />
-                                        </TextWithIcon>
-                                    </div>
-                                    <OneLineInputwomargin>
-                                        <BeforeChip>
-                                            {
-                                                // Number(getDisplayBalance(tradingFee, 18, 6))
-                                                //     .toLocaleString('en-US', { maximumFractionDigits: 6 })
-                                                Number('60.76')
-                                            }%
-                                    </BeforeChip>
-                                        {/* <TagChips>ARTH</TagChips> */}
-                                    </OneLineInputwomargin>
-                                </OneLineInputwomargin>
-                            </TcContainer>
-                            <div style={{ marginTop: '32px' }}>
-                                {
-                                    !true ? (
-                                        <Button
-                                            text={'Connect Wallet'}
-                                            size={'lg'}
-                                        // onClick={() => connect('injected').then(() => {
-                                        //     localStorage.removeItem('disconnectWallet')
-                                        // })}
-                                        />
-                                    ) : (
-                                        !true ? (
-                                            <>
-                                                <ApproveButtonContainer>
-                                                    <Button
-                                                    // text={
-                                                    //     isCollatApproved
-                                                    //         ? `Approved ${selectedCollateralCoin}`
-                                                    //         : !isCollatApproving
-                                                    //             ? `Approve ${selectedCollateralCoin}`
-                                                    //             : 'Approving...'
-                                                    // }
-                                                    // size={'lg'}
-                                                    // disabled={
-                                                    //     mintCR.lt(1e6) ||
-                                                    //     isInputFieldError ||
-                                                    //     isCollatApproved ||
-                                                    //     !Number(collateralValue)
-                                                    // }
-                                                    // onClick={approveCollat}
-                                                    // loading={isCollatApproving}
-                                                    />
-                                                </ApproveButtonContainer>
-                                                <br />
-                                            </>
-                                        ) : (
-                                            <Button
-                                                text={'Deposit'}
-                                                size={'lg'}
-                                                variant={'default'}
-                                                disabled={
-                                                    // mintCR.lt(1e6) ||
-                                                    // isInputFieldError ||
-                                                    // !isCollatApproved ||
-                                                    !Number(debtValue) ||
-                                                    !(Number(collateralValue))
-                                                }
-                                            // onClick={() => setOpenModal(1)}
-                                            />
-                                        )
-                                    )
-                                }
-                            </div>
-                        </div>
-                    </LeftTopCardContainer>
-                </LeftTopCard>
-            </div>
-        )
+    const handleModalClose = () => {
+        setModal(false)
     }
-
     return (
         <>
+            <CustomSuccessModal
+                modalOpen={successModal}
+                setModalOpen={() => setSuccessModal(!successModal)}
+                subTitle={'View transaction'}
+                subTitleLink={'https://google.com'}
+                title={
+                    action === 'Loan' ? 'You took loan of ARTH successfully!' :
+                        action === 'Close' ? 'You Closed Loan of ARTH successfully!' :
+                            'You Modified Lan of ARTH Successfully!'
+                }
+                buttonText={'Close'}
+                buttonType={'transparent'}
+                buttonCustomOnClick={() => setSuccessModal(!successModal)}
+            />
             <CustomModal
-                open={false}
+                open={modal}
+                title={`Confirm ${action} ${action === 'Close' ? 'Loan' : 'ARTH'}`}
+                closeButton
+                handleClose={() => setModal(!modal)}
             >
-                <></>
+                {action === 'Loan' &&
+                    <>
+                        <TransparentInfoDiv
+                            labelData={`Your collateral amount`}
+                            rightLabelUnit={'ETH'}
+                            rightLabelValue={Number(collateralValue).toLocaleString()}
+                        />
+                        <TransparentInfoDiv
+                            labelData={`Liquidation Reserve`}
+                            rightLabelUnit={'ARTH'}
+                            rightLabelValue={Number('200.00').toLocaleString()}
+                        />
+                        <TransparentInfoDiv
+                            labelData={`Borrowing Fee`}
+                            rightLabelUnit={'ARTH'}
+                            rightLabelValue={Number('0.05').toLocaleString()}
+                        />
+                        <TransparentInfoDiv
+                            labelData={`Collateral Ratio`}
+                            // rightLabelUnit={'ARTH'}
+                            rightLabelValue={`${collateralRatio}%`}
+                        />
+                        <Divider
+                            style={{
+                                background: 'rgba(255, 255, 255, 0.08)',
+                                margin: '15px 0px',
+                            }}
+                        />
+                        <TransparentInfoDiv
+                            labelData={`You will receive ARTH`}
+                            rightLabelUnit={'ARTH'}
+                            rightLabelValue={Number('5432').toLocaleString()}
+                        />
+                        <div
+                            style={{
+                                flexDirection: isMobile ? 'column-reverse' : 'row',
+                                display: 'flex',
+                                width: '100%',
+                                marginTop: '10%',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                // marginBottom: 8,
+                            }}
+                        >
+                            <div style={{
+                                width: '100%',
+                                marginTop: isMobile ? 12 : 0,
+                                marginRight: isMobile ? 0 : 10
+                            }}>
+                                <Button
+                                    variant={'transparent'}
+                                    text={'Cancel'}
+                                    onClick={handleModalClose}
+                                />
+                            </div>
+                            <div style={{
+                                width: '100%',
+                                marginTop: isMobile ? 12 : 0,
+                                marginLeft: isMobile ? 0 : 10
+                            }}>
+                                <Button
+                                    variant={'default'}
+                                    onClick={handleModalClose}
+                                    text={'Confirm Loan ARTH'}
+                                />
+                            </div>
+                        </div>
+                    </>
+                }
+                {action === 'Close' &&
+                    <>
+                        <TransparentInfoDiv
+                            labelData={`Your collateral amount`}
+                            rightLabelUnit={'ETH'}
+                            rightLabelValue={Number(collateralValue).toLocaleString()}
+                        />
+                        <TransparentInfoDiv
+                            labelData={`Borrowing Fee (0.05%)`}
+                            rightLabelUnit={'ARTH'}
+                            rightLabelValue={Number('0.05').toLocaleString()}
+                        />
+                        <Divider
+                            style={{
+                                background: 'rgba(255, 255, 255, 0.08)',
+                                margin: '15px 0px',
+                            }}
+                        />
+                        <TransparentInfoDiv
+                            labelData={`You will receive ARTH`}
+                            rightLabelUnit={'ARTH'}
+                            rightLabelValue={Number('5432').toLocaleString()}
+                        />
+                        <div
+                            style={{
+                                flexDirection: isMobile ? 'column-reverse' : 'row',
+                                display: 'flex',
+                                width: '100%',
+                                marginTop: '10%',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                // marginBottom: 8,
+                            }}
+                        >
+                            <div style={{
+                                width: '100%',
+                                marginTop: isMobile ? 12 : 0,
+                                marginRight: isMobile ? 0 : 10
+                            }}>
+                                <Button
+                                    variant={'transparent'}
+                                    onClick={handleModalClose}
+                                    text={'Cancel'}
+                                />
+                            </div>
+                            <div style={{
+                                width: '100%',
+                                marginTop: isMobile ? 12 : 0,
+                                marginLeft: isMobile ? 0 : 10
+                            }}>
+                                <Button
+                                    variant={'default'}
+                                    onClick={handleModalClose}
+                                    text={'Confirm Close Loan'}
+                                />
+                            </div>
+                        </div>
+                    </>
+                }
+                {action === 'Modify' &&
+                    <>
+                        <TransparentInfoDiv
+                            labelData={`Your collateral amount`}
+                            rightLabelUnit={'ETH'}
+                            rightLabelValue={Number(collateralValue).toLocaleString()}
+                        />
+                        <TransparentInfoDiv
+                            labelData={`Borrowing Fee (0.05%)`}
+                            rightLabelUnit={'ARTH'}
+                            rightLabelValue={Number('0.05').toLocaleString()}
+                        />
+                        <Divider
+                            style={{
+                                background: 'rgba(255, 255, 255, 0.08)',
+                                margin: '15px 0px',
+                            }}
+                        />
+                        <TransparentInfoDiv
+                            labelData={`You will receive ARTH`}
+                            rightLabelUnit={'ARTH'}
+                            rightLabelValue={Number('5432').toLocaleString()}
+                        />
+                        <div
+                            style={{
+                                flexDirection: isMobile ? 'column-reverse' : 'row',
+                                display: 'flex',
+                                width: '100%',
+                                marginTop: '10%',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                // marginBottom: 8,
+                            }}
+                        >
+                            <div style={{
+                                width: '100%',
+                                marginTop: isMobile ? 12 : 0,
+                                marginRight: isMobile ? 0 : 10
+                            }}>
+                                <Button
+                                    variant={'transparent'}
+                                    onClick={handleModalClose}
+                                    text={'Cancel'}
+                                />
+                            </div>
+                            <div style={{
+                                width: '100%',
+                                marginTop: isMobile ? 12 : 0,
+                                marginLeft: isMobile ? 0 : 10
+                            }}>
+                                <Button
+                                    variant={'default'}
+                                    onClick={handleModalClose}
+                                    text={'Confirm Modify Loan'}
+                                />
+                            </div>
+                        </div>
+                    </>
+                }
             </CustomModal>
             <LoanPool />
             {/* <StabilityPool /> */}
