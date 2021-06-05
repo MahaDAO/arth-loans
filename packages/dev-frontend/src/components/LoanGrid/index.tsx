@@ -23,10 +23,12 @@ import CustomModal from '../CustomModal';
 import TransparentInfoDiv from '../InfoDiv'
 import { useMediaQuery } from 'react-responsive';
 import CustomSuccessModal from '../CustomSuccessModal';
+import { TroveView } from '../Trove/context/types';
 
 interface LoanProps {
     type: 'loan' | 'redeem'
     setType: (val: 'loan' | 'redeem') => void
+    view: TroveView;
 }
 
 const LoanGrid = (props: LoanProps) => {
@@ -36,12 +38,12 @@ const LoanGrid = (props: LoanProps) => {
     const [debtValue, setDebtValue] = useState('0')
     const [noArthBorrowed, setNoArthBorrow] = useState(true);
     const [noArthinStability, setNoArthStability] = useState(true);
-    const [loanTaken, setLoanTaken] = useState(true)
+    const [loanTaken, setLoanTaken] = useState(props.view === 'ACTIVE' || false)
     const [modifyMode, setModifyMode] = useState(false)
     const [collateralRatio, setCollRatio] = useState(150);
     const [action, setAction] = useState<'Loan' | 'Modify' | 'Close'>('Close')
     const [modal, setModal] = useState(false)
-    const [successModal, setSuccessModal] = useState(true)
+    const [successModal, setSuccessModal] = useState(false)
 
     const LoanPool = () => {
         return (

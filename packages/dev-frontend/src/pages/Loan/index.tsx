@@ -21,44 +21,45 @@ import Button from '../../components/Button';
 import { getDisplayBalance } from '../../utils/formatBalance';
 import StabilityPool from './Stability'
 import { useStabilityView } from '../../components/Stability/context/StabilityViewContext';
+import { useTroveView } from '../../components/Trove/context/TroveViewContext';
 const Home = (props: any) => {
-    const [type, setType] = useState<'loan' | 'redeem'>('loan')
-    const { view } = useStabilityView();
+  const [type, setType] = useState<'loan' | 'redeem'>('loan')
+  const { view: stabilityView } = useStabilityView();
+  const { view: troveView } = useTroveView();
+  return (
+    <Page>
+      <PageHeader
+        centeredHeader={true}
+        title={'Interest Free Inflation Proof Loan'}
+        subtitle={'Borrow ARTH with 0% interest'}
+      />
 
-    return (
-        <Page>
-            <PageHeader
-                centeredHeader={true}
-                title={'Interest Free Inflation Proof Loan'}
-                subtitle={'Borrow ARTH with 0% interest'}
-            />
+      <Grid container style={{ marginTop: '24px' }} spacing={0}>
+        <Grid item lg={2} />
+        <Grid item lg={4} md={12} sm={12} xs={12}>
 
-            <Grid container style={{ marginTop: '24px' }} spacing={0}>
-                <Grid item lg={2} />
-                <Grid item lg={4} md={12} sm={12} xs={12}>
-
-                    {/* <Container > */}
-                    <Container >
-                        {/* <Trove /> */}
-                        {type === 'loan' ?
-                            <LoanGrid type={type} setType={setType} />
-                            :
-                            <RedeemGrid type={type} setType={setType} />
-                        }
-                        <StabilityPool view={view}/>
-                        {/* <Staking /> */}
-                    </Container>
-                </Grid>
-                <Grid item lg={4} md={12} sm={12} xs={12}>
-                    <SystemStats />
-                </Grid>
-                <Grid item lg={2} />
-            </Grid>
+          {/* <Container > */}
+          <Container >
+            {/* <Trove /> */}
+            {type === 'loan' ?
+              <LoanGrid type={type} setType={setType} view={troveView}/>
+              :
+              <RedeemGrid type={type} setType={setType} />
+            }
+            <StabilityPool view={stabilityView} />
+            {/* <Staking /> */}
+          </Container>
+        </Grid>
+        <Grid item lg={4} md={12} sm={12} xs={12}>
+          <SystemStats />
+        </Grid>
+        <Grid item lg={2} />
+      </Grid>
 
 );
 
-        </Page>
-    );
+    </Page>
+  );
 
 }
 

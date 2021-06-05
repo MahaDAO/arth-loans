@@ -32,6 +32,9 @@ import {
     validateStabilityDepositChange
 } from "../../components/Stability/validation/validateStabilityDepositChange";
 import { useMyTransactionState } from '../../components/Transaction';
+import CustomModal from '../../components/CustomModal';
+import TransparentInfoDiv from '../../components/InfoDiv';
+import CustomSuccessModal from '../../components/CustomSuccessModal';
 
 const init = ({ stabilityDeposit }: LiquityStoreState) => ({
     originalDeposit: stabilityDeposit,
@@ -116,7 +119,16 @@ const StabilityPool = (props: Props) => {
     const [{ originalDeposit, editedLUSD, changePending }, dispatch] = useLiquityReducer(reduce, init);
     const validationContext = useLiquitySelector(selectForStabilityDepositChangeValidation);
     const [noArth, setNoArth] = useState<boolean>(props.noArth || true)
+    const [staked, setStaked] = useState(true)
+    const [stakeSuccessfull, setStakeSuccessfull] = useState(false)
+    const [confirmStake, setConfirmStake] = useState(false)
     const [stabilityValue, setStabilityValue] = useState('0')
+    const [modifyMode, setModifyMode] = useState(false)
+    const [claimMaha, setClaimMaha] = useState(false)
+    const [claimMahaSuccessfull, setClaimMahaSuccessfull] = useState(false)
+    const [modifiedModal, setModifiedModal] = useState(false)
+    const [action, setAction] = useState<'stake' | 'withdraw'>('stake')
+    const [modifiedStakeSuccessfull, setModifiedStakeSuccessfull] = useState(false)
     let isMobile = useMediaQuery({ 'maxWidth': '768px' })
     const { dispatchEvent } = useStabilityView();
 
@@ -156,6 +168,149 @@ const StabilityPool = (props: Props) => {
 
     return (
         <div style={{ marginTop: 20 }}>
+            <CustomSuccessModal
+                title={'You Staked ARTH Successfully'}
+                modalOpen={stakeSuccessfull}
+                setModalOpen={() => setStakeSuccessfull(false)}
+                subTitle={'View Transaction'}
+                buttonText={'Close'}
+                buttonType={'transparent'}
+            />
+            <CustomSuccessModal
+                title={`You Modified ${action === 'stake' ? 'Staking' : 'Withdrawing'} ARTH Successfully`}
+                modalOpen={modifiedStakeSuccessfull}
+                setModalOpen={() => setModifiedStakeSuccessfull(false)}
+                subTitle={'View Transaction'}
+                buttonText={'Close'}
+                buttonType={'transparent'}
+            />
+
+            <CustomSuccessModal
+                title={'You Claimed MAHA Successfully'}
+                modalOpen={claimMahaSuccessfull}
+                setModalOpen={() => setClaimMahaSuccessfull(false)}
+                subTitle={'View Transaction'}
+                buttonText={'Close'}
+                buttonType={'transparent'}
+            />
+            <CustomModal
+                open={confirmStake}
+                title={'Confirm staking ARTH'}
+                handleClose={() => {
+                    setConfirmStake(false)
+                }}
+                closeButton
+            >
+                <TransparentInfoDiv
+                    labelData={'Your ARTH amount'}
+                    rightLabelUnit={'ARTH'}
+                    rightLabelValue={'1500.00'}
+                />
+
+                <TransparentInfoDiv
+                    labelData={'Your pool of share'}
+                    // rightLabelUnit={'ARTH'}
+                    rightLabelValue={'10.54%'}
+                />
+                <div style={{ marginTop: 24, display: 'flex', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
+                    <div style={{ display: 'flex', width: '100%', marginTop: isMobile ? 10 : 0, marginRight: isMobile ? 0 : 10 }}>
+                        <Button
+                            variant={'transparent'}
+                            text={'Cancel'}
+                            onClick={() => {
+                                setConfirmStake(false)
+                            }}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', width: '100%', marginLeft: isMobile ? 0 : 10 }}>
+                        <Button
+                            variant={'default'}
+                            text={'Stake ARTH'}
+                            onClick={() => {
+                                setConfirmStake(false)
+                                setStakeSuccessfull(true)
+                            }}
+                        />
+                    </div>
+
+                </div>
+            </CustomModal>
+
+            <CustomModal
+                open={modifiedModal}
+                closeButton
+                title={`Confirm ${action === 'stake' ? 'Staking' : 'Withdraw'} ARTH`}
+                handleClose={() => setModifiedModal(false)}
+            >
+                <TransparentInfoDiv
+                    labelData={'Modified ARTH Staked amount'}
+                    rightLabelUnit={'ARTH'}
+                    rightLabelValue={'1500.00'}
+                />
+
+                <TransparentInfoDiv
+                    labelData={'Modified pool of share'}
+                    // rightLabelUnit={'ARTH'}
+                    rightLabelValue={'10.54%'}
+                />
+                <div style={{ marginTop: 24, display: 'flex', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
+                    <div style={{ display: 'flex', width: '100%', marginTop: isMobile ? 10 : 0, marginRight: isMobile ? 0 : 10 }}>
+                        <Button
+                            variant={'transparent'}
+                            text={'Cancel'}
+                            onClick={() => {
+                                setModifiedModal(false)
+                            }}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', width: '100%', marginLeft: isMobile ? 0 : 10 }}>
+                        <Button
+                            variant={'default'}
+                            text={action === 'stake' ? 'Stake ARTH' : 'Withdraw ARTH'}
+                            onClick={() => {
+                                setModifiedModal(false)
+                                setModifiedStakeSuccessfull(true)
+                            }}
+                        />
+                    </div>
+
+                </div>
+            </CustomModal>
+
+            <CustomModal
+                open={claimMaha}
+                closeButton
+                title={'Confirm Claim MAHA'}
+                handleClose={() => { setClaimMaha(false) }}
+            >
+                <TransparentInfoDiv
+                    labelData={'You will get Reward'}
+                    rightLabelValue={'500.00'}
+                    rightLabelUnit={'MAHA'}
+                />
+                <div style={{ marginTop: 24, display: 'flex', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
+                    <div style={{ display: 'flex', width: '100%', marginTop: isMobile ? 10 : 0, marginRight: isMobile ? 0 : 10 }}>
+                        <Button
+                            variant={'transparent'}
+                            text={'Cancel'}
+                            onClick={() => {
+                                setClaimMaha(false)
+                            }}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', width: '100%', marginLeft: isMobile ? 0 : 10 }}>
+                        <Button
+                            variant={'default'}
+                            text={'Claim MAHA'}
+                            onClick={() => {
+                                setClaimMaha(false)
+                                setClaimMahaSuccessfull(true)
+                            }}
+                        />
+                    </div>
+
+                </div>
+            </CustomModal>
             <LeftTopCard className={'custom-mahadao-container'}>
                 <StabilityCardHeader className={'custom-mahadao-container-header'}>
                     <HeaderTitle>
@@ -175,11 +330,11 @@ const StabilityPool = (props: Props) => {
                     </HeaderSubtitle>
                 </StabilityCardHeader>
                 <LeftTopCardContainer className={'custom-mahadao-container-content'}>
-                    {noArth && <Warning onClick={() => setNoArth(false)}>
+                    {noArth && !staked && <Warning onClick={() => setNoArth(false)}>
                         <img src={warningYellow} height={24} style={{ marginRight: 5 }} />
                         <div>You haven't borrowed any ARTH yet.</div>
                     </Warning>}
-                    <CustomInputContainer
+                    {!staked ? <CustomInputContainer
                         ILabelValue={'Enter Collateral'}
                         IBalanceValue={'`${getDisplayBalance(0, 0)}`'}
                         ILabelInfoValue={''}
@@ -208,6 +363,14 @@ const StabilityPool = (props: Props) => {
                         tagText={'MAX'}
                     // errorCallback={(flag: boolean) => { setIsInputFieldError(flag) }}
                     />
+                        :
+                        <CustomInputContainer
+                            InfoOnlyMode
+                            InfoLeft={'Staked ARTH'}
+                            InfoRightValue={'1500'}
+                            InfoRightUnit={'ARTH'}
+                        />
+                    }
                     <div>
                         <TcContainer>
                             <OneLineInputwomargin>
@@ -268,63 +431,26 @@ const StabilityPool = (props: Props) => {
                             </OneLineInputwomargin>
                         </TcContainer>
                         <div style={{ marginTop: '32px' }}>
-                            {
-                                !true ? (
-                                    <Button
-                                        text={'Connect Wallet'}
-                                        size={'lg'}
-                                    // onClick={() => connect('injected').then(() => {
-                                    //     localStorage.removeItem('disconnectWallet')
-                                    // })}
-                                    />
-                                ) : (
-                                    !true ? (
+                            {noArth && !staked && !modifyMode ? (
+                                <Button
+                                    text={'Deposit'}
+                                    size={'lg'}
+                                    variant={'default'}
+                                    disabled={
+                                        !(Number(stabilityValue))
+                                    }
+                                    onClick={() => setConfirmStake(true)}
+                                />
+                            ) : (
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: isMobile ? 'column-reverse' : 'row',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    { staked && !modifyMode ?
                                         <>
-                                            <ApproveButtonContainer>
-                                                <Button
-                                                // text={
-                                                //     isCollatApproved
-                                                //         ? `Approved ${selectedCollateralCoin}`
-                                                //         : !isCollatApproving
-                                                //             ? `Approve ${selectedCollateralCoin}`
-                                                //             : 'Approving...'
-                                                // }
-                                                // size={'lg'}
-                                                // disabled={
-                                                //     mintCR.lt(1e6) ||
-                                                //     isInputFieldError ||
-                                                //     isCollatApproved ||
-                                                //     !Number(collateralValue)
-                                                // }
-                                                // onClick={approveCollat}
-                                                // loading={isCollatApproving}
-                                                />
-                                            </ApproveButtonContainer>
-                                            <br />
-                                        </>
-                                    ) : noArth ? (
-                                        <Button
-                                            text={'Deposit'}
-                                            size={'lg'}
-                                            variant={'default'}
-                                            disabled={
-                                                // mintCR.lt(1e6) ||
-                                                // isInputFieldError ||
-                                                // !isCollatApproved ||
-                                                // !Number(debtValue) ||
-                                                !(Number(stabilityValue))
-                                            }
-                                        // onClick={() => setOpenModal(1)}
-                                        />
-                                    ) : (
-                                        <div
-                                            // container
-                                            style={{
-                                                display: 'flex',
-                                                flexDirection: isMobile ? 'column-reverse' : 'row',
-                                                alignItems: 'center',
-                                            }}
-                                        >
                                             <div style={{
                                                 display: 'flex',
                                                 width: '100%',
@@ -332,17 +458,13 @@ const StabilityPool = (props: Props) => {
                                                 marginTop: isMobile ? 10 : 0
                                             }}>
                                                 <Button
-                                                    text={'Withdraw'}
+                                                    text={'Modify'}
                                                     size={'lg'}
                                                     variant={'transparent'}
-                                                    disabled={
-                                                        // mintCR.lt(1e6) ||
-                                                        // isInputFieldError ||
-                                                        // !isCollatApproved ||
-                                                        // !Number(debtValue) ||
-                                                        !(Number(stabilityValue))
-                                                    }
-                                                // onClick={() => setOpenModal(1)}
+                                                    onClick={() => {
+                                                        setStaked(false)
+                                                        setModifyMode(true)
+                                                    }}
                                                 />
                                             </div>
                                             <div style={{
@@ -355,20 +477,50 @@ const StabilityPool = (props: Props) => {
                                                     text={'Claim MAHA'}
                                                     size={'lg'}
                                                     variant={'default'}
-                                                    disabled={
-                                                        // mintCR.lt(1e6) ||
-                                                        // isInputFieldError ||
-                                                        // !isCollatApproved ||
-                                                        // !Number(debtValue) ||
-                                                        !(Number(stabilityValue))
-                                                    }
-                                                // onClick={() => setOpenModal(1)}
+                                                    onClick={() => setClaimMaha(true)}
+                                                />
+                                            </div>
+                                        </>
+                                        :
+                                        <>
+                                            <div style={{
+                                                display: 'flex',
+                                                width: '100%',
+                                                marginRight: isMobile ? 0 : 10,
+                                                marginTop: isMobile ? 10 : 0
+                                            }}>
+                                                <Button
+                                                    text={'Withdraw'}
+                                                    size={'lg'}
+                                                    variant={'transparent'}
+                                                    onClick={() => {
+                                                        setAction('withdraw')
+                                                        setModifiedModal(true)
+                                                    }}
+                                                />
+                                            </div>
+                                            <div style={{
+                                                display: 'flex',
+                                                width: '100%',
+                                                marginLeft: isMobile ? 0 : 10,
+                                                marginBottom: isMobile ? 10 : 0
+                                            }}>
+                                                <Button
+                                                    text={'Deposit'}
+                                                    size={'lg'}
+                                                    variant={'default'}
+                                                    onClick={() => {
+                                                        setAction('stake')
+                                                        setModifiedModal(true)
+                                                    }}
                                                 />
                                             </div>
 
-                                        </div>
-                                    )
-                                )
+                                        </>
+                                    }
+
+                                </div>
+                            )
                             }
                         </div>
                     </div>
