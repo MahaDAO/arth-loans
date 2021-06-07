@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import warningYellow from '../../assets/svg/warning-yellow.svg';
 import Button from '../../components/Button';
 import CustomInputContainer from '../../components/CustomInputContainer';
+import textSetter from '../../components/CustomInputContainer/textSetter';
 import { Transaction } from '../../components/Transaction';
 import { useLiquity } from '../../hooks/LiquityContext';
 
@@ -43,14 +44,14 @@ export default () => {
                     </StabilityCardHeader>
                     <LeftTopCardContainer className={'custom-mahadao-container-content'}>
                         <CustomInputContainer
-                            ILabelValue={'Enter Collateral'}
+                            ILabelValue={'Enter number of wallets you want to liquidate'}
                             showBalance={false}
                             ILabelInfoValue={''}
                             DefaultValue={numberOfTrovesToLiquidate.toString()}
                             SymbolText={'ARTH'}
                             inputMode={'numeric'}
                             setText={(val: string) => {
-                                setNumberOfTrovesToLiquidate(val);
+                                textSetter(val, setNumberOfTrovesToLiquidate)
                             }}
                         />
                         <div style={{ marginTop: 32 }}>
