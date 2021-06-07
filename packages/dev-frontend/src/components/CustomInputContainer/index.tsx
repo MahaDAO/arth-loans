@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { CSSProperties, useEffect, useState } from 'react';
+import React, { CSSProperties, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { InputBase } from '@material-ui/core';
 
@@ -7,7 +7,7 @@ import TokenSymbol from '../TokenSymbol';
 import CustomDropDown from '../CustomDropDown';
 import DownArrow from '../../assets/img/ArrowDown.svg';
 import { Link } from 'react-router-dom';
-import { correctString } from './RegexValidation';
+import { correctString, ValidateNumber } from './RegexValidation';
 
 type props = {
   ILabelValue?: string;
@@ -38,7 +38,8 @@ type props = {
   InfoOnlyMode?: boolean
   InfoLeft?: string,
   InfoRightValue?: string,
-  InfoRightUnit?: string
+  InfoRightUnit?: string,
+  IBalanceText?: string,
 };
 
 interface ICStatesInterface {
@@ -50,6 +51,7 @@ const CustomInputContainer: React.FC<props> = (props) => {
   const {
     ILabelValue,
     IBalanceValue,
+    IBalanceText,
     showBalance = true,
     ILabelInfoValue,
     DefaultValue,
@@ -72,12 +74,15 @@ const CustomInputContainer: React.FC<props> = (props) => {
   } = props;
   const [ICStates, setICStates] = useState<ICStatesInterface>({ IState: Istate, IMsg: msg });
   const [modalOpen, setModalOpen] = useState<boolean>(false);
-
+  let inputRef = useRef<HTMLInputElement>(null)
   useEffect(() => {
     let temp = { IState: Istate, IMsg: msg };
     setICStates(temp);
   }, [Istate, msg]);
 
+  // useEffect(() => {
+  //   inputRef?.current?.focus();
+  // }, [DefaultValue])
   const Redirection = () => {
     if (props?.href) {
       return (
@@ -140,14 +145,15 @@ const CustomInputContainer: React.FC<props> = (props) => {
                 {ILabelInfoValue !== '' && Redirection()}
               </ILabelLeft>
               <ILabelRight>
-                {showBalance && <ILabelBalance>{`Balance  ${Number(IBalanceValue).toLocaleString()}`}</ILabelBalance>}
+                {showBalance && <ILabelBalance>{`${IBalanceText || 'Balance'}  ${Number(IBalanceValue).toLocaleString()}`}</ILabelBalance>}
               </ILabelRight>
             </ILabelContainer>
             <IFieldConatiner className={`input-${ICStates.IState}`}>
               <InputBase
                 inputMode={props?.inputMode}
+                // autoFocus={inputRef.current === document.activeElement}
                 placeholder={DefaultValue || '0'}
-                // defaultValue={DefaultValue}
+                defaultValue={DefaultValue}
                 value={DefaultValue}
                 inputProps={{ 'aria-label': 'naked' }}
                 style={{
@@ -157,7 +163,9 @@ const CustomInputContainer: React.FC<props> = (props) => {
                   fontFamily: 'Inter !important',
                 }}
                 type={'number'}
-                onChange={(event) => {
+                ref={inputRef}
+                onInput={(event) => {
+                  console.log('enter')
                   const proceed = checkForErrors(event.target.value);
                   if (Number(event.target.value) && Number(event.target.value) < 0) return
                   if (proceed) props?.setText(event.target.value.length > 1 ? correctString(event.target.value) : event.target.value);

@@ -12,7 +12,7 @@ import { Stability } from "../../components/Stability/Stability";
 import { SystemStats } from "../../components/SystemStats";
 import { PriceManager } from "../../components/PriceManager";
 import { Staking } from "../../components/Staking/Staking";
-import { Grid } from '@material-ui/core';
+import { Divider, Grid } from '@material-ui/core';
 import { withSnackbar } from 'notistack';
 import arrowDown from '../../assets/svg/arrowDown.svg';
 import warningYellow from '../../assets/svg/warning-yellow.svg';
@@ -20,6 +20,10 @@ import Button from '../../components/Button';
 import { getDisplayBalance } from '../../utils/formatBalance';
 import CustomToolTip from '../CustomToolTip';
 import CustomModal from '../CustomModal';
+import textSetter from '../CustomInputContainer/textSetter';
+import TransparentInfoDiv from '../InfoDiv';
+import { useMediaQuery } from 'react-responsive';
+import CustomSuccessModal from '../CustomSuccessModal';
 
 interface LoanProps {
     type: 'loan' | 'redeem'
@@ -31,314 +35,167 @@ const RedeemGrid = (props: LoanProps) => {
     const [noArthBorrowed, setNoArthBorrow] = useState(true);
     const [stabilityValue, setStabilityValue] = useState('0')
     const [noArthinStability, setNoArthStability] = useState(true);
+    const [redeemModal, setRedeemModal] = useState(false);
+    const [redeemSuccess, setRedeemSuccessfull] = useState(false);
+    const isMobile = useMediaQuery({ 'maxWidth': '600px' })
+    const RedeemTab = () => (
+        <LeftTopCard className={'custom-mahadao-container'}>
+            <LeftTopCardHeader className={'custom-mahadao-container-header'}>
+                <div style={{ display: 'flex' }}>
+                    <TabContainer onClick={() => props.setType('loan')}>
+                        <TabText>Loan</TabText>
+                    </TabContainer>
+                    <TabContainer onClick={() => props.setType('redeem')}>
+                        <ActiveTab />
+                        <TabTextActive>Redeem</TabTextActive>
+                    </TabContainer>
+                </div>
+            </LeftTopCardHeader>
+            <LeftTopCardContainer className={'custom-mahadao-container-content'}>
+                {noArthBorrowed && <Warning onClick={() => setNoArthBorrow(false)}>
+                    <img src={warningYellow} height={24} style={{ marginRight: 5 }} />
+                    <div>You haven't borrowed any ARTH yet.</div>
+                </Warning>}
+                <CustomInputContainer
+                    ILabelValue={'Enter Collateral'}
+                    IBalanceValue={'`${getDisplayBalance(0, 0)}`'}
+                    ILabelInfoValue={''}
+                    // disabled={mintCR.lt(1e6)}
+                    DefaultValue={redeemValue.toString()}
+                    LogoSymbol={'ARTH'}
+                    hasDropDown={true}
+                    // dropDownValues={collateralTypes}
+                    // ondropDownValueChange={(data: string) => {
+                    //     setSelectedCollateralCoin(data);
+                    //     setTimeout(() => {
+                    //         onCollateralValueChange(collateralValue.toString());
+                    //     }, 1000);
+                    // }}
+                    // DisableMsg={
+                    //     mintCR.lt(1e6)
+                    //         ? 'Currently Mint Collateral ratio is not 100%'
+                    //         : ''
+                    // }
+                    // SymbolText={selectedCollateralCoin}
+                    SymbolText={'ARTH'}
+                    inputMode={'numeric'}
+                    setText={(val: string) => {
+                        textSetter(val, setRedeemValue)
+                    }}
+                    tagText={'MAX'}
+                // errorCallback={(flag: boolean) => { setIsInputFieldError(flag) }}
+                />
 
-    const RedeemTab = () => {
-        return (
-            <LeftTopCard className={'custom-mahadao-container'}>
-                <LeftTopCardHeader className={'custom-mahadao-container-header'}>
-                    <div style={{ display: 'flex' }}>
-                        <TabContainer onClick={() => props.setType('loan')}>
-                            <TabText>Loan</TabText>
-                        </TabContainer>
-                        <TabContainer onClick={() => props.setType('redeem')}>
-                            <ActiveTab />
-                            <TabTextActive>Redeem</TabTextActive>
-                        </TabContainer>
-                    </div>
-                </LeftTopCardHeader>
-                <LeftTopCardContainer className={'custom-mahadao-container-content'}>
-                    {noArthBorrowed && <Warning onClick={() => setNoArthBorrow(false)}>
-                        <img src={warningYellow} height={24} style={{ marginRight: 5 }} />
-                        <div>You haven't borrowed any ARTH yet.</div>
-                    </Warning>}
-                    <CustomInputContainer
-                        ILabelValue={'Enter Collateral'}
-                        IBalanceValue={'`${getDisplayBalance(0, 0)}`'}
-                        ILabelInfoValue={''}
-                        // disabled={mintCR.lt(1e6)}
-                        DefaultValue={redeemValue.toString()}
-                        LogoSymbol={'ARTH'}
-                        hasDropDown={true}
-                        // dropDownValues={collateralTypes}
-                        // ondropDownValueChange={(data: string) => {
-                        //     setSelectedCollateralCoin(data);
-                        //     setTimeout(() => {
-                        //         onCollateralValueChange(collateralValue.toString());
-                        //     }, 1000);
-                        // }}
-                        // DisableMsg={
-                        //     mintCR.lt(1e6)
-                        //         ? 'Currently Mint Collateral ratio is not 100%'
-                        //         : ''
-                        // }
-                        // SymbolText={selectedCollateralCoin}
-                        SymbolText={'ARTH'}
-                        inputMode={'numeric'}
-                        setText={(val: string) => {
-                            setRedeemValue(val);
-                        }}
-                        tagText={'MAX'}
-                    // errorCallback={(flag: boolean) => { setIsInputFieldError(flag) }}
-                    />
+                <div>
+                    <TcContainer>
 
-                    <div>
-                        <TcContainer>
-
+                        <OneLineInputwomargin>
+                            <div style={{ flex: 1 }}>
+                                <TextWithIcon>
+                                    Stability Fee
+                                        <CustomToolTip toolTipText={'lol boi'} />
+                                </TextWithIcon>
+                            </div>
                             <OneLineInputwomargin>
-                                <div style={{ flex: 1 }}>
-                                    <TextWithIcon>
-                                        Stability Fee
-                                        <CustomToolTip toolTipText={'lol boi'} />
-                                    </TextWithIcon>
-                                </div>
-                                <OneLineInputwomargin>
-                                    <BeforeChip>
-                                        {
-                                            // Number(getDisplayBalance(tradingFee, 18, 6))
-                                            //     .toLocaleString('en-US', { maximumFractionDigits: 6 })
-                                            Number('180.65')
-                                        }%
+                                <BeforeChip>
+                                    {
+                                        // Number(getDisplayBalance(tradingFee, 18, 6))
+                                        //     .toLocaleString('en-US', { maximumFractionDigits: 6 })
+                                        Number('180.65')
+                                    }%
                                     </BeforeChip>
-                                    <TagChips>MAHA</TagChips>
-                                </OneLineInputwomargin>
+                                <TagChips>MAHA</TagChips>
                             </OneLineInputwomargin>
-                        </TcContainer>
-                        <div style={{ marginTop: '32px' }}>
-                            {
-                                !true ? (
-                                    <Button
-                                        text={'Connect Wallet'}
-                                        size={'lg'}
-                                    // onClick={() => connect('injected').then(() => {
-                                    //     localStorage.removeItem('disconnectWallet')
-                                    // })}
-                                    />
-                                ) : (
-                                    !true ? (
-                                        <>
-                                            <ApproveButtonContainer>
-                                                <Button
-                                                // text={
-                                                //     isCollatApproved
-                                                //         ? `Approved ${selectedCollateralCoin}`
-                                                //         : !isCollatApproving
-                                                //             ? `Approve ${selectedCollateralCoin}`
-                                                //             : 'Approving...'
-                                                // }
-                                                // size={'lg'}
-                                                // disabled={
-                                                //     mintCR.lt(1e6) ||
-                                                //     isInputFieldError ||
-                                                //     isCollatApproved ||
-                                                //     !Number(collateralValue)
-                                                // }
-                                                // onClick={approveCollat}
-                                                // loading={isCollatApproving}
-                                                />
-                                            </ApproveButtonContainer>
-                                            <br />
-                                        </>
-                                    ) : (
-                                        <Button
-                                            text={'Take Loan'}
-                                            size={'lg'}
-                                            variant={'default'}
-                                            disabled={
-                                                // mintCR.lt(1e6) ||
-                                                // isInputFieldError ||
-                                                // !isCollatApproved ||
-                                                // !Number(debtValue) ||
-                                                !(Number(redeemValue))
-                                            }
-                                        // onClick={() => setOpenModal(1)}
-                                        />
-                                    )
-                                )
-                            }
-                        </div>
-                    </div>
-                </LeftTopCardContainer>
-            </LeftTopCard>
-
-        )
-    }
-    const StabilityPool = () => {
-        return (
-            <div style={{ marginTop: 20 }}>
-                <LeftTopCard className={'custom-mahadao-container'}>
-                    <StabilityCardHeader className={'custom-mahadao-container-header'}>
-                        <HeaderTitle>
-                            <div>
-                                {'Stability Pool'}
-                                {/* <CustomToolTip toolTipText={'loreum ipsum'} /> */}
-                            </div>
-                        </HeaderTitle>
-                        <HeaderSubtitle>
-                            {/* {prettyNumber(getDisplayBalance(arthxRecollateralizeAmount, 18, 3))} <HardChip>ARTHX</HardChip>{' '} */}
-                            <TextForInfoTitle>You can earn ETH and MAHA rewards by depositing ARTH.</TextForInfoTitle>
-                        </HeaderSubtitle>
-                    </StabilityCardHeader>
-                    <LeftTopCardContainer className={'custom-mahadao-container-content'}>
-                        {noArthinStability && <Warning onClick={() => setNoArthStability(false)}>
-                            <img src={warningYellow} height={24} style={{ marginRight: 5 }} />
-                            <div>You haven't borrowed any ARTH yet.</div>
-                        </Warning>}
-                        <CustomInputContainer
-                            ILabelValue={'Enter Collateral'}
-                            IBalanceValue={'`${getDisplayBalance(0, 0)}`'}
-                            ILabelInfoValue={''}
-                            // disabled={mintCR.lt(1e6)}
-                            DefaultValue={stabilityValue.toString()}
-                            LogoSymbol={'ARTH'}
-                            hasDropDown={true}
-                            // dropDownValues={collateralTypes}
-                            // ondropDownValueChange={(data: string) => {
-                            //     setSelectedCollateralCoin(data);
-                            //     setTimeout(() => {
-                            //         onCollateralValueChange(collateralValue.toString());
-                            //     }, 1000);
-                            // }}
-                            // DisableMsg={
-                            //     mintCR.lt(1e6)
-                            //         ? 'Currently Mint Collateral ratio is not 100%'
-                            //         : ''
-                            // }
-                            // SymbolText={selectedCollateralCoin}
-                            SymbolText={'ARTH'}
-                            inputMode={'numeric'}
-                            setText={(val: string) => {
-                                setStabilityValue(val);
-                            }}
-                            tagText={'MAX'}
-                        // errorCallback={(flag: boolean) => { setIsInputFieldError(flag) }}
-                        />
-                        <div>
-                            <TcContainer>
-                                <OneLineInputwomargin>
-                                    <div style={{ flex: 1 }}>
-                                        <TextWithIcon>
-                                            Reward
-                                        <CustomToolTip toolTipText={'lol boi'} />
-                                        </TextWithIcon>
-                                    </div>
-                                    <OneLineInputwomargin>
-                                        <BeforeChip>
-                                            {
-                                                // Number(getDisplayBalance(tradingFee, 18, 6))
-                                                //     .toLocaleString('en-US', { maximumFractionDigits: 6 })
-                                                Number('0.00')
-                                            }
-                                        </BeforeChip>
-                                        <TagChips>MAHA</TagChips>
-                                    </OneLineInputwomargin>
-                                </OneLineInputwomargin>
-
-                                <OneLineInputwomargin>
-                                    <div style={{ flex: 1 }}>
-                                        <TextWithIcon>
-                                            Pool Share
-                                        <CustomToolTip toolTipText={'lol boi'} />
-                                        </TextWithIcon>
-                                    </div>
-                                    <OneLineInputwomargin>
-                                        <BeforeChip>
-                                            {
-                                                // Number(getDisplayBalance(tradingFee, 18, 6))
-                                                //     .toLocaleString('en-US', { maximumFractionDigits: 6 })
-                                                Number('0.0')
-                                            }%
-                                        </BeforeChip>
-                                        {/* <TagChips>ARTH</TagChips> */}
-                                    </OneLineInputwomargin>
-                                </OneLineInputwomargin>
-
-                                <OneLineInputwomargin>
-                                    <div style={{ flex: 1 }}>
-                                        <TextWithIcon>
-                                            MAHA Apy
-                                        <CustomToolTip toolTipText={'lol boi'} />
-                                        </TextWithIcon>
-                                    </div>
-                                    <OneLineInputwomargin>
-                                        <BeforeChip>
-                                            {
-                                                // Number(getDisplayBalance(tradingFee, 18, 6))
-                                                //     .toLocaleString('en-US', { maximumFractionDigits: 6 })
-                                                Number('60.76')
-                                            }%
-                                    </BeforeChip>
-                                        {/* <TagChips>ARTH</TagChips> */}
-                                    </OneLineInputwomargin>
-                                </OneLineInputwomargin>
-                            </TcContainer>
-                            <div style={{ marginTop: '32px' }}>
-                                {
-                                    !true ? (
-                                        <Button
-                                            text={'Connect Wallet'}
-                                            size={'lg'}
-                                        // onClick={() => connect('injected').then(() => {
-                                        //     localStorage.removeItem('disconnectWallet')
-                                        // })}
-                                        />
-                                    ) : (
-                                        !true ? (
-                                            <>
-                                                <ApproveButtonContainer>
-                                                    <Button
-                                                    // text={
-                                                    //     isCollatApproved
-                                                    //         ? `Approved ${selectedCollateralCoin}`
-                                                    //         : !isCollatApproving
-                                                    //             ? `Approve ${selectedCollateralCoin}`
-                                                    //             : 'Approving...'
-                                                    // }
-                                                    // size={'lg'}
-                                                    // disabled={
-                                                    //     mintCR.lt(1e6) ||
-                                                    //     isInputFieldError ||
-                                                    //     isCollatApproved ||
-                                                    //     !Number(collateralValue)
-                                                    // }
-                                                    // onClick={approveCollat}
-                                                    // loading={isCollatApproving}
-                                                    />
-                                                </ApproveButtonContainer>
-                                                <br />
-                                            </>
-                                        ) : (
-                                            <Button
-                                                text={'Deposit'}
-                                                size={'lg'}
-                                                variant={'default'}
-                                                disabled={
-                                                    // mintCR.lt(1e6) ||
-                                                    // isInputFieldError ||
-                                                    // !isCollatApproved ||
-                                                    // !Number(debtValue) ||
-                                                    !(Number(stabilityValue))
-                                                }
-                                            // onClick={() => setOpenModal(1)}
-                                            />
-                                        )
-                                    )
+                        </OneLineInputwomargin>
+                    </TcContainer>
+                    <div style={{ marginTop: '32px' }}>
+                        {
+                            <Button
+                                text={'Redeem'}
+                                size={'lg'}
+                                variant={'default'}
+                                disabled={
+                                    // mintCR.lt(1e6) ||
+                                    // isInputFieldError ||
+                                    // !isCollatApproved ||
+                                    // !Number(debtValue) ||
+                                    !(Number(redeemValue))
                                 }
-                            </div>
-                        </div>
-                    </LeftTopCardContainer>
-                </LeftTopCard>
-            </div>
-        )
-    }
+                                onClick={() => setRedeemModal(true)}
+                            />}
+                    </div>
+                </div>
+            </LeftTopCardContainer>
+        </LeftTopCard>
+
+    )
     return (
         <>
+            <CustomSuccessModal
+                modalOpen={redeemSuccess}
+                setModalOpen={() => setRedeemSuccessfull(!redeemSuccess)}
+                title={'Redeeming ARTH Successfull!'}
+                subTitle={'View Transaction'}
+                buttonText={'Close'}
+            />
             <CustomModal
-                open={false}
+                open={redeemModal}
+                title={'Confirm Redeem ARTH'}
+                closeButton
+                handleClose={() => setRedeemModal(false)}
             >
-                <></>
+                <>
+                    <TransparentInfoDiv
+                        labelData={'Your ARTH amount'}
+                        rightLabelUnit={'ARTH'}
+                        rightLabelValue={'1500.00'}
+                    />
+
+                    <TransparentInfoDiv
+                        labelData={'Stability Fee'}
+                        rightLabelUnit={'MAHA'}
+                        rightLabelValue={'0.05'}
+                    />
+
+                    <Divider
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            margin: '15px 0px',
+                        }}
+                    />
+
+                    <TransparentInfoDiv
+                        labelData={'You will receive ARTH'}
+                        rightLabelUnit={'ARTH'}
+                        rightLabelValue={'1455'}
+                    />
+
+                    <div style={{ marginTop: 24, display: 'flex', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
+                        <div style={{ display: 'flex', width: '100%', marginTop: isMobile ? 10 : 0, marginRight: isMobile ? 0 : 10 }}>
+                            <Button
+                                variant={'transparent'}
+                                text={'Cancel'}
+                                onClick={() => {
+                                    setRedeemModal(false)
+                                }}
+                            />
+                        </div>
+                        <div style={{ display: 'flex', width: '100%', marginLeft: isMobile ? 0 : 10 }}>
+                            <Button
+                                variant={'default'}
+                                text={'Redeem ARTH'}
+                                onClick={() => {
+                                    setRedeemModal(false)
+                                    setRedeemSuccessfull(true)
+                                }}
+                            />
+                        </div>
+
+                    </div>
+
+                </>
             </CustomModal>
-            <RedeemTab />
-            {/* <StabilityPool /> */}
+            {RedeemTab()}
         </>
     )
 }
