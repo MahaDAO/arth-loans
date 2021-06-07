@@ -47,4 +47,5 @@ const TopBarContainer = styled(Container)`
   width: 100%;
   top: 0;
   padding:0 16px;
+  backdrop-filter: blur(72px);
 `;

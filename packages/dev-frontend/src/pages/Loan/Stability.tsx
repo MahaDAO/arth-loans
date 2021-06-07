@@ -119,7 +119,7 @@ const StabilityPool = (props: Props) => {
     const [{ originalDeposit, editedLUSD, changePending }, dispatch] = useLiquityReducer(reduce, init);
     const validationContext = useLiquitySelector(selectForStabilityDepositChangeValidation);
     const [noArth, setNoArth] = useState<boolean>(props.noArth || true)
-    const [staked, setStaked] = useState(true)
+    const [staked, setStaked] = useState(props.view !== 'NONE')
     const [stakeSuccessfull, setStakeSuccessfull] = useState(false)
     const [confirmStake, setConfirmStake] = useState(false)
     const [stabilityValue, setStabilityValue] = useState('0')

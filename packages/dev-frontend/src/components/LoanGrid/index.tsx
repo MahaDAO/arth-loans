@@ -24,6 +24,8 @@ import TransparentInfoDiv from '../InfoDiv'
 import { useMediaQuery } from 'react-responsive';
 import CustomSuccessModal from '../CustomSuccessModal';
 import { TroveView } from '../Trove/context/types';
+import { LiquityStoreState, Percent } from '@liquity/lib-base';
+import { useLiquitySelector } from '@liquity/lib-react';
 
 interface LoanProps {
     type: 'loan' | 'redeem'
@@ -32,6 +34,8 @@ interface LoanProps {
 }
 
 const LoanGrid = (props: LoanProps) => {
+    const select = ({ trove, price }: LiquityStoreState) => ({ trove, price });
+    const { trove, price } = useLiquitySelector(select);
     let isMobile = useMediaQuery({ 'maxWidth': '600px' })
     const [collateralValue, setCollateralValue] = useState('0')
     const [stabilityValue, setStabilityValue] = useState('0')
@@ -44,6 +48,7 @@ const LoanGrid = (props: LoanProps) => {
     const [action, setAction] = useState<'Loan' | 'Modify' | 'Close'>('Close')
     const [modal, setModal] = useState(false)
     const [successModal, setSuccessModal] = useState(false)
+    let stringCollRatio = new Percent(trove.collateralRatio(price) ?? { toString: () => "N/A" }).prettify()
 
     const LoanPool = () => {
         return (
@@ -102,7 +107,7 @@ const LoanGrid = (props: LoanProps) => {
                             InfoOnlyMode
                             InfoLeft={'Collateral'}
                             InfoRightUnit={'ETH'}
-                            InfoRightValue={'2.00'}
+                            InfoRightValue={trove.collateral.prettify(4)}
                         />
                     }
                     <PlusMinusArrow>
@@ -141,7 +146,7 @@ const LoanGrid = (props: LoanProps) => {
                             InfoOnlyMode
                             InfoLeft={'Total Debt'}
                             InfoRightUnit={'ARTH'}
-                            InfoRightValue={'5432'}
+                            InfoRightValue={trove.debt.prettify()}
                         />
                     }
                     <div>
@@ -192,14 +197,10 @@ const LoanGrid = (props: LoanProps) => {
                                     </TextWithIcon>
                                 </div>
                                 <OneLineInputwomargin>
-                                    <BeforeChip style={{ color: collateralRatio >= 150 ? '#20C974' : '#FA4C69' }}>
-                                        {
-                                            // Number(getDisplayBalance(tradingFee, 18, 6))
-                                            //     .toLocaleString('en-US', { maximumFractionDigits: 6 })
-                                            Number(collateralRatio)
-                                        }%
+                                    <BeforeChip style={{ color: Number(stringCollRatio) >= 150 ? '#20C974' : '#FA4C69' }}>
+                                        {stringCollRatio}
                                     </BeforeChip>
-                                    <TagChips>ARTH</TagChips>
+                                    {/* <TagChips>ARTH</TagChips> */}
                                 </OneLineInputwomargin>
                             </OneLineInputwomargin>
                         </TcContainer>
