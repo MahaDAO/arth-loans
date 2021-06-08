@@ -21,7 +21,7 @@ export const Header: React.FC = ({ children }) => {
   const isFrontendRegistered = frontendTag === AddressZero || frontend.status === "registered";
   return (
     <TopBarContainer>
-      <Flex sx={{ alignItems: "center", flex: 1}}>
+      <Flex sx={{ alignItems: "center", flex: 1 }}>
         {isFrontendRegistered && (
           <>
             <SideNav />
@@ -29,8 +29,10 @@ export const Header: React.FC = ({ children }) => {
           </>
         )}
       </Flex>
-
-      {children}
+      <>
+        {children}
+        
+      </>
     </TopBarContainer>
   );
 };
@@ -46,6 +48,6 @@ const TopBarContainer = styled(Container)`
   height: 72px;
   width: 100%;
   top: 0;
-  padding:0 16px;
+  // padding : 0 16px;
   backdrop-filter: blur(72px);
 `;

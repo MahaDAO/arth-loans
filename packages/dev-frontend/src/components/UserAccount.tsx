@@ -10,6 +10,7 @@ import { shortenAddress } from "../utils/shortenAddress";
 
 import { Icon } from "./Icon";
 import Button from "./Button";
+import AccountModal from '../components/Modals/AccountModal'
 
 const select = ({ accountBalance, lusdBalance, lqtyBalance }: LiquityStoreState) => ({
   accountBalance,
@@ -20,16 +21,20 @@ const select = ({ accountBalance, lusdBalance, lqtyBalance }: LiquityStoreState)
 export const UserAccount: React.FC = () => {
   const { account } = useLiquity();
   const { accountBalance, lusdBalance, lqtyBalance } = useLiquitySelector(select);
+  const [showModal, toggleModal] = React.useState(false);
 
   return (
-    <Box sx={{ display: ["none", "flex"], alignSelf: 'center' }}>
-      <Button
-        variant={'transparent'}
-        text={'Connect'}
-        onClick={()=>{
-          
-        }}
-      />
-    </Box>
+    <>
+      {showModal && <AccountModal onClose={() => toggleModal(!showModal)} />}
+      <Box sx={{ display: ["none", "flex"], alignSelf: 'center', marginRight: 108 }}>
+        <Button
+          variant={'transparent'}
+          text={'Connect'}
+          onClick={() => {
+            toggleModal(!showModal)
+          }}
+        />
+      </Box>
+    </>
   );
 };

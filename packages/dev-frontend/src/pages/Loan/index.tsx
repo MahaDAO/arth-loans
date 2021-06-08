@@ -22,10 +22,12 @@ import { getDisplayBalance } from '../../utils/formatBalance';
 import StabilityPool from './Stability'
 import { useStabilityView } from '../../components/Stability/context/StabilityViewContext';
 import { useTroveView } from '../../components/Trove/context/TroveViewContext';
+import { useMediaQuery } from 'react-responsive';
 const Home = (props: any) => {
   const [type, setType] = useState<'loan' | 'redeem'>('loan')
   const { view: stabilityView } = useStabilityView();
   const { view: troveView } = useTroveView();
+  let isMobile = useMediaQuery({ 'maxWidth': '600px' })
   return (
     <Page>
       <PageHeader
@@ -42,7 +44,7 @@ const Home = (props: any) => {
           <Container >
             {/* <Trove /> */}
             {type === 'loan' ?
-              <LoanGrid type={type} setType={setType} view={troveView}/>
+              <LoanGrid type={type} setType={setType} view={troveView} />
               :
               <RedeemGrid type={type} setType={setType} />
             }
@@ -51,7 +53,9 @@ const Home = (props: any) => {
           </Container>
         </Grid>
         <Grid item lg={4} md={12} sm={12} xs={12}>
-          <SystemStats />
+          <div style={{ display: 'flex', padding: isMobile ? 20 : 0 }}>
+            <SystemStats />
+          </div>
         </Grid>
         <Grid item lg={2} />
       </Grid>

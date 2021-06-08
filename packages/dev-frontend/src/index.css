@@ -171,6 +171,7 @@ code {
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.32);
   max-width: 100%;
+  border:1px  orange;
 }
 
 .table-cell{

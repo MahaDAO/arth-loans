@@ -35,14 +35,20 @@ export const RiskyTrovesPage = () => {
               justify={'center'}
             >
               <Grid item lg={6} sm={12}>
-                <BotGrid />
+                <div style={{ display: 'flex', padding: isMobile ? 20 : 0 }}>
+                  <BotGrid />
+                </div>
               </Grid>
               <Grid item lg={6} sm={12} style={{ marginTop: isMobile ? 24 : 0 }}>
-                <SystemStats />
+                <div style={{ display: 'flex', padding: isMobile ? 20 : 0 }}>
+                  <SystemStats />
+                </div>
               </Grid>
             </Grid>
             <Grid item>
-              <OwnerList />
+              <div style={{ display: 'flex', padding: isMobile ? 20 : 0 }}>
+                <OwnerList />
+              </div>
             </Grid>
           </Grid>
           <Grid item lg={1} />

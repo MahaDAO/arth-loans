@@ -30,7 +30,7 @@ import { Tooltip } from "../../components/Tooltip";
 import { Abbreviation } from "../../components/Abbreviation";
 import { truncateMiddle } from '../../utils/formatBalance';
 import CustomToolTip from '../../components/CustomToolTip';
-
+import Marquee from 'react-fast-marquee'
 const rowHeight = "40px";
 
 const liquidatableInNormalMode = (trove: UserTrove, price: Decimal) =>
@@ -92,7 +92,9 @@ const Grid = withStyles({
       maxHeight: undefined
     },
     '& .MuiDataGrid-columnsContainer': {
-      borderBottom: '1px solid rgba(255, 255, 255, 0.04);'
+      borderBottom: '1px solid rgba(255, 255, 255, 0.04);',
+      display: 'flex',
+      justifyContent: 'center',
     },
     '& .MuiDataGrid-columnHeaderTitle': {
       overflow: 'visible',
@@ -101,6 +103,7 @@ const Grid = withStyles({
       fontWeight: 600,
       fontSize: '12px',
       lineHeight: '150%',
+      alignItems: 'center',
       textAlign: 'center',
       letterSpacing: '0.08em',
       textTransform: 'uppercase;',
@@ -245,7 +248,7 @@ export default (props: RiskyTrovesProps) => {
     {
       field: 'ownerAddress',
       headerName: 'Owner',
-      width: width / 4.5,
+      width: width / 5,
       headerClassName: 'table-header',
       cellClassName: 'table-cell',
       resizable: true,
@@ -262,7 +265,7 @@ export default (props: RiskyTrovesProps) => {
         <>
           <CustomToolTip toolTipText={String(params.value)}>
             <div style={{ display: 'flex', alignItems: 'center', paddingLeft: isMobile ? 0 : 28, marginRight: 32 }}>
-              {truncateMiddle(String(params.value || params.formattedValue), 20, '......')}
+              {isMobile ? String(params.value || params.formattedValue).substr(0, 6) + '..' : truncateMiddle(String(params.value || params.formattedValue), 20, isMobile ? '' : '...')}
               <div style={{ marginLeft: 15, display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => {
                 navigator.clipboard.writeText(String(params.value || params.formattedValue))
               }} >
@@ -285,6 +288,25 @@ export default (props: RiskyTrovesProps) => {
       align: 'center',
       headerAlign: 'center',
       sortable: false,
+      renderHeader: (params: GridColumnHeaderParams) => {
+        return (
+          <>
+            {
+              !isMobile ?
+                <div style={{ paddingLeft: isMobile ? 0 : 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Collateral (ETH)</div>
+                :
+                <Marquee
+                  speed={15}
+                  play={true}
+                  gradient={false}
+                  style={{ paddingLeft: isMobile ? 0 : 28, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}
+                >
+                  {' '}Collateral (ETH){' '}
+                </Marquee>
+            }
+          </>
+        )
+      },
     },
     {
       headerName: 'Debt (ETH)',
@@ -296,6 +318,25 @@ export default (props: RiskyTrovesProps) => {
       headerAlign: 'center',
       resizable: true,
       sortable: false,
+      renderHeader: (params: GridColumnHeaderParams) => {
+        return (
+          <>
+            {
+              !isMobile ?
+                <div style={{ paddingLeft: isMobile ? 0 : 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Debt (ETH)</div>
+                :
+                <Marquee
+                  speed={15}
+                  play={true}
+                  gradient={false}
+                  style={{ paddingLeft: isMobile ? 0 : 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  {' '}Debt (ETH){' '}
+                </Marquee>
+            }
+          </>
+        )
+      },
     },
     {
       headerName: 'Collateral Ratio',
@@ -314,7 +355,26 @@ export default (props: RiskyTrovesProps) => {
         <>
           <div style={{ color: Number(params.value) * 100 < 150 ? '#FA4C69' : '#20C974' }}> {Number(params.value) * 100}%</div>
         </>
-      )
+      ),
+      renderHeader: (params: GridColumnHeaderParams) => {
+        return (
+          <>
+            {
+              !isMobile ?
+                <div style={{ paddingLeft: isMobile ? 0 : 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Collateral Ratio</div>
+                :
+                <Marquee
+                  speed={15}
+                  play={true}
+                  gradient={false}
+                  style={{ paddingLeft: isMobile ? 0 : 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  {' '}Collateral Ratio{' '}
+                </Marquee>
+            }
+          </>
+        )
+      },
     },
     {
       headerName: 'Action',
@@ -361,18 +421,6 @@ export default (props: RiskyTrovesProps) => {
     },
   ];
 
-  // const rows = [
-  //   { id: 1, owner: '0x694200000000', collateral: 56, debt: 35, collateralRatio: 150 },
-  //   { id: 2, owner: '0x694200000000', collateral: 56, debt: 42, collateralRatio: 150 },
-  //   { id: 3, owner: '0x694200000000', collateral: 56, debt: 45, collateralRatio: 18 },
-  //   { id: 4, owner: '0x694200000000', collateral: 56, debt: 16, collateralRatio: 150 },
-  //   { id: 5, owner: '0x694200000000', collateral: 56, debt: null, collateralRatio: 150 },
-  //   { id: 6, owner: '0x694200000000', collateral: 56, debt: 150, collateralRatio: 150 },
-  //   { id: 7, owner: '0x694200000000', collateral: 56, debt: 44, collateralRatio: 150 },
-  //   { id: 8, owner: '0x694200000000', collateral: 56, debt: 36, collateralRatio: 150 },
-  //   { id: 9, owner: '0x694200000000', collateral: 56, debt: 65, collateralRatio: 150 },
-  // ];
-
   const CustomPagination = () => {
     const { state, apiRef } = useGridSlotComponentProps()
     return (
@@ -408,7 +456,7 @@ export default (props: RiskyTrovesProps) => {
   return (
     <>
       <RightTopCard className={'custom-mahadao-box'}
-        style={{ padding: 0, marginTop: 32 }}
+        style={{ padding: 0, marginTop: !isMobile ? 24 : 0 }}
         ref={ref => mainRef.current?.offsetWidth}
       >
         {troves?.length > 0 && <Grid
@@ -424,7 +472,7 @@ export default (props: RiskyTrovesProps) => {
           pageSize={5}
           autoHeight
           // autoPageSize
-          headerHeight={75}
+          headerHeight={50}
           loading={loading}
           components={{
             Pagination: CustomPagination,

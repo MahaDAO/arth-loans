@@ -6,7 +6,7 @@ import { NavLink } from "react-router-dom";
 
 export const Nav: React.FC = () => {
   return (
-    <Box as="nav" sx={{ display: ["none", "flex"], alignItems: "center", flex: 1 }}>
+    <Box as="nav" sx={{ display: ["none", "flex"], alignItems: "center", flex: 1, paddingInline: 108 }}>
       <Logo />
       <Flex>
         <NavL exact activeClassName="active" to="/">
