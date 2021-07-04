@@ -20,7 +20,7 @@ contract CollSurplusPool is Ownable, CheckContract, ICollSurplusPool {
 
     // deposited ether tracker
     address public wethAddress;
-    uint256 internal ETH;
+    uint256 public ETH;
     // Collateral surplus claimable by trove owners
     mapping(address => uint256) internal balances;
 
