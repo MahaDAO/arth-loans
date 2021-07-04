@@ -19,7 +19,7 @@ contract CollSurplusPool is Ownable, CheckContract, ICollSurplusPool {
     address public activePoolAddress;
 
     // deposited ether tracker
-    address public wethAddress;
+    IERC20 public weth;
     uint256 public ETH;
     // Collateral surplus claimable by trove owners
     mapping(address => uint256) internal balances;
@@ -44,11 +44,12 @@ contract CollSurplusPool is Ownable, CheckContract, ICollSurplusPool {
         checkContract(_borrowerOperationsAddress);
         checkContract(_troveManagerAddress);
         checkContract(_activePoolAddress);
+        checkContract(_wethAddress);
 
         borrowerOperationsAddress = _borrowerOperationsAddress;
         troveManagerAddress = _troveManagerAddress;
         activePoolAddress = _activePoolAddress;
-        wethAddress = _wethAddress;
+        weth = IERC20(_wethAddress);
 
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
         emit TroveManagerAddressChanged(_troveManagerAddress);
@@ -89,7 +90,7 @@ contract CollSurplusPool is Ownable, CheckContract, ICollSurplusPool {
         ETH = ETH.sub(claimableColl);
         emit EtherSent(_account, claimableColl);
 
-        IERC20(wethAddress).transfer(_account, claimableColl);
+        weth.transfer(_account, claimableColl);
     }
 
     // --- 'require' functions ---
@@ -118,7 +119,7 @@ contract CollSurplusPool is Ownable, CheckContract, ICollSurplusPool {
 
     function receiveETH(uint256 _amount) external override {
         _requireCallerIsActivePool();
-        IERC20(wethAddress).transferFrom(msg.sender, address(this), _amount);
+        weth.transferFrom(msg.sender, address(this), _amount);
         ETH = ETH.add(_amount);
     }
 }

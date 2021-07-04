@@ -25,7 +25,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
     address public troveManagerAddress;
     address public stabilityPoolAddress;
     address public defaultPoolAddress;
-    address public wethAddress;
+    IERC20 public weth;
     uint256 public ETH; // deposited ether tracker
     uint256 public LUSDDebt;
 
@@ -55,7 +55,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
         troveManagerAddress = _troveManagerAddress;
         stabilityPoolAddress = _stabilityPoolAddress;
         defaultPoolAddress = _defaultPoolAddress;
-        wethAddress = _wethAddress;
+        weth = IERC20(_wethAddress);
 
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
         emit TroveManagerAddressChanged(_troveManagerAddress);
@@ -88,7 +88,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
         emit ActivePoolETHBalanceUpdated(ETH);
         emit EtherSent(_account, _amount);
 
-        IERC20(wethAddress).transfer(_account, _amount);
+        weth.transfer(_account, _amount);
     }
 
     function increaseLUSDDebt(uint256 _amount) external override {
@@ -138,7 +138,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
 
     function receiveETH(uint256 _amount) external override {
         _requireCallerIsBorrowerOperationsOrDefaultPool();
-        IERC20(wethAddress).transferFrom(msg.sender, address(this), _amount);
+        weth.transferFrom(msg.sender, address(this), _amount);
         ETH = ETH.add(_amount);
         emit ActivePoolETHBalanceUpdated(ETH);
     }
