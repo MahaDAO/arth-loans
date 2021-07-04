@@ -130,12 +130,6 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
 
     // --- Fallback function ---
 
-    // receive() external payable {
-    //     _requireCallerIsBorrowerOperationsOrDefaultPool();
-    //     ETH = ETH.add(msg.value);
-    //     emit ActivePoolETHBalanceUpdated(ETH);
-    // }
-
     function receiveETH(uint256 _amount) external override {
         _requireCallerIsBorrowerOperationsOrDefaultPool();
         weth.transferFrom(msg.sender, address(this), _amount);

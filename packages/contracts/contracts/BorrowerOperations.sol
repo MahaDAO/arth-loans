@@ -320,7 +320,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     /*
      * _adjustTrove(): Alongside a debt change, this function can perform either a collateral top-up or a collateral withdrawal.
      *
-     * It therefore expects either a positive msg.value, or a positive _collWithdrawal argument.
+     * It therefore expects either a positive _ETHAmount, or a positive _collWithdrawal argument.
      *
      * If both are positive, it will revert.
      */
@@ -344,8 +344,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
             _requireValidMaxFeePercentage(_maxFeePercentage, isRecoveryMode);
             _requireNonZeroDebtChange(_LUSDChange);
         }
-        _requireSingularCollChange(_collWithdrawal);
-        _requireNonZeroAdjustment(_collWithdrawal, _LUSDChange);
+        _requireSingularCollChange(_ETHAmount, _collWithdrawal);
+        _requireNonZeroAdjustment(_ETHAmount, _collWithdrawal, _LUSDChange);
         _requireTroveisActive(contractsCache.troveManager, _borrower);
 
         // Confirm the operation is either a borrower adjusting their own trove, or a pure ETH transfer from the Stability Pool to a trove
@@ -594,9 +594,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     // --- 'Require' wrapper functions ---
 
-    function _requireSingularCollChange(uint256 _collWithdrawal) internal view {
+    function _requireSingularCollChange(uint256 _ETHAmount, uint256 _collWithdrawal) internal view {
         require(
-            msg.value == 0 || _collWithdrawal == 0,
+            _ETHAmount == 0 || _collWithdrawal == 0,
             "BorrowerOperations: Cannot withdraw and add coll"
         );
     }
@@ -608,9 +608,13 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         );
     }
 
-    function _requireNonZeroAdjustment(uint256 _collWithdrawal, uint256 _LUSDChange) internal view {
+    function _requireNonZeroAdjustment(
+        uint256 _ETHAmount,
+        uint256 _collWithdrawal,
+        uint256 _LUSDChange
+    ) internal view {
         require(
-            msg.value != 0 || _collWithdrawal != 0 || _LUSDChange != 0,
+            _ETHAmount != 0 || _collWithdrawal != 0 || _LUSDChange != 0,
             "BorrowerOps: There must be either a collateral change or a debt change"
         );
     }
