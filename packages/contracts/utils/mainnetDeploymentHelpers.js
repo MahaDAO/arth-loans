@@ -8,6 +8,7 @@ class MainnetDeploymentHelper {
     this.configParams = configParams
     this.deployerWallet = deployerWallet
     this.hre = require("hardhat")
+    this.knownContracts = require("./knownContracts.js");
   }
 
   loadPreviousDeployment() {
@@ -288,6 +289,7 @@ class MainnetDeploymentHelper {
         contracts.troveManager.address,
         contracts.stabilityPool.address,
         contracts.defaultPool.address,
+        this.knownContracts.WETH[this.configParams.NETWORK_NAME],
 	{gasPrice}
       ))
 
@@ -295,6 +297,7 @@ class MainnetDeploymentHelper {
       await this.sendAndWaitForTransaction(contracts.defaultPool.setAddresses(
         contracts.troveManager.address,
         contracts.activePool.address,
+        this.knownContracts.WETH[this.configParams.NETWORK_NAME],
 	{gasPrice}
       ))
 
@@ -303,6 +306,7 @@ class MainnetDeploymentHelper {
         contracts.borrowerOperations.address,
         contracts.troveManager.address,
         contracts.activePool.address,
+        this.knownContracts.WETH[this.configParams.NETWORK_NAME],
 	{gasPrice}
       ))
 

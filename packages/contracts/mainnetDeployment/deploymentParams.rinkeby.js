@@ -37,6 +37,7 @@ const waitFunction = async () => {
   return delay(90000) // wait 90s
 }
 
+const NETWORK_NAME = 'rinkeby'
 const GAS_PRICE = 1000000000 // 1 Gwei
 const TX_CONFIRMATIONS = 1
 
@@ -48,7 +49,9 @@ module.exports = {
   beneficiaries,
   OUTPUT_FILE,
   waitFunction,
+  NETWORK_NAME,
   GAS_PRICE,
   TX_CONFIRMATIONS,
   ETHERSCAN_BASE_URL,
+  NETWORK_NAME
 };
