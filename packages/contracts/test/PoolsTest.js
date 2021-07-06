@@ -2,6 +2,7 @@ const StabilityPool = artifacts.require("./StabilityPool.sol")
 const ActivePool = artifacts.require("./ActivePool.sol")
 const DefaultPool = artifacts.require("./DefaultPool.sol")
 const NonPayable = artifacts.require("./NonPayable.sol")
+const WETH = artifacts.require("./WETH.sol")
 
 const testHelpers = require("../utils/testHelpers.js")
 
@@ -39,13 +40,14 @@ contract('StabilityPool', async accounts => {
 contract('ActivePool', async accounts => {
 
   let activePool, mockBorrowerOperations
-
+  let weth
   const [owner, alice] = accounts;
   beforeEach(async () => {
+    weth = await WETH.new()
     activePool = await ActivePool.new()
     mockBorrowerOperations = await NonPayable.new()
     const dumbContractAddress = (await NonPayable.new()).address
-    await activePool.setAddresses(mockBorrowerOperations.address, dumbContractAddress, dumbContractAddress, dumbContractAddress)
+      await activePool.setAddresses(mockBorrowerOperations.address, dumbContractAddress, dumbContractAddress, dumbContractAddress, weth.address)
   })
 
   it('getETH(): gets the recorded ETH balance', async () => {
@@ -57,7 +59,7 @@ contract('ActivePool', async accounts => {
     const recordedETHBalance = await activePool.getLUSDDebt()
     assert.equal(recordedETHBalance, 0)
   })
- 
+
   it('increaseLUSD(): increases the recorded LUSD balance by the correct amount', async () => {
     const recordedLUSD_balanceBefore = await activePool.getLUSDDebt()
     assert.equal(recordedLUSD_balanceBefore, 0)
