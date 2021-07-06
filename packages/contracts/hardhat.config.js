@@ -69,10 +69,10 @@ module.exports = {
             gas: 10000000,  // tx gas limit
             blockGasLimit: 12500000, 
             gasPrice: 20000000000,
-            forking: {
-                url: 'https://eth-mainnet.alchemyapi.io/v2/t4ccmxjLy2G_VCt587OoETn1fzArqbcp',
-                blockNumber: 12152522
-            }
+            // forking: {
+            //     url: 'https://eth-mainnet.alchemyapi.io/v2/t4ccmxjLy2G_VCt587OoETn1fzArqbcp',
+            //     blockNumber: 12152522
+            // }
         },
         mainnet: {
             url: alchemyUrl(),
