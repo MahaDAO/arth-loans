@@ -662,6 +662,11 @@ class TestHelper {
     return this.getGasMetrics(gasCostList)
   }
 
+  static depositWETHAndApprove = async (wethContract, from, value, approveAddress) => {
+    await wethContract.deposit({ from, value });
+    await wethContract.approve(approveAddress, value, { from });
+  }
+
   static async openTrove(contracts, {
     maxFeePercentage,
     extraLUSDAmount,
