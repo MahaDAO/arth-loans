@@ -25,6 +25,8 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
     address public troveManagerAddress;
     address public stabilityPoolAddress;
     address public defaultPoolAddress;
+    address public collSurplusPoolAddress;
+
     IERC20 public weth;
     uint256 public ETH; // deposited ether tracker
     uint256 public LUSDDebt;
@@ -43,6 +45,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
         address _troveManagerAddress,
         address _stabilityPoolAddress,
         address _defaultPoolAddress,
+        address _collSurplusPoolAddress,
         address _wethAddress
     ) external onlyOwner {
         checkContract(_borrowerOperationsAddress);
@@ -50,11 +53,13 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
         checkContract(_stabilityPoolAddress);
         checkContract(_defaultPoolAddress);
         checkContract(_wethAddress);
+        checkContract(_collSurplusPoolAddress);
 
         borrowerOperationsAddress = _borrowerOperationsAddress;
         troveManagerAddress = _troveManagerAddress;
         stabilityPoolAddress = _stabilityPoolAddress;
         defaultPoolAddress = _defaultPoolAddress;
+        collSurplusPoolAddress = _collSurplusPoolAddress;
         weth = IERC20(_wethAddress);
 
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
@@ -88,7 +93,13 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
         emit ActivePoolETHBalanceUpdated(ETH);
         emit EtherSent(_account, _amount);
 
-        weth.transfer(_account, _amount);
+        if (!_getShouldUseReceiveETH(_account)) {
+            weth.transfer(_account, _amount);
+        } else {
+            weth.approve(_account, _amount);
+            IActivePool(_account).receiveETH(_amount);
+            weth.approve(_account, _amount);  // Just a safety approve, not sure if needed.
+        }
     }
 
     function increaseLUSDDebt(uint256 _amount) external override {
@@ -104,6 +115,14 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
     }
 
     // --- 'require' functions ---
+
+    function _getShouldUseReceiveETH(address _account) internal view returns (bool) {
+        return (
+            _account == defaultPoolAddress ||
+            _account == stabilityPoolAddress ||
+            _account == collSurplusPoolAddress
+        );
+    }
 
     function _requireCallerIsBorrowerOperationsOrDefaultPool() internal view {
         require(
