@@ -692,6 +692,8 @@ class TestHelper {
       extraParams.value = ICR.mul(totalDebt).div(price)
     }
 
+    await contracts.weth.deposit(extraParams)
+    await contracts.weth.approve(contracts.borrowerOperations.address, extraParams.value, { from: extraParams.from })
     const tx = await contracts.borrowerOperations.openTrove(maxFeePercentage, lusdAmount, upperHint, lowerHint, extraParams)
 
     return {

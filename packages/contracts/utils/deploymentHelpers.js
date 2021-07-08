@@ -11,6 +11,7 @@ const FunctionCaller = artifacts.require("./TestContracts/FunctionCaller.sol")
 const BorrowerOperations = artifacts.require("./BorrowerOperations.sol")
 const HintHelpers = artifacts.require("./HintHelpers.sol")
 
+const WETH = artifacts.require("./WETH.sol")
 const LQTYStaking = artifacts.require("./LQTYStaking.sol")
 const LQTYToken = artifacts.require("./LQTYToken.sol")
 const LockupContractFactory = artifacts.require("./LockupContractFactory.sol")
@@ -86,6 +87,7 @@ class DeploymentHelper {
   }
 
   static async deployLiquityCoreHardhat() {
+    const weth = await WETH.new()
     const priceFeedTestnet = await PriceFeedTestnet.new()
     const sortedTroves = await SortedTroves.new()
     const troveManager = await TroveManager.new()
@@ -127,7 +129,8 @@ class DeploymentHelper {
       collSurplusPool,
       functionCaller,
       borrowerOperations,
-      hintHelpers
+      hintHelpers,
+      weth
     }
     return coreContracts
   }
@@ -136,6 +139,7 @@ class DeploymentHelper {
     const testerContracts = {}
 
     // Contract without testers (yet)
+    testerContracts.weth = await WETH.new()
     testerContracts.priceFeedTestnet = await PriceFeedTestnet.new()
     testerContracts.sortedTroves = await SortedTroves.new()
     // Actual tester contracts
@@ -217,6 +221,7 @@ class DeploymentHelper {
   }
 
   static async deployLiquityCoreTruffle() {
+    const weth = await WETH.new()
     const priceFeedTestnet = await PriceFeedTestnet.new()
     const sortedTroves = await SortedTroves.new()
     const troveManager = await TroveManager.new()
@@ -234,6 +239,7 @@ class DeploymentHelper {
       borrowerOperations.address
     )
     const coreContracts = {
+      weth,
       priceFeedTestnet,
       lusdToken,
       sortedTroves,
@@ -364,7 +370,8 @@ class DeploymentHelper {
       contracts.priceFeedTestnet.address,
       contracts.sortedTroves.address,
       contracts.lusdToken.address,
-      LQTYContracts.lqtyStaking.address
+      LQTYContracts.lqtyStaking.address,
+      contracts.weth.address
     )
 
     // set contracts in the Pools
@@ -382,18 +389,21 @@ class DeploymentHelper {
       contracts.borrowerOperations.address,
       contracts.troveManager.address,
       contracts.stabilityPool.address,
-      contracts.defaultPool.address
+      contracts.defaultPool.address,
+      contracts.weth.address,
     )
 
     await contracts.defaultPool.setAddresses(
       contracts.troveManager.address,
       contracts.activePool.address,
+      contracts.weth.address
     )
 
     await contracts.collSurplusPool.setAddresses(
       contracts.borrowerOperations.address,
       contracts.troveManager.address,
       contracts.activePool.address,
+      contracts.weth.address
     )
 
     // set contracts in HintHelpers
