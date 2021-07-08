@@ -282,6 +282,7 @@ class MainnetDeploymentHelper {
         contracts.sortedTroves.address,
         contracts.priceFeed.address,
         LQTYContracts.communityIssuance.address,
+        this.configParams.externalAddrs.WETH_ERC20,
 	{gasPrice}
       ))
       
