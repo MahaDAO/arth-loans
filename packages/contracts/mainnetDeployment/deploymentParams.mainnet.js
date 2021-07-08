@@ -58,6 +58,7 @@ const waitFunction = async () => {
   return delay(90000) // wait 90s
 }
 
+const NETWORK_NAME = 'mainnet'
 const GAS_PRICE = 200000000000
 const TX_CONFIRMATIONS = 3 // for mainnet
 
@@ -70,6 +71,7 @@ module.exports = {
   OUTPUT_FILE,
   waitFunction,
   GAS_PRICE,
+  NETWORK_NAME,
   TX_CONFIRMATIONS,
   ETHERSCAN_BASE_URL,
 };

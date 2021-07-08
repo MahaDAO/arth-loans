@@ -8,6 +8,7 @@ class MainnetDeploymentHelper {
     this.configParams = configParams
     this.deployerWallet = deployerWallet
     this.hre = require("hardhat")
+    this.knownContracts = require("./knownContracts.js");
   }
 
   loadPreviousDeployment() {
@@ -224,9 +225,11 @@ class MainnetDeploymentHelper {
   async connectCoreContractsMainnet(contracts, LQTYContracts, chainlinkProxyAddress) {
     const gasPrice = this.configParams.GAS_PRICE
     // Set ChainlinkAggregatorProxy and TellorCaller in the PriceFeed
+    
     await this.isOwnershipRenounced(contracts.priceFeed) ||
       await this.sendAndWaitForTransaction(contracts.priceFeed.setAddresses(chainlinkProxyAddress, contracts.tellorCaller.address, {gasPrice}))
 
+      
     // set TroveManager addr in SortedTroves
     await this.isOwnershipRenounced(contracts.sortedTroves) ||
       await this.sendAndWaitForTransaction(contracts.sortedTroves.setParams(
@@ -235,7 +238,7 @@ class MainnetDeploymentHelper {
         contracts.borrowerOperations.address, 
 	{gasPrice}
       ))
-
+      
     // set contracts in the Trove Manager
     await this.isOwnershipRenounced(contracts.troveManager) ||
       await this.sendAndWaitForTransaction(contracts.troveManager.setAddresses(
@@ -252,7 +255,6 @@ class MainnetDeploymentHelper {
         LQTYContracts.lqtyStaking.address,
 	{gasPrice}
       ))
-
     // set contracts in BorrowerOperations 
     await this.isOwnershipRenounced(contracts.borrowerOperations) ||
       await this.sendAndWaitForTransaction(contracts.borrowerOperations.setAddresses(
@@ -266,9 +268,10 @@ class MainnetDeploymentHelper {
         contracts.sortedTroves.address,
         contracts.lusdToken.address,
         LQTYContracts.lqtyStaking.address,
+        this.configParams.externalAddrs.WETH_ERC20,
 	{gasPrice}
       ))
-
+      
     // set contracts in the Pools
     await this.isOwnershipRenounced(contracts.stabilityPool) ||
       await this.sendAndWaitForTransaction(contracts.stabilityPool.setAddresses(
@@ -281,31 +284,34 @@ class MainnetDeploymentHelper {
         LQTYContracts.communityIssuance.address,
 	{gasPrice}
       ))
-
+      
     await this.isOwnershipRenounced(contracts.activePool) ||
       await this.sendAndWaitForTransaction(contracts.activePool.setAddresses(
         contracts.borrowerOperations.address,
         contracts.troveManager.address,
         contracts.stabilityPool.address,
         contracts.defaultPool.address,
+        this.configParams.externalAddrs.WETH_ERC20,
 	{gasPrice}
       ))
-
+      
     await this.isOwnershipRenounced(contracts.defaultPool) ||
       await this.sendAndWaitForTransaction(contracts.defaultPool.setAddresses(
         contracts.troveManager.address,
         contracts.activePool.address,
+        this.configParams.externalAddrs.WETH_ERC20,
 	{gasPrice}
       ))
-
+      
     await this.isOwnershipRenounced(contracts.collSurplusPool) ||
       await this.sendAndWaitForTransaction(contracts.collSurplusPool.setAddresses(
         contracts.borrowerOperations.address,
         contracts.troveManager.address,
         contracts.activePool.address,
+        this.configParams.externalAddrs.WETH_ERC20,
 	{gasPrice}
       ))
-
+      
     // set contracts in HintHelpers
     await this.isOwnershipRenounced(contracts.hintHelpers) ||
       await this.sendAndWaitForTransaction(contracts.hintHelpers.setAddresses(

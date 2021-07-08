@@ -13,6 +13,8 @@ import "../LUSDToken.sol";
 import "./PriceFeedTestnet.sol";
 import "../SortedTroves.sol";
 import "./EchidnaProxy.sol";
+import "../Dependencies/WETH.sol";
+
 //import "../Dependencies/console.sol";
 
 // Run with:
@@ -38,7 +40,8 @@ contract EchidnaTester {
     LUSDToken public lusdToken;
     PriceFeedTestnet priceFeedTestnet;
     SortedTroves sortedTroves;
-
+    WETH public weth;
+    
     EchidnaProxy[NUMBER_OF_ACTORS] public echidnaProxies;
 
     uint private numberOfTroves;
@@ -56,6 +59,7 @@ contract EchidnaTester {
             address(borrowerOperations)
         );
 
+        weth = new WETH();
         collSurplusPool = new CollSurplusPool();
         priceFeedTestnet = new PriceFeedTestnet();
 
@@ -71,19 +75,21 @@ contract EchidnaTester {
             address(activePool), address(defaultPool), 
             address(stabilityPool), address(gasPool), address(collSurplusPool),
             address(priceFeedTestnet), address(sortedTroves), 
-            address(lusdToken), address(0));
+            address(lusdToken), address(0), address(weth));
 
         activePool.setAddresses(address(borrowerOperations), 
-            address(troveManager), address(stabilityPool), address(defaultPool));
+            address(troveManager), address(stabilityPool), address(defaultPool),
+            address(weth)
+        );
 
-        defaultPool.setAddresses(address(troveManager), address(activePool));
+        defaultPool.setAddresses(address(troveManager), address(activePool), address(weth));
         
         stabilityPool.setAddresses(address(borrowerOperations), 
             address(troveManager), address(activePool), address(lusdToken), 
             address(sortedTroves), address(priceFeedTestnet), address(0));
 
         collSurplusPool.setAddresses(address(borrowerOperations), 
-             address(troveManager), address(activePool));
+             address(troveManager), address(activePool), address(weth));
     
         sortedTroves.setParams(1e18, address(troveManager), address(borrowerOperations));
 
