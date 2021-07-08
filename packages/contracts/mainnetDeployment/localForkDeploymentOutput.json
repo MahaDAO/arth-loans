@@ -13,7 +13,7 @@
   },
   "activePool": {
     "address": "0x971Ff2D85DA8FE1e1533204cE2F3EA36F7d27c66",
-    "txHash": "0x6b8ac2ac3a0344af8c39a91f0084be452c9df63cf9ae1e039514795127d7a309"
+    "txHash": "0x65990493aca24e11e08c98ec87f4c1d76e5a784619c64f27ad8eba0b4b03bd16"
   },
   "stabilityPool": {
     "address": "0xFE8ce62ef63a1e23F871830068614F93545fCBfA",
@@ -53,7 +53,7 @@
   },
   "lqtyStaking": {
     "address": "0xD48a181D6aA3F8303ec989d722AECB93eE61ED85",
-    "txHash": "0x98d0ca11d6d7ea8015cac06d2adfb6c8cbf56c39ced280b24d9114d53cacdfde"
+    "txHash": "0xb5a9980e6437c06f60bb7cbaea372136af530623ea08d122dc2973dbcb77ac80"
   },
   "lockupContractFactory": {
     "address": "0x69C735ce75B3Dec7c1Cdf21306628A6eb1b81346",
@@ -73,22 +73,22 @@
   },
   "TEST_INVESTOR_A": {
     "address": "0x1666F2eDDdFe88A31C88195f9F2a0EA825d26e4E",
-    "txHash": "0x756bcefa96896cd879e7e1f653f03c7c10208b27a8328d06fb39bf2ef9930374"
+    "txHash": "0xd96def7afc4b1662999a606bf443634f1b03a2daa57b5acfb61cd4460ec36f93"
   },
   "TEST_INVESTOR_B": {
     "address": "0x6E9486B47a0F74d64E4393760C062C07EFF448af",
-    "txHash": "0x3d29b01c5fec202da27652d87696a73c9229e04f8e7b957fd8b4aee1f57278fb"
+    "txHash": "0xa0601ac694488f07d4a7ef262c622bfc30282a179d14829d4fea011d516af803"
   },
   "TEST_INVESTOR_C": {
     "address": "0xbfe18B8Cf98529851358b7a7F714F7A06Ad91906",
-    "txHash": "0x45e54d7380790ce1121a685e6a33385887fc9774faa2a5cd42b5051f76155c10"
+    "txHash": "0x243133ca03eb8e778cce8a5bbbe217da1b478910c59b084419222bbc31efe757"
   },
   "TEST_INVESTOR_D": {
     "address": "0x3f85FA01F66aa1752284BC514F98a5d7602Cf24A",
-    "txHash": "0x0429f76febda1181d9ae31d6ff0248be58c1814b0d57e39c629bc2277870d040"
+    "txHash": "0xf000b5f3f9ac32a38fc9cd39da3b37d8b395c68b1a61d52aede35a8346dc6915"
   },
   "TEST_INVESTOR_E": {
     "address": "0x1A2949BDaAEb2241A3a14A33A4739Ce1F1250463",
-    "txHash": "0x4ff2ece1e4c6b65825f4159eefd4c146055f69cb05132bfbed7240570952c4a5"
+    "txHash": "0x03ce6e02bd45eec5f21d3e1f9004dd6dcda352f57ab180d228103938b2331916"
   }
 }
