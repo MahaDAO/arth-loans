@@ -117,12 +117,8 @@ contract('BorrowerOperations', async accounts => {
 
       const collTopUp = 1  // 1 wei top up
 
-     depositWETHAndApprove(
-         weth,
-         alice,
-         collTopUp,
-         borrowerOperations.address
-     )
+      await weth.deposit({ from: alice, value: collTopUp })
+      await weth.approve(borrowerOperations.address, collTopUp, { from: alice })
 
      await assertRevert(borrowerOperations.addColl(collTopUp, alice, alice, { from: alice }), 
      "BorrowerOps: An operation that would result in ICR < MCR is not permitted")
@@ -1579,7 +1575,9 @@ contract('BorrowerOperations', async accounts => {
       await priceFeed.setPrice(dec(1, 16))
       assert.isTrue(await th.checkRecoveryMode(contracts))
 
-      await borrowerOperations.adjustTrove('4999999999999999', 0, dec(1, 9), 0, true, A, A, { from: A })
+      await weth.deposit({ from: A, value: dec(3000000, 18) })
+      await weth.approve(borrowerOperations.address, dec(3000000, 18), { from: A })
+      await borrowerOperations.adjustTrove('4999999999999999', 0, dec(1, 9), dec(3000000, 18), true, A, A, { from: A })
     })
 
     it("adjustTrove(): decays a non-zero base rate", async () => {
