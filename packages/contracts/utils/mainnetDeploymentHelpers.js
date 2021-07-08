@@ -289,7 +289,7 @@ class MainnetDeploymentHelper {
         contracts.troveManager.address,
         contracts.stabilityPool.address,
         contracts.defaultPool.address,
-        this.knownContracts.WETH[this.configParams.NETWORK_NAME],
+        this.configParams.WETH_ERC20,
 	{gasPrice}
       ))
 
@@ -297,7 +297,7 @@ class MainnetDeploymentHelper {
       await this.sendAndWaitForTransaction(contracts.defaultPool.setAddresses(
         contracts.troveManager.address,
         contracts.activePool.address,
-        this.knownContracts.WETH[this.configParams.NETWORK_NAME],
+        this.configParams.WETH_ERC20,
 	{gasPrice}
       ))
 
@@ -306,7 +306,7 @@ class MainnetDeploymentHelper {
         contracts.borrowerOperations.address,
         contracts.troveManager.address,
         contracts.activePool.address,
-        this.knownContracts.WETH[this.configParams.NETWORK_NAME],
+        this.configParams.WETH_ERC20,
 	{gasPrice}
       ))
 

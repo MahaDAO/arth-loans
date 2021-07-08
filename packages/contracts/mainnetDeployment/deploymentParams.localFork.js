@@ -32,7 +32,7 @@ const waitFunction = async () => {
   ethers.provider.send("evm_mine") 
 }
 
-const NETWORK_NAME = 'mainnet' // NOTE: NOT sure about this
+const NETWORK_NAME = 'dev'
 const GAS_PRICE = 1000
 const TX_CONFIRMATIONS = 1 // for local fork test
 
