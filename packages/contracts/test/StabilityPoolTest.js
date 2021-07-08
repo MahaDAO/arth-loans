@@ -42,7 +42,7 @@ contract('StabilityPool', async accounts => {
   let borrowerOperations
   let lqtyToken
   let communityIssuance
-
+  let weth
   let gasPriceInWei
 
   const getOpenTroveLUSDAmount = async (totalDebt) => th.getOpenTroveLUSDAmount(contracts, totalDebt)
@@ -74,7 +74,7 @@ contract('StabilityPool', async accounts => {
       defaultPool = contracts.defaultPool
       borrowerOperations = contracts.borrowerOperations
       hintHelpers = contracts.hintHelpers
-
+      weth = contracts.weth
       lqtyToken = LQTYContracts.lqtyToken
       communityIssuance = LQTYContracts.communityIssuance
 
@@ -989,10 +989,10 @@ contract('StabilityPool', async accounts => {
       // --- TEST ---
 
       // get current ETH balances
-      const A_ETHBalance_Before = await web3.eth.getBalance(A)
-      const B_ETHBalance_Before = await web3.eth.getBalance(B)
-      const C_ETHBalance_Before = await web3.eth.getBalance(C)
-      const D_ETHBalance_Before = await web3.eth.getBalance(D)
+      const A_ETHBalance_Before = await weth.balanceOf(A)
+      const B_ETHBalance_Before = await weth.balanceOf(B)
+      const C_ETHBalance_Before = await weth.balanceOf(C)
+      const D_ETHBalance_Before = await weth.balanceOf(D)
 
       // A, B, C, D provide to SP
       await stabilityPool.provideToSP(dec(100, 18), frontEnd_1, { from: A, gasPrice: 0 })
@@ -1001,10 +1001,10 @@ contract('StabilityPool', async accounts => {
       await stabilityPool.provideToSP(dec(400, 18), ZERO_ADDRESS, { from: D, gasPrice: 0 })
 
       // Get  ETH balances after
-      const A_ETHBalance_After = await web3.eth.getBalance(A)
-      const B_ETHBalance_After = await web3.eth.getBalance(B)
-      const C_ETHBalance_After = await web3.eth.getBalance(C)
-      const D_ETHBalance_After = await web3.eth.getBalance(D)
+      const A_ETHBalance_After = await weth.balanceOf(A)
+      const B_ETHBalance_After = await weth.balanceOf(B)
+      const C_ETHBalance_After = await weth.balanceOf(C)
+      const D_ETHBalance_After = await weth.balanceOf(D)
 
       // Check ETH balances have not changed
       assert.equal(A_ETHBalance_After, A_ETHBalance_Before)
@@ -1057,10 +1057,10 @@ contract('StabilityPool', async accounts => {
       // --- TEST ---
 
       // get current ETH balances
-      const A_ETHBalance_Before = await web3.eth.getBalance(A)
-      const B_ETHBalance_Before = await web3.eth.getBalance(B)
-      const C_ETHBalance_Before = await web3.eth.getBalance(C)
-      const D_ETHBalance_Before = await web3.eth.getBalance(D)
+      const A_ETHBalance_Before = await weth.balanceOf(A)
+      const B_ETHBalance_Before = await weth.balanceOf(B)
+      const C_ETHBalance_Before = await weth.balanceOf(C)
+      const D_ETHBalance_Before = await weth.balanceOf(D)
 
       // A, B, C, D provide to SP
       await stabilityPool.provideToSP(dec(100, 18), frontEnd_1, { from: A, gasPrice: 0 })
@@ -1069,10 +1069,10 @@ contract('StabilityPool', async accounts => {
       await stabilityPool.provideToSP(dec(400, 18), ZERO_ADDRESS, { from: D, gasPrice: 0 })
 
       // Get  ETH balances after
-      const A_ETHBalance_After = await web3.eth.getBalance(A)
-      const B_ETHBalance_After = await web3.eth.getBalance(B)
-      const C_ETHBalance_After = await web3.eth.getBalance(C)
-      const D_ETHBalance_After = await web3.eth.getBalance(D)
+      const A_ETHBalance_After = await weth.balanceOf(A)
+      const B_ETHBalance_After = await weth.balanceOf(B)
+      const C_ETHBalance_After = await weth.balanceOf(C)
+      const D_ETHBalance_After = await weth.balanceOf(D)
 
       // Check ETH balances have not changed
       assert.equal(A_ETHBalance_After, A_ETHBalance_Before)
@@ -1786,7 +1786,9 @@ contract('StabilityPool', async accounts => {
       await openTrove({ extraLUSDAmount: toBN(dec(100000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
 
       // 1 defaulter opens trove
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), defaulter_1, defaulter_1, { from: defaulter_1, value: dec(100, 'ether') })
+      await weth.deposit({ from: defaulter_1, value: dec(100, 'ether')})
+      await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: defaulter_1 })
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(100, 'ether'), defaulter_1, defaulter_1, { from: defaulter_1 })
 
       const defaulterDebt = (await troveManager.getEntireDebtAndColl(defaulter_1))[0]
 
@@ -2039,7 +2041,7 @@ contract('StabilityPool', async accounts => {
       assert.isTrue(await th.ICRbetween100and110(defaulter_2, troveManager, price))
       assert.isTrue(await sortedTroves.contains(defaulter_2))
 
-      const A_ETHBalBefore = toBN(await web3.eth.getBalance(A))
+      const A_ETHBalBefore = toBN(await weth.balanceOf(A))
       const A_LQTYBalBefore = await lqtyToken.balanceOf(A)
 
       // Check Alice has gains to withdraw
@@ -2052,7 +2054,7 @@ contract('StabilityPool', async accounts => {
       const tx = await stabilityPool.withdrawFromSP(0, { from: A, gasPrice: 0 })
       assert.isTrue(tx.receipt.status)
 
-      const A_ETHBalAfter = toBN(await web3.eth.getBalance(A))
+      const A_ETHBalAfter = toBN(await weth.balanceOf(A))
 
       const A_LQTYBalAfter = await lqtyToken.balanceOf(A)
       const A_LQTYBalDiff = A_LQTYBalAfter.sub(A_LQTYBalBefore)
@@ -2119,7 +2121,7 @@ contract('StabilityPool', async accounts => {
       const dennis_ETHGain = (await stabilityPool.getDepositorETHGain(dennis)).toString()
       assert.equal(dennis_ETHGain, '0')
 
-      const dennis_ETHBalance_Before = (web3.eth.getBalance(dennis)).toString()
+      const dennis_ETHBalance_Before = (weth.balanceOf(dennis)).toString()
       const dennis_Collateral_Before = ((await troveManager.Troves(dennis))[1]).toString()
       const ETHinSP_Before = (await stabilityPool.getETH()).toString()
 
@@ -2129,7 +2131,7 @@ contract('StabilityPool', async accounts => {
       await stabilityPool.withdrawFromSP(dec(100, 18), { from: dennis, gasPrice: 0 })
 
       // Check withdrawal does not alter Dennis' ETH balance or his trove's collateral
-      const dennis_ETHBalance_After = (web3.eth.getBalance(dennis)).toString()
+      const dennis_ETHBalance_After = (weth.balanceOf(dennis)).toString()
       const dennis_Collateral_After = ((await troveManager.Troves(dennis))[1]).toString()
       const ETHinSP_After = (await stabilityPool.getETH()).toString()
 
@@ -2282,9 +2284,9 @@ contract('StabilityPool', async accounts => {
       const bob_LUSD_Balance_Before = await lusdToken.balanceOf(bob)
       const carol_LUSD_Balance_Before = await lusdToken.balanceOf(carol)
 
-      const alice_ETH_Balance_Before = web3.utils.toBN(await web3.eth.getBalance(alice))
-      const bob_ETH_Balance_Before = web3.utils.toBN(await web3.eth.getBalance(bob))
-      const carol_ETH_Balance_Before = web3.utils.toBN(await web3.eth.getBalance(carol))
+      const alice_ETH_Balance_Before = web3.utils.toBN(await weth.balanceOf(alice))
+      const bob_ETH_Balance_Before = web3.utils.toBN(await weth.balanceOf(bob))
+      const carol_ETH_Balance_Before = web3.utils.toBN(await weth.balanceOf(carol))
 
       const alice_Deposit_Before = await stabilityPool.getCompoundedLUSDDeposit(alice)
       const bob_Deposit_Before = await stabilityPool.getCompoundedLUSDDeposit(bob)
@@ -2326,9 +2328,9 @@ contract('StabilityPool', async accounts => {
       const bob_expectedETHBalance = (bob_ETH_Balance_Before.add(bob_ETHGain_Before)).toString()
       const carol_expectedETHBalance = (carol_ETH_Balance_Before.add(carol_ETHGain_Before)).toString()
 
-      const alice_ETHBalance_After = (await web3.eth.getBalance(alice)).toString()
-      const bob_ETHBalance_After = (await web3.eth.getBalance(bob)).toString()
-      const carol_ETHBalance_After = (await web3.eth.getBalance(carol)).toString()
+      const alice_ETHBalance_After = (await weth.balanceOf(alice)).toString()
+      const bob_ETHBalance_After = (await weth.balanceOf(bob)).toString()
+      const carol_ETHBalance_After = (await weth.balanceOf(carol)).toString()
 
       assert.equal(alice_expectedETHBalance, alice_ETHBalance_After)
       assert.equal(bob_expectedETHBalance, bob_ETHBalance_After)
