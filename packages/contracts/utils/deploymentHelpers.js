@@ -391,6 +391,7 @@ class DeploymentHelper {
       contracts.troveManager.address,
       contracts.stabilityPool.address,
       contracts.defaultPool.address,
+      contracts.collSurplusPool.address,
       contracts.weth.address,
     )
 
@@ -426,7 +427,7 @@ class DeploymentHelper {
       coreContracts.troveManager.address, 
       coreContracts.borrowerOperations.address,
       coreContracts.activePool.address,
-      contracts.weth.address
+      coreContracts.weth.address
     )
   
     await LQTYContracts.communityIssuance.setAddresses(
