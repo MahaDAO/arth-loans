@@ -694,7 +694,7 @@ class TestHelper {
 
     await contracts.weth.deposit(extraParams)
     await contracts.weth.approve(contracts.borrowerOperations.address, extraParams.value, { from: extraParams.from })
-    const tx = await contracts.borrowerOperations.openTrove(maxFeePercentage, lusdAmount, upperHint, lowerHint, extraParams)
+    const tx = await contracts.borrowerOperations.openTrove(maxFeePercentage, lusdAmount, extraParams.value, upperHint, lowerHint, { from: extraParams.from })
 
     return {
       lusdAmount,
