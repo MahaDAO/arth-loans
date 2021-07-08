@@ -292,6 +292,7 @@ class MainnetDeploymentHelper {
         contracts.troveManager.address,
         contracts.stabilityPool.address,
         contracts.defaultPool.address,
+        contracts.collSurplusPool.address,
         this.configParams.externalAddrs.WETH_ERC20,
 	{gasPrice}
       ))
