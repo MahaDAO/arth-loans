@@ -244,9 +244,4 @@ contract LQTYStaking is ILQTYStaking, Ownable, CheckContract, BaseMath {
     function _requireNonZeroAmount(uint _amount) internal pure {
         require(_amount > 0, 'LQTYStaking: Amount must be non-zero');
     }
-
-    receive() external payable {
-        _requireCallerIsActivePool();
-        weth.transferFrom(msg.sender, address(this), msg.value);
-    }
 }
