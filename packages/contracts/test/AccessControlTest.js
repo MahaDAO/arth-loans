@@ -20,7 +20,8 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
   const [bountyAddress, lpRewardsAddress, multisig] = accounts.slice(997, 1000)
 
   let coreContracts
-
+   
+  let weth
   let priceFeed
   let lusdToken
   let sortedTroves
@@ -53,7 +54,8 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
     defaultPool = coreContracts.defaultPool
     functionCaller = coreContracts.functionCaller
     borrowerOperations = coreContracts.borrowerOperations
-
+    weth = coreContracts.weth
+    
     lqtyStaking = LQTYContracts.lqtyStaking
     lqtyToken = LQTYContracts.lqtyToken
     communityIssuance = LQTYContracts.communityIssuance
@@ -78,7 +80,7 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
     it("moveETHGainToTrove(): reverts when called by an account that is not StabilityPool", async () => {
       // Attempt call from alice
       try {
-        const tx1= await borrowerOperations.moveETHGainToTrove(bob, bob, bob, { from: bob })
+        const tx1 = await borrowerOperations.moveETHGainToTrove(toBN(dec(2, 18)), bob, bob, bob, { from: bob })
       } catch (err) {
          assert.include(err.message, "revert")
         // assert.include(err.message, "BorrowerOps: Caller is not Stability Pool")
@@ -265,7 +267,7 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
         
       } catch (err) {
         assert.include(err.message, "revert")
-        assert.include(err.message, "ActivePool: Caller is neither BO nor Default Pool")
+        assert.include(err.message, "Transaction reverted: function selector was not recognized and there\'s no fallback nor receive function")
       }
     })
   })
@@ -315,7 +317,7 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
         
       } catch (err) {
         assert.include(err.message, "revert")
-        assert.include(err.message, "DefaultPool: Caller is not the ActivePool")
+        assert.include(err.message, "Transaction reverted: function selector was not recognized and there\'s no fallback nor receive function")
       }
     })
   })
@@ -345,13 +347,12 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
         
       } catch (err) {
         assert.include(err.message, "revert")
-        assert.include(err.message, "StabilityPool: Caller is not ActivePool")
+        assert.include(err.message, "Transaction reverted: function selector was not recognized and there\'s no fallback nor receive function")
       }
     })
   })
 
   describe('LUSDToken', async accounts => {
-
     //    mint
     it("mint(): reverts when called by an account that is not BorrowerOperations", async () => {
       // Attempt call from alice
