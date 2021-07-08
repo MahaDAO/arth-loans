@@ -2,7 +2,7 @@ const Decimal = require("decimal.js");
 const deploymentHelper = require("../utils/deploymentHelpers.js")
 const { BNConverter } = require("../utils/BNConverter.js")
 const testHelpers = require("../utils/testHelpers.js")
-const WETH = artifacts.require("WETH");
+
 const LQTYStakingTester = artifacts.require('LQTYStakingTester')
 const TroveManagerTester = artifacts.require("TroveManagerTester")
 const NonPayable = artifacts.require("./NonPayable.sol")
@@ -40,7 +40,7 @@ contract('LQTYStaking revenue share tests', async accounts => {
   let borrowerOperations
   let lqtyStaking
   let lqtyToken
-  let weth
+
   let contracts
 
   const openTrove = async (params) => th.openTrove(contracts, params)
@@ -48,7 +48,6 @@ contract('LQTYStaking revenue share tests', async accounts => {
   beforeEach(async () => {
     contracts = await deploymentHelper.deployLiquityCore()
     contracts.troveManager = await TroveManagerTester.new()
-    contracts.weth = await WETH.new();
     contracts = await deploymentHelper.deployLUSDTokenTester(contracts)
     const LQTYContracts = await deploymentHelper.deployLQTYTesterContractsHardhat(bountyAddress, lpRewardsAddress, multisig)
     
@@ -66,7 +65,7 @@ contract('LQTYStaking revenue share tests', async accounts => {
     defaultPool = contracts.defaultPool
     borrowerOperations = contracts.borrowerOperations
     hintHelpers = contracts.hintHelpers
-    weth = contracts.weth;
+
     lqtyToken = LQTYContracts.lqtyToken
     lqtyStaking = LQTYContracts.lqtyStaking
   })
@@ -304,13 +303,13 @@ contract('LQTYStaking revenue share tests', async accounts => {
     const expectedTotalETHGain = emittedETHFee_1.add(emittedETHFee_2)
     const expectedTotalLUSDGain = emittedLUSDFee_1.add(emittedLUSDFee_2)
 
-    const A_ETHBalance_Before = toBN(await weth.balanceOf(A))
+    const A_ETHBalance_Before = toBN(await web3.eth.getBalance(A))
     const A_LUSDBalance_Before = toBN(await lusdToken.balanceOf(A))
 
     // A un-stakes
     await lqtyStaking.unstake(dec(100, 18), {from: A, gasPrice: 0})
 
-    const A_ETHBalance_After = toBN(await weth.balanceOf(A))
+    const A_ETHBalance_After = toBN(await web3.eth.getBalance(A))
     const A_LUSDBalance_After = toBN(await lusdToken.balanceOf(A))
 
 
@@ -377,13 +376,13 @@ contract('LQTYStaking revenue share tests', async accounts => {
     const expectedTotalETHGain = emittedETHFee_1.add(emittedETHFee_2)
     const expectedTotalLUSDGain = emittedLUSDFee_1.add(emittedLUSDFee_2)
 
-      const A_ETHBalance_Before = toBN(await weth.balanceOf(A))
+    const A_ETHBalance_Before = toBN(await web3.eth.getBalance(A))
     const A_LUSDBalance_Before = toBN(await lusdToken.balanceOf(A))
 
     // A tops up
     await lqtyStaking.stake(dec(50, 18), {from: A, gasPrice: 0})
 
-      const A_ETHBalance_After = toBN(await weth.balanceOf(A))
+    const A_ETHBalance_After = toBN(await web3.eth.getBalance(A))
     const A_LUSDBalance_After = toBN(await lusdToken.balanceOf(A))
 
     const A_ETHGain = A_ETHBalance_After.sub(A_ETHBalance_Before)
@@ -614,13 +613,13 @@ contract('LQTYStaking revenue share tests', async accounts => {
     const expectedLUSDGain_D = toBN('50').mul(emittedLUSDFee_3).div( toBN('650'))
 
 
-    const A_ETHBalance_Before = toBN(await weth.balanceOf(A))
+    const A_ETHBalance_Before = toBN(await web3.eth.getBalance(A))
     const A_LUSDBalance_Before = toBN(await lusdToken.balanceOf(A))
-      const B_ETHBalance_Before = toBN(await weth.balanceOf(B))
+    const B_ETHBalance_Before = toBN(await web3.eth.getBalance(B))
     const B_LUSDBalance_Before = toBN(await lusdToken.balanceOf(B))
-      const C_ETHBalance_Before = toBN(await weth.balanceOf(C))
+    const C_ETHBalance_Before = toBN(await web3.eth.getBalance(C))
     const C_LUSDBalance_Before = toBN(await lusdToken.balanceOf(C))
-      const D_ETHBalance_Before = toBN(await weth.balanceOf(D))
+    const D_ETHBalance_Before = toBN(await web3.eth.getBalance(D))
     const D_LUSDBalance_Before = toBN(await lusdToken.balanceOf(D))
 
     // A-D un-stake
@@ -636,13 +635,13 @@ contract('LQTYStaking revenue share tests', async accounts => {
     assert.equal((await lqtyStaking.totalLQTYStaked()), '0')
 
     // Get A-D ETH and LUSD balances
-      const A_ETHBalance_After = toBN(await weth.balanceOf(A))
+    const A_ETHBalance_After = toBN(await web3.eth.getBalance(A))
     const A_LUSDBalance_After = toBN(await lusdToken.balanceOf(A))
-      const B_ETHBalance_After = toBN(await weth.balanceOf(B))
+    const B_ETHBalance_After = toBN(await web3.eth.getBalance(B))
     const B_LUSDBalance_After = toBN(await lusdToken.balanceOf(B))
-      const C_ETHBalance_After = toBN(await weth.balanceOf(C))
+    const C_ETHBalance_After = toBN(await web3.eth.getBalance(C))
     const C_LUSDBalance_After = toBN(await lusdToken.balanceOf(C))
-      const D_ETHBalance_After = toBN(await weth.balanceOf(D))
+    const D_ETHBalance_After = toBN(await web3.eth.getBalance(D))
     const D_LUSDBalance_After = toBN(await lusdToken.balanceOf(D))
 
     // Get ETH and LUSD gains

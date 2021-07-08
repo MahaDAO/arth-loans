@@ -662,11 +662,6 @@ class TestHelper {
     return this.getGasMetrics(gasCostList)
   }
 
-  static depositWETHAndApprove = async (wethContract, from, value, approveAddress) => {
-    await wethContract.deposit({ from, value });
-    await wethContract.approve(approveAddress, value, { from });
-  }
-
   static async openTrove(contracts, {
     maxFeePercentage,
     extraLUSDAmount,
@@ -697,9 +692,7 @@ class TestHelper {
       extraParams.value = ICR.mul(totalDebt).div(price)
     }
 
-    await contracts.weth.deposit(extraParams)
-    await contracts.weth.approve(contracts.borrowerOperations.address, extraParams.value, { from: extraParams.from })
-    const tx = await contracts.borrowerOperations.openTrove(maxFeePercentage, lusdAmount, extraParams.value, upperHint, lowerHint, { from: extraParams.from })
+    const tx = await contracts.borrowerOperations.openTrove(maxFeePercentage, lusdAmount, upperHint, lowerHint, extraParams)
 
     return {
       lusdAmount,

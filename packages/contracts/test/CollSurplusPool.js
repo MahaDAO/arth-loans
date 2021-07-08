@@ -1,7 +1,6 @@
 const deploymentHelper = require("../utils/deploymentHelpers.js")
 const testHelpers = require("../utils/testHelpers.js")
 const NonPayable = artifacts.require('NonPayable.sol')
-const WETH = artifacts.require('WETH.sol')
 
 const th = testHelpers.TestHelper
 const dec = th.dec
@@ -22,7 +21,7 @@ contract('CollSurplusPool', async accounts => {
   let borrowerOperations
   let priceFeed
   let collSurplusPool
-  let weth
+
   let contracts
 
   const getOpenTroveLUSDAmount = async (totalDebt) => th.getOpenTroveLUSDAmount(contracts, totalDebt)
@@ -36,13 +35,12 @@ contract('CollSurplusPool', async accounts => {
       contracts.stabilityPool.address,
       contracts.borrowerOperations.address
     )
-    contracts.weth = await WETH.new();
     const LQTYContracts = await deploymentHelper.deployLQTYContracts(bountyAddress, lpRewardsAddress, multisig)
 
     priceFeed = contracts.priceFeedTestnet
     collSurplusPool = contracts.collSurplusPool
     borrowerOperations = contracts.borrowerOperations
-    weth = contracts.weth;
+
     await deploymentHelper.connectCoreContracts(contracts, LQTYContracts)
     await deploymentHelper.connectLQTYContracts(LQTYContracts)
     await deploymentHelper.connectLQTYContractsToCore(LQTYContracts, contracts)
@@ -86,10 +84,8 @@ contract('CollSurplusPool', async accounts => {
     const B_coll = toBN(dec(60, 18))
     const B_lusdAmount = toBN(dec(3000, 18))
     const B_netDebt = await th.getAmountWithBorrowingFee(contracts, B_lusdAmount)
-    await weth.deposit({ from: B, value: B_coll});
-    await weth.transfer(borrowerOperations.address, B_coll, { from: B });
-    const openTroveData = th.getTransactionData('openTrove(uint256,uint256,uint256,address,address)', ['0xde0b6b3a7640000', web3.utils.toHex(B_lusdAmount), web3.utils.toHex(B_coll), B, B])
-    await nonPayable.forward(borrowerOperations.address, openTroveData, {value: B_coll})
+    const openTroveData = th.getTransactionData('openTrove(uint256,uint256,address,address)', ['0xde0b6b3a7640000', web3.utils.toHex(B_lusdAmount), B, B])
+    await nonPayable.forward(borrowerOperations.address, openTroveData, { value: B_coll })
     await openTrove({ extraLUSDAmount: B_netDebt, extraParams: { from: A, value: dec(3000, 'ether') } })
 
     // skip bootstrapping phase

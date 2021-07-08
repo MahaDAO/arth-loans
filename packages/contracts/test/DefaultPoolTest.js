@@ -1,7 +1,6 @@
 const testHelpers = require("../utils/testHelpers.js")
 const DefaultPool = artifacts.require("./DefaultPool.sol")
 const NonPayable = artifacts.require('NonPayable.sol')
-const WETH = artifacts.require("WETH")
 
 const th = testHelpers.TestHelper
 const dec = th.dec
@@ -11,7 +10,7 @@ contract('DefaultPool', async accounts => {
   let nonPayable
   let mockActivePool
   let mockTroveManager
-  let weth
+
   let [owner] = accounts
 
   beforeEach('Deploy contracts', async () => {
@@ -19,8 +18,7 @@ contract('DefaultPool', async accounts => {
     nonPayable = await NonPayable.new()
     mockTroveManager = await NonPayable.new()
     mockActivePool = await NonPayable.new()
-    weth = await WETH.new()
-    await defaultPool.setAddresses(mockTroveManager.address, mockActivePool.address, weth.address)
+    await defaultPool.setAddresses(mockTroveManager.address, mockActivePool.address)
   })
 
   it('sendETHToActivePool(): fails if receiver cannot receive ETH', async () => {
