@@ -11,6 +11,7 @@ const FunctionCaller = artifacts.require("./TestContracts/FunctionCaller.sol")
 const BorrowerOperations = artifacts.require("./BorrowerOperations.sol")
 const HintHelpers = artifacts.require("./HintHelpers.sol")
 
+const WETH = artifacts.require("./WETH.sol")
 const LQTYStaking = artifacts.require("./LQTYStaking.sol")
 const LQTYToken = artifacts.require("./LQTYToken.sol")
 const LockupContractFactory = artifacts.require("./LockupContractFactory.sol")
@@ -139,6 +140,7 @@ class DeploymentHelper {
     const testerContracts = {}
 
     // Contract without testers (yet)
+    testerContracts.weth = await WETH.new()
     testerContracts.priceFeedTestnet = await PriceFeedTestnet.new()
     testerContracts.sortedTroves = await SortedTroves.new()
     // Actual tester contracts
@@ -396,7 +398,7 @@ class DeploymentHelper {
     await contracts.defaultPool.setAddresses(
       contracts.troveManager.address,
       contracts.activePool.address,
-      contracts.weth.address,
+      contracts.weth.address
     )
 
     await contracts.collSurplusPool.setAddresses(
