@@ -3109,7 +3109,7 @@ contract('BorrowerOperations', async accounts => {
         defaultPool_LUSDDebt.sub(pendingDebtReward_A)), 1000)
 
       // whale adjusts trove, pulling their rewards out of DefaultPool
-      await borrowerOperations.adjustTrove(th._100pct, 0, dec(1, 18), true, whale, whale, { from: whale })
+      await borrowerOperations.adjustTrove(th._100pct, 0, dec(1, 18), 0, true, whale, whale, { from: whale })
 
       // Close Bob's trove. Expect DefaultPool coll and debt to drop to 0, since closing pulls his rewards out.
       await borrowerOperations.closeTrove({ from: bob })
@@ -4496,6 +4496,7 @@ contract('BorrowerOperations', async accounts => {
     })
 
     if (!withProxy) {
+      // NOTE: to be skipped since we are not using msg.value anymore and this has no other way of sending funds(imo).
       it('closeTrove(): fails if owner cannot receive ETH', async () => {
         const nonPayable = await NonPayable.new()
 
