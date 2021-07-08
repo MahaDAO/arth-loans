@@ -426,7 +426,7 @@ class DeploymentHelper {
       coreContracts.troveManager.address, 
       coreContracts.borrowerOperations.address,
       coreContracts.activePool.address,
-      contracts.weth.address
+      coreContracts.weth.address
     )
   
     await LQTYContracts.communityIssuance.setAddresses(
