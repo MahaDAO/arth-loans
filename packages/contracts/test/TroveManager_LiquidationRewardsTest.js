@@ -30,7 +30,7 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
   let defaultPool
   let functionCaller
   let borrowerOperations
-
+  let weth
   let contracts
 
   const getOpenTroveLUSDAmount = async (totalDebt) => th.getOpenTroveLUSDAmount(contracts, totalDebt)
@@ -46,7 +46,8 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
       contracts.borrowerOperations.address
     )
     const LQTYContracts = await deploymentHelper.deployLQTYContracts(bountyAddress, lpRewardsAddress, multisig)
-
+    
+    weth = contracts.weth;
     priceFeed = contracts.priceFeedTestnet
     lusdToken = contracts.lusdToken
     sortedTroves = contracts.sortedTroves
@@ -361,7 +362,9 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
 
     // Bob adds 1 ETH to his trove
     const addedColl1 = toBN(dec(1, 'ether'))
-    await borrowerOperations.addColl(B, B, { from: B, value: addedColl1 })
+    await weth.deposit({from: B, value: addedColl1})
+    await weth.approve(borrowerOperations.address, addedColl1, {from: B})
+    await borrowerOperations.addColl(addedColl1, B, B, { from: B })
 
     // Liquidate C
     const txC = await troveManager.liquidate(C)
@@ -384,7 +387,9 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
 
     // Bob adds 1 ETH to his trove
     const addedColl2 = toBN(dec(1, 'ether'))
-    await borrowerOperations.addColl(B, B, { from: B, value: addedColl2 })
+    await weth.deposit({from: B, value: addedColl2})
+    await weth.approve(borrowerOperations.address, addedColl2, {from: B})
+    await borrowerOperations.addColl(addedColl2, B, B, { from: B })
 
     // Liquidate E
     const txE = await troveManager.liquidate(E)
@@ -454,7 +459,9 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
     assert.isAtMost(getDifference(E_expectedPendingETH_1, E_ETHGain_1), 1e8)
 
     // // Bob adds 1 ETH to his trove
-    await borrowerOperations.addColl(B, B, { from: B, value: dec(1, 'ether') })
+    await weth.deposit({from: B, value: dec(1, 'ether')})
+    await weth.approve(borrowerOperations.address, dec(1, 'ether'), {from: B})
+    await borrowerOperations.addColl(dec(1, 'ether') , B, B, { from: B})
 
     // Check entireColl for each trove
     const B_entireColl_1 = (await th.getEntireCollAndDebt(contracts, B)).entireColl
@@ -492,7 +499,9 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
     assert.isAtMost(getDifference(E_expectedPendingETH_2, E_ETHGain_2), 1e8)
 
     // // Bob adds 1 ETH to his trove
-    await borrowerOperations.addColl(B, B, { from: B, value: dec(1, 'ether') })
+    await weth.deposit({from: B, value: dec(1, 'ether')})
+    await weth.approve(borrowerOperations.address, dec(1, 'ether'), {from: B})
+    await borrowerOperations.addColl(dec(1, 'ether'), B, B, { from: B })
 
     // Check entireColl for each trove
     const B_entireColl_2 = (await th.getEntireCollAndDebt(contracts, B)).entireColl
@@ -543,7 +552,9 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
 
     //Bob adds ETH to his trove
     const addedColl = toBN(dec(1, 'ether'))
-    await borrowerOperations.addColl(bob, bob, { from: bob, value: addedColl })
+    await weth.deposit({from: bob, value: addedColl})
+    await weth.approve(borrowerOperations.address, addedColl, {from: bob})
+    await borrowerOperations.addColl(addedColl, bob, bob, { from: bob})
 
     // Alice withdraws LUSD
     await borrowerOperations.withdrawLUSD(th._100pct, await getNetBorrowingAmount(A_totalDebt), alice, alice, { from: alice })
@@ -593,7 +604,9 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
 
     //Bob adds ETH to his trove
     const addedColl = toBN(dec(1, 'ether'))
-    await borrowerOperations.addColl(bob, bob, { from: bob, value: addedColl })
+    await weth.deposit({from: bob, value: addedColl})
+    await weth.approve(borrowerOperations.address, addedColl, {from: bob})
+    await borrowerOperations.addColl(addedColl, bob, bob, { from: bob })
 
     // D opens trove
     const { collateral: D_coll, totalDebt: D_totalDebt } = await openTrove({ ICR: toBN(dec(200, 16)), extraLUSDAmount: dec(110, 18), extraParams: { from: dennis } })
@@ -695,7 +708,9 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
 
     //Carol adds 1 ETH to her trove, brings it to 1992.01 total coll
     const C_addedColl = toBN(dec(1, 'ether'))
-    await borrowerOperations.addColl(carol, carol, { from: carol, value: dec(1, 'ether') })
+    await weth.deposit({from: carol, value: dec(1, 'ether')})
+    await weth.approve(borrowerOperations.address,dec(1, 'ether'), {from: carol})
+    await borrowerOperations.addColl(dec(1, 'ether'), carol, carol, { from: carol})
 
     //Expect 1996 ETH in system now
     const entireSystemColl_2 = (await activePool.getETH()).add(await defaultPool.getETH())
@@ -795,9 +810,17 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
     bringing them to 2.995, 2.995, 1992.01 total coll each. */
 
     const addedColl = toBN(dec(1, 'ether'))
-    await borrowerOperations.addColl(alice, alice, { from: alice, value: addedColl })
-    await borrowerOperations.addColl(bob, bob, { from: bob, value: addedColl })
-    await borrowerOperations.addColl(carol, carol, { from: carol, value: addedColl })
+    await weth.deposit({from: alice, value: addedColl})
+    await weth.approve(borrowerOperations.address,addedColl, {from: alice})
+    await borrowerOperations.addColl(addedColl, alice, alice, { from: alice})
+
+    await weth.deposit({from: bob, value: addedColl})
+    await weth.approve(borrowerOperations.address, addedColl, {from: bob})
+    await borrowerOperations.addColl(addedColl, bob, bob, { from: bob })
+
+    await weth.deposit({from: carol, value: addedColl})
+    await weth.approve(borrowerOperations.address, addedColl, {from: carol})
+    await borrowerOperations.addColl(addedColl, carol, carol, { from: carol})
 
     //Expect 1998 ETH in system now
     const entireSystemColl_2 = (await activePool.getETH()).add(await defaultPool.getETH()).toString()
@@ -1258,7 +1281,9 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
 
     //Bob adds 1 ETH to his trove
     const B_addedColl = toBN(dec(1, 'ether'))
-    await borrowerOperations.addColl(bob, bob, { from: bob, value: B_addedColl })
+    await weth.deposit({from: bob, value: B_addedColl})
+    await weth.approve(borrowerOperations.address, B_addedColl, {from: bob})
+    await borrowerOperations.addColl(B_addedColl, bob, bob, { from: bob})
 
     //Carol  withdraws 1 ETH from her trove
     const C_withdrawnColl = toBN(dec(1, 'ether'))
@@ -1296,7 +1321,9 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
 
     // D tops up
     const D_addedColl = toBN(dec(1, 'ether'))
-    await borrowerOperations.addColl(dennis, dennis, { from: dennis, value: D_addedColl })
+    await weth.deposit({from: dennis, value: D_addedColl})
+    await weth.approve(borrowerOperations.address, D_addedColl, {from: dennis})
+    await borrowerOperations.addColl(D_addedColl, dennis, dennis, { from: dennis})
 
     // Price drops to 1
     await priceFeed.setPrice(dec(1, 18))
@@ -1390,7 +1417,9 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
 
     // Bob adds 11.33909 ETH to his trove
     const B_addedColl = toBN('11339090000000000000')
-    await borrowerOperations.addColl(bob, bob, { from: bob, value: B_addedColl })
+    await weth.deposit({from: bob, value: B_addedColl})
+    await weth.approve(borrowerOperations.address, B_addedColl, {from: bob})
+    await borrowerOperations.addColl(B_addedColl, bob, bob, { from: bob})
 
     // Carol withdraws 15 ETH from her trove
     const C_withdrawnColl = toBN(dec(15, 'ether'))
@@ -1432,7 +1461,9 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
 
     // D tops up
     const D_addedColl = toBN(dec(1, 'ether'))
-    await borrowerOperations.addColl(dennis, dennis, { from: dennis, value: D_addedColl })
+    await weth.deposit({from: dennis, value: D_addedColl})
+    await weth.approve(borrowerOperations.address, D_addedColl, {from: dennis})
+    await borrowerOperations.addColl(D_addedColl, dennis, dennis, { from: dennis})
 
     const D_collAfterL2 = D_coll.add(D_pendingRewardsAfterL2).add(D_addedColl)
 
