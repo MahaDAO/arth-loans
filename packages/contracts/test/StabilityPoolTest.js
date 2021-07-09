@@ -332,7 +332,7 @@ contract('StabilityPool', async accounts => {
 
       // --- TEST ---
 
-      const nonPayable = await NonPayable.new()
+      const nonPayable = await NonPayable.new(weth.address)
       await lusdToken.transfer(nonPayable.address, dec(250, 18), { from: whale })
 
       // NonPayable makes deposit #1: 150 LUSD
