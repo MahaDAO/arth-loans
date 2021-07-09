@@ -595,7 +595,7 @@ contract('StabilityPool - Withdrawal of stability deposit - Reward calculations'
       
       await weth.deposit({from: defaulter_4, value:  dec(100, 'ether') })
       await weth.approve(borrowerOperations.address,  dec(100, 'ether') , {from: defaulter_4})
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), defaulter_4, defaulter_4, { from: defaulter_4})
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(100, 'ether'), defaulter_4, defaulter_4, { from: defaulter_4})
 
       // price drops by 50%: defaulter ICR falls to 100%
       await priceFeed.setPrice(dec(100, 18));
@@ -732,7 +732,7 @@ contract('StabilityPool - Withdrawal of stability deposit - Reward calculations'
       // Defaulters open trove with 200% ICR
       await weth.deposit({from: defaulter_1, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether') , {from: defaulter_1})
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), defaulter_1, defaulter_1, { from: defaulter_1})
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(100, 'ether') , defaulter_1, defaulter_1, { from: defaulter_1})
       
       await weth.deposit({from: defaulter_2, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address,dec(100, 'ether')  , {from: defaulter_2})
@@ -1526,7 +1526,7 @@ contract('StabilityPool - Withdrawal of stability deposit - Reward calculations'
       // Whale opens Trove with 100k ETH
       await weth.deposit({from: whale, value:   dec(100000, 'ether') })
       await weth.approve(borrowerOperations.address,   dec(100000, 'ether') , {from: whale})
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(100000, 18)), whale, whale, { from: whale})
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(100000, 18)),  dec(100000, 'ether') , whale, whale, { from: whale})
 
       await lusdToken.transfer(alice, dec(10000, 18), { from: whale })
       await stabilityPool.provideToSP(dec(10000, 18), ZERO_ADDRESS, { from: alice })
@@ -1698,7 +1698,7 @@ contract('StabilityPool - Withdrawal of stability deposit - Reward calculations'
       // Defaulters 1-4 each withdraw 9999.9 LUSD
       await weth.deposit({from: defaulter_1, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether') , {from: defaulter_1})
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount('9999900000000000000000'), defaulter_1, defaulter_1, { from: defaulter_1})
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount('9999900000000000000000'), dec(100, 'ether') , defaulter_1, defaulter_1, { from: defaulter_1})
       
       await weth.deposit({from: defaulter_2, value:dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether') , {from: defaulter_2})

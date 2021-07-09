@@ -35,7 +35,7 @@ contract('StabilityPool - Withdrawal of stability deposit - Reward calculations'
   const [bountyAddress, lpRewardsAddress, multisig] = accounts.slice(997, 1000)
 
   let contracts
-
+  let weth
   let priceFeed
   let lusdToken
   let sortedTroves
@@ -71,10 +71,16 @@ contract('StabilityPool - Withdrawal of stability deposit - Reward calculations'
       stabilityPool = contracts.stabilityPool
       defaultPool = contracts.defaultPool
       borrowerOperations = contracts.borrowerOperations
+      weth = contracts.weth
 
       await deploymentHelper.connectLQTYContracts(LQTYContracts)
       await deploymentHelper.connectCoreContracts(contracts, LQTYContracts)
       await deploymentHelper.connectLQTYContractsToCore(LQTYContracts, contracts)
+
+      for (const account of accounts) {
+        await weth.deposit({from: account, value: dec(100, 100)})
+        await weth.approve(borrowerOperations.address, dec(100, 100), {from: account})
+      }
     })
 
     // --- Compounding tests ---
