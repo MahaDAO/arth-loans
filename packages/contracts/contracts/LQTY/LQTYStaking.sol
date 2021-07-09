@@ -84,7 +84,7 @@ contract LQTYStaking is ILQTYStaking, Ownable, CheckContract, BaseMath {
         troveManagerAddress = _troveManagerAddress;
         borrowerOperationsAddress = _borrowerOperationsAddress;
         activePoolAddress = _activePoolAddress;
-        weth = IERC20(_wethAddress);
+        weth = IERC20(weth);
 
         emit LQTYTokenAddressSet(_lqtyTokenAddress);
         emit LQTYTokenAddressSet(_lusdTokenAddress);
