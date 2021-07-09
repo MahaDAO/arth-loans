@@ -4522,7 +4522,7 @@ contract('BorrowerOperations', async accounts => {
         // weth is deposited just to bypass transferfrom in forwarding contract.
         await weth.deposit({ from: alice, value:  dec(10000, 'ether')})
         await weth.approve(nonPayable.address,  dec(10000, 'ether'), { from: alice})
-        await th.assertRevert(nonPayable.forward(borrowerOperations.address, closeTroveData, dec(10000, 'ether')), 'ActivePool: sending ETH failed')
+        await th.assertRevert(nonPayable.forward(borrowerOperations.address, closeTroveData, dec(10000, 'ether'), {from: alice}), 'ActivePool: sending ETH failed')
       })
     }
   }
