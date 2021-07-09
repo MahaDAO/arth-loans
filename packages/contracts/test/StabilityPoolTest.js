@@ -989,10 +989,10 @@ contract('StabilityPool', async accounts => {
       // --- TEST ---
 
       // get current ETH balances
-      const A_ETHBalance_Before = await weth.balanceOf(A)
-      const B_ETHBalance_Before = await weth.balanceOf(B)
-      const C_ETHBalance_Before = await weth.balanceOf(C)
-      const D_ETHBalance_Before = await weth.balanceOf(D)
+      const A_ETHBalance_Before = toBN(await weth.balanceOf(A))
+      const B_ETHBalance_Before = toBN(await weth.balanceOf(B))
+      const C_ETHBalance_Before = toBN(await weth.balanceOf(C))
+      const D_ETHBalance_Before = toBN(await weth.balanceOf(D))
 
       // A, B, C, D provide to SP
       await stabilityPool.provideToSP(dec(100, 18), frontEnd_1, { from: A, gasPrice: 0 })
@@ -1001,10 +1001,10 @@ contract('StabilityPool', async accounts => {
       await stabilityPool.provideToSP(dec(400, 18), ZERO_ADDRESS, { from: D, gasPrice: 0 })
 
       // Get  ETH balances after
-      const A_ETHBalance_After = await weth.balanceOf(A)
-      const B_ETHBalance_After = await weth.balanceOf(B)
-      const C_ETHBalance_After = await weth.balanceOf(C)
-      const D_ETHBalance_After = await weth.balanceOf(D)
+      const A_ETHBalance_After = toBN(await weth.balanceOf(A))
+      const B_ETHBalance_After = toBN(await weth.balanceOf(B))
+      const C_ETHBalance_After = toBN(await weth.balanceOf(C))
+      const D_ETHBalance_After = toBN(await weth.balanceOf(D))
 
       // Check ETH balances have not changed
       assert.equal(A_ETHBalance_After, A_ETHBalance_Before)
@@ -1057,10 +1057,10 @@ contract('StabilityPool', async accounts => {
       // --- TEST ---
 
       // get current ETH balances
-      const A_ETHBalance_Before = await weth.balanceOf(A)
-      const B_ETHBalance_Before = await weth.balanceOf(B)
-      const C_ETHBalance_Before = await weth.balanceOf(C)
-      const D_ETHBalance_Before = await weth.balanceOf(D)
+      const A_ETHBalance_Before = toBN(await weth.balanceOf(A))
+      const B_ETHBalance_Before = toBN(await weth.balanceOf(B))
+      const C_ETHBalance_Before = toBN(await weth.balanceOf(C))
+      const D_ETHBalance_Before = toBN(await weth.balanceOf(D))
 
       // A, B, C, D provide to SP
       await stabilityPool.provideToSP(dec(100, 18), frontEnd_1, { from: A, gasPrice: 0 })
@@ -1069,10 +1069,10 @@ contract('StabilityPool', async accounts => {
       await stabilityPool.provideToSP(dec(400, 18), ZERO_ADDRESS, { from: D, gasPrice: 0 })
 
       // Get  ETH balances after
-      const A_ETHBalance_After = await weth.balanceOf(A)
-      const B_ETHBalance_After = await weth.balanceOf(B)
-      const C_ETHBalance_After = await weth.balanceOf(C)
-      const D_ETHBalance_After = await weth.balanceOf(D)
+      const A_ETHBalance_After = toBN(await weth.balanceOf(A))
+      const B_ETHBalance_After = toBN(await weth.balanceOf(B))
+      const C_ETHBalance_After = toBN(await weth.balanceOf(C))
+      const D_ETHBalance_After = toBN(await weth.balanceOf(D))
 
       // Check ETH balances have not changed
       assert.equal(A_ETHBalance_After, A_ETHBalance_Before)
