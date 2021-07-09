@@ -2263,7 +2263,9 @@ contract('StabilityPool', async accounts => {
       await openTrove({ extraLUSDAmount: toBN(dec(20000, 18)), ICR: toBN(dec(4, 18)), extraParams: { from: bob } })
       await openTrove({ extraLUSDAmount: toBN(dec(30000, 18)), ICR: toBN(dec(4, 18)), extraParams: { from: carol } })
 
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), defaulter_1, defaulter_1, { from: defaulter_1, value: dec(100, 'ether') })
+      await weth.deposit({from: defaulter_1, value:  dec(100, 'ether')})
+      await weth.approve(borrowerOperations.address,  dec(100, 'ether'), {from: defaulter_1})
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)),  dec(100, 'ether'), defaulter_1, defaulter_1, { from: defaulter_1 })
 
       // A, B, C provides 10000, 5000, 3000 LUSD to SP
       await stabilityPool.provideToSP(dec(10000, 18), frontEnd_1, { from: alice })
