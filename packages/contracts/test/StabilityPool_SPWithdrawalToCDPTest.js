@@ -934,7 +934,7 @@ contract('StabilityPool - Withdrawal of stability deposit - Reward calculations'
 
       // 2 Defaulters open trove with 200% ICR
       await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(20000, 18)), dec(200, 'ether'), defaulter_1, defaulter_1, { from: defaulter_1 })
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(200, 'ether'), defaulter_2, defaulter_2, { from: defaulter_2 })
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(100, 'ether'), defaulter_2, defaulter_2, { from: defaulter_2 })
 
       // price drops by 50%: defaulter ICR falls to 100%
       await priceFeed.setPrice(dec(100, 18));
