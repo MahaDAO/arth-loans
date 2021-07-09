@@ -4498,12 +4498,12 @@ contract('BorrowerOperations', async accounts => {
     if (!withProxy) {
       // NOTE: to be skipped since we are not using msg.value anymore and this has no other way of sending funds(imo).
       it('closeTrove(): fails if owner cannot receive ETH', async () => {
-        const nonPayable = await NonPayable.new()
+        const nonPayable = await NonPayable.new(weth.address)
 
         // we need 2 troves to be able to close 1 and have 1 remaining in the system
         await weth.deposit({ from: alice, value: dec(1000, 18)})
         await weth.approve(borrowerOperations.address, dec(1000, 18), { from: alice})
-        await borrowerOperations.openTrove(th._100pct, dec(100000, 18), alice, alice, { from: alice })
+        await borrowerOperations.openTrove(th._100pct, dec(100000, 18), dec(1000, 18), alice, alice, { from: alice })
 
         // Alice sends LUSD to NonPayable so its LUSD balance covers its debt
         await lusdToken.transfer(nonPayable.address, dec(10000, 18), {from: alice})
@@ -4511,13 +4511,18 @@ contract('BorrowerOperations', async accounts => {
         // open trove from NonPayable proxy contract
         const _100pctHex = '0xde0b6b3a7640000'
         const _1e25Hex = '0xd3c21bcecceda1000000'
-        const openTroveData = th.getTransactionData('openTrove(uint256,uint256,address,address)', [_100pctHex, _1e25Hex, '0x0', '0x0'])
-        await nonPayable.forward(borrowerOperations.address, openTroveData, { value: dec(10000, 'ether') })
+        await weth.deposit({ from: alice, value:  dec(10000, 'ether')})
+        await weth.approve(nonPayable.address,  dec(10000, 'ether'), { from: alice})
+        const openTroveData = th.getTransactionData('openTrove(uint256,uint256,uint256,address,address)', [_100pctHex, _1e25Hex, web3.utils.toHex(dec(10000, 'ether')), '0x0', '0x0'])
+        await nonPayable.forward(borrowerOperations.address, openTroveData, dec(10000, 'ether'), {from: alice})
         assert.equal((await troveManager.getTroveStatus(nonPayable.address)).toString(), '1', 'NonPayable proxy should have a trove')
         assert.isFalse(await th.checkRecoveryMode(contracts), 'System should not be in Recovery Mode')
         // open trove from NonPayable proxy contract
         const closeTroveData = th.getTransactionData('closeTrove()', [])
-        await th.assertRevert(nonPayable.forward(borrowerOperations.address, closeTroveData), 'ActivePool: sending ETH failed')
+        // weth is deposited just to bypass transferfrom in forwarding contract.
+        await weth.deposit({ from: alice, value:  dec(10000, 'ether')})
+        await weth.approve(nonPayable.address,  dec(10000, 'ether'), { from: alice})
+        await th.assertRevert(nonPayable.forward(borrowerOperations.address, closeTroveData, dec(10000, 'ether')), 'ActivePool: sending ETH failed')
       })
     }
   }
