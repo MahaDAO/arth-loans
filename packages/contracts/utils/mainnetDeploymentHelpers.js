@@ -282,6 +282,7 @@ class MainnetDeploymentHelper {
         contracts.sortedTroves.address,
         contracts.priceFeed.address,
         LQTYContracts.communityIssuance.address,
+        this.configParams.externalAddrs.WETH_ERC20,
 	{gasPrice}
       ))
       
@@ -291,6 +292,7 @@ class MainnetDeploymentHelper {
         contracts.troveManager.address,
         contracts.stabilityPool.address,
         contracts.defaultPool.address,
+        contracts.collSurplusPool.address,
         this.configParams.externalAddrs.WETH_ERC20,
 	{gasPrice}
       ))
@@ -337,6 +339,7 @@ class MainnetDeploymentHelper {
         coreContracts.troveManager.address, 
         coreContracts.borrowerOperations.address,
         coreContracts.activePool.address,
+        this.configParams.externalAddrs.WETH_ERC20,
 	{gasPrice}
       ))
 
