@@ -497,7 +497,7 @@ contract('PriceFeed', async accounts => {
         await mockChainlink.setPrice(toBN(0.94323412e8))
         await gmuOracle.setPrice(toBN(11.23e6))
 
-        assert.equal(await priceFeed.fetchPrice.call(), '943234120000000000')
+        assert.equal(await priceFeed.fetchPrice.call(), '83992352626892252')
     })
 
     it("Should work fine with chainlink price = 0.94323412 & GMU/USD < 1", async () => {
@@ -505,7 +505,7 @@ contract('PriceFeed', async accounts => {
         await mockChainlink.setPrice(toBN(0.94323412e8))
         await gmuOracle.setPrice(toBN(0.23e6))
 
-        assert.equal(await priceFeed.fetchPrice.call(), '83992352626892252')
+        assert.equal(await priceFeed.fetchPrice.call(), '4101017913043478260')
     })
 
     it("Should work fine with chainlink price = 8.78778 & GMU/USD > 1", async () => {
