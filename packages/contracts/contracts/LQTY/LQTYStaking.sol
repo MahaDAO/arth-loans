@@ -11,6 +11,7 @@ import "../Interfaces/ILQTYToken.sol";
 import "../Interfaces/ILQTYStaking.sol";
 import "../Dependencies/LiquityMath.sol";
 import "../Interfaces/ILUSDToken.sol";
+import "../Dependencies/IERC20.sol";
 
 contract LQTYStaking is ILQTYStaking, Ownable, CheckContract, BaseMath {
     using SafeMath for uint;
@@ -34,6 +35,7 @@ contract LQTYStaking is ILQTYStaking, Ownable, CheckContract, BaseMath {
     
     ILQTYToken public lqtyToken;
     ILUSDToken public lusdToken;
+    IERC20 public weth;
 
     address public troveManagerAddress;
     address public borrowerOperationsAddress;
@@ -63,7 +65,8 @@ contract LQTYStaking is ILQTYStaking, Ownable, CheckContract, BaseMath {
         address _lusdTokenAddress,
         address _troveManagerAddress, 
         address _borrowerOperationsAddress,
-        address _activePoolAddress
+        address _activePoolAddress,
+        address _wethAddress
     ) 
         external 
         onlyOwner 
@@ -74,12 +77,14 @@ contract LQTYStaking is ILQTYStaking, Ownable, CheckContract, BaseMath {
         checkContract(_troveManagerAddress);
         checkContract(_borrowerOperationsAddress);
         checkContract(_activePoolAddress);
+        checkContract(_wethAddress);
 
         lqtyToken = ILQTYToken(_lqtyTokenAddress);
         lusdToken = ILUSDToken(_lusdTokenAddress);
         troveManagerAddress = _troveManagerAddress;
         borrowerOperationsAddress = _borrowerOperationsAddress;
         activePoolAddress = _activePoolAddress;
+        weth = IERC20(_wethAddress);
 
         emit LQTYTokenAddressSet(_lqtyTokenAddress);
         emit LQTYTokenAddressSet(_lusdTokenAddress);
@@ -215,8 +220,7 @@ contract LQTYStaking is ILQTYStaking, Ownable, CheckContract, BaseMath {
 
     function _sendETHGainToUser(uint ETHGain) internal {
         emit EtherSent(msg.sender, ETHGain);
-        (bool success, ) = msg.sender.call{value: ETHGain}("");
-        require(success, "LQTYStaking: Failed to send accumulated ETHGain");
+        weth.transfer(msg.sender, ETHGain);
     }
 
     // --- 'require' functions ---
@@ -239,9 +243,5 @@ contract LQTYStaking is ILQTYStaking, Ownable, CheckContract, BaseMath {
 
     function _requireNonZeroAmount(uint _amount) internal pure {
         require(_amount > 0, 'LQTYStaking: Amount must be non-zero');
-    }
-
-    receive() external payable {
-        _requireCallerIsActivePool();
     }
 }

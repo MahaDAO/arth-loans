@@ -382,7 +382,8 @@ class DeploymentHelper {
       contracts.lusdToken.address,
       contracts.sortedTroves.address,
       contracts.priceFeedTestnet.address,
-      LQTYContracts.communityIssuance.address
+      LQTYContracts.communityIssuance.address,
+      contracts.weth.address
     )
 
     await contracts.activePool.setAddresses(
@@ -390,6 +391,7 @@ class DeploymentHelper {
       contracts.troveManager.address,
       contracts.stabilityPool.address,
       contracts.defaultPool.address,
+      contracts.collSurplusPool.address,
       contracts.weth.address,
     )
 
@@ -424,7 +426,8 @@ class DeploymentHelper {
       coreContracts.lusdToken.address,
       coreContracts.troveManager.address, 
       coreContracts.borrowerOperations.address,
-      coreContracts.activePool.address
+      coreContracts.activePool.address,
+      coreContracts.weth.address
     )
   
     await LQTYContracts.communityIssuance.setAddresses(
