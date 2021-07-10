@@ -21,7 +21,7 @@ contract('HintHelpers', async accounts => {
   let borrowerOperations
   let hintHelpers
   let priceFeed
-
+  let weth
   let contracts
 
   let numAccounts;
@@ -46,8 +46,11 @@ contract('HintHelpers', async accounts => {
 
  const openTrove = async (account, index) => {
    const amountFinney = 2000 + index * 10
-   const coll = web3.utils.toWei((amountFinney.toString()), 'finney')
-   await borrowerOperations.openTrove(th._100pct, 0, account, account, { from: account, value: coll })
+   const coll = 
+   utils.toWei((amountFinney.toString()), 'finney')
+   await weth.deposit({from: account, value: coll})
+   await weth.approve(borrowerOperations.address, coll, {from: account})
+   await borrowerOperations.openTrove(th._100pct, 0, coll, account, account, { from: account})
  }
 
  const withdrawLUSDfromTrove = async (account) => {
