@@ -106,93 +106,121 @@ contract('PriceFeed', async accounts => {
     })
   })
 
-  describe('- Price tests', async () => {
+  describe('- Different chainlink decimal precisions and GMU/USD = 1', async () => {
     beforeEach(async () => {
         await setAddresses()
     })
 
-    it("Should work fine with chainlink price = 1, chainlink decimals = 8 decimals and GMU/USD = 1", async () => {
+    it("Should work fine with chainlink price = 1, chainlink decimals = 8 decimals", async () => {
         await mockChainlink.setDecimals(8)
         await mockChainlink.setPrice(dec(1, 8))
 
         assert.equal(await priceFeed.fetchPrice.call(), '1000000000000000000')
     })
 
-    it("Should work fine with chainlink price = 0.5, chainlink decimals = 8 decimals and GMU/USD = 1", async () => {
-        await mockChainlink.setDecimals(8)
-        await mockChainlink.setPrice(toBN(0.5e8))
+    it("Should work fine with chainlink price = 1, chainlink decimals = 7 decimals", async () => {
+        await mockChainlink.setDecimals(7)
+        await mockChainlink.setPrice(dec(1, 7))
 
-        assert.equal(await priceFeed.fetchPrice.call(), '500000000000000000')
+        assert.equal(await priceFeed.fetchPrice.call(), '1000000000000000000')
     })
 
-    it("Should work fine with chainlink price = 0.35, chainlink decimals = 8 decimals and GMU/USD = 1", async () => {
-        await mockChainlink.setDecimals(8)
-        await mockChainlink.setPrice(toBN(0.35e8))
-
-        assert.equal(await priceFeed.fetchPrice.call(), '350000000000000000')
-    })
-
-    it("Should work fine with chainlink price = 0.95, chainlink decimals = 8 decimals and GMU/USD = 1", async () => {
-        await mockChainlink.setDecimals(8)
-        await mockChainlink.setPrice(toBN(0.95e8))
-
-        assert.equal(await priceFeed.fetchPrice.call(), '950000000000000000')
-    })
-
-    it("Should work fine with chainlink price = 0.878778, chainlink decimals = 8 decimals and GMU/USD = 1", async () => {
-        await mockChainlink.setDecimals(8)
-        await mockChainlink.setPrice(toBN(0.878778e8))
-
-        assert.equal(await priceFeed.fetchPrice.call(), '878778000000000000')
-    })
-
-    it("Should work fine with chainlink price = 0.943234, chainlink decimals = 8 decimals and GMU/USD = 1", async () => {
-        await mockChainlink.setDecimals(8)
-        await mockChainlink.setPrice(toBN(0.943234e8))
-
-        assert.equal(await priceFeed.fetchPrice.call(), '943234000000000000')
-    })
-
-    it("Should work fine with chainlink price = 0.94323412, chainlink decimals = 8 decimals and GMU/USD = 1", async () => {
-        await mockChainlink.setDecimals(8)
-        await mockChainlink.setPrice(toBN(0.94323412e8))
-
-        assert.equal(await priceFeed.fetchPrice.call(), '943234120000000000')
-    })
-
-    it("Should work fine with chainlink price = 10, chainlink decimals = 8 decimals and GMU/USD = 1", async () => {
-        await mockChainlink.setDecimals(8)
-        await mockChainlink.setPrice(dec(1, 9))
-
-        assert.equal(await priceFeed.fetchPrice.call(), '10000000000000000000')
-    })
-
-    it("Should work fine with chainlink price = 50, chainlink decimals = 8 decimals and GMU/USD = 1", async () => {
-        await mockChainlink.setDecimals(8)
-        await mockChainlink.setPrice(dec(5, 9))
-
-        assert.equal(await priceFeed.fetchPrice.call(), '50000000000000000000')
-    })
-
-    it("Should work fine with chainlink price = 0.94323412, chainlink decimals = 8 decimals and GMU/USD = 1", async () => {
-        await mockChainlink.setDecimals(8)
-        await mockChainlink.setPrice(toBN(9.4323412e8))
-
-        assert.equal(await priceFeed.fetchPrice.call(), '9432341200000000000')
-    })
-
-    it("Should work fine with chainlink price = 1, chainlink decimals = 9 decimals and GMU/USD = 1", async () => {
+    it("Should work fine with chainlink price = 1, chainlink decimals = 9 decimals", async () => {
         await mockChainlink.setDecimals(9)
         await mockChainlink.setPrice(dec(1, 9))
 
         assert.equal(await priceFeed.fetchPrice.call(), '1000000000000000000')
     })
 
-    it("Should work fine with chainlink price = 10, chainlink decimals = 9 decimals and GMU/USD = 1", async () => {
-        await mockChainlink.setDecimals(9)
-        await mockChainlink.setPrice(dec(1, 10))
+    it("Should work fine with chainlink price = 10, chainlink decimals = 7 decimals", async () => {
+        await mockChainlink.setDecimals(7)
+        await mockChainlink.setPrice(dec(10, 7))
 
         assert.equal(await priceFeed.fetchPrice.call(), '10000000000000000000')
+    })
+
+    it("Should work fine with chainlink price = 10, chainlink decimals = 8 decimals", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(dec(10, 8))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '10000000000000000000')
+    })
+
+    it("Should work fine with chainlink price = 10, chainlink decimals = 9 decimals", async () => {
+        await mockChainlink.setDecimals(9)
+        await mockChainlink.setPrice(dec(10, 9))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '10000000000000000000')
+    })
+
+  })
+
+  describe('- Different chainlink values and GMU/USD = 1', async () => {
+    beforeEach(async () => {
+        await setAddresses()
+    })
+
+    it("Should work fine with chainlink price = 0.5", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.5e8))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '500000000000000000')
+    })
+
+    it("Should work fine with chainlink price = 0.35", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.35e8))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '350000000000000000')
+    })
+
+    it("Should work fine with chainlink price = 0.95", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.95e8))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '950000000000000000')
+    })
+
+    it("Should work fine with chainlink price = 0.878778", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.878778e8))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '878778000000000000')
+    })
+
+    it("Should work fine with chainlink price = 0.943234", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.943234e8))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '943234000000000000')
+    })
+
+    it("Should work fine with chainlink price = 0.94323412", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.94323412e8))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '943234120000000000')
+    })
+
+    it("Should work fine with chainlink price = 9.4323412", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(9.4323412e8))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '9432341200000000000')
+    })
+
+    it("Should work fine with chainlink price = 10", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(dec(10, 8))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '10000000000000000000')
+    })
+
+    it("Should work fine with chainlink price = 50", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(dec(50, 8))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '50000000000000000000')
     })
   })
 })
