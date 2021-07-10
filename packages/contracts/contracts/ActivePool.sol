@@ -98,7 +98,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
         } else {
             weth.approve(_account, _amount);
             IActivePool(_account).receiveETH(_amount);
-            weth.approve(_account, _amount);  // Just a safety approve, not sure if needed.
+            weth.approve(_account, _amount); // Just a safety approve, not sure if needed.
         }
     }
 
@@ -117,11 +117,9 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
     // --- 'require' functions ---
 
     function _getShouldUseReceiveETH(address _account) internal view returns (bool) {
-        return (
-            _account == defaultPoolAddress ||
+        return (_account == defaultPoolAddress ||
             _account == stabilityPoolAddress ||
-            _account == collSurplusPoolAddress
-        );
+            _account == collSurplusPoolAddress);
     }
 
     function _requireCallerIsBorrowerOperationsOrDefaultPool() internal view {
