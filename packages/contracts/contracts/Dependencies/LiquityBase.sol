@@ -38,10 +38,9 @@ contract LiquityBase is BaseMath, ILiquityBase {
     uint256 public constant BORROWING_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5; // 0.5%
 
     IActivePool public activePool;
-
     IDefaultPool public defaultPool;
     IGovernance public governance;
-    IPriceFeed public override priceFeed;
+    IPriceFeed public override priceFeed; // TODO: should remove this in favour for the governance fn
 
     // --- Gas compensation functions ---
 
@@ -51,10 +50,12 @@ contract LiquityBase is BaseMath, ILiquityBase {
         return governance.getMaxDebtCeiling();
     }
 
+    // if we should allow any kind of debt creation
     function _allowMinting() internal view returns (bool) {
         return governance.getAllowMinting();
     }
 
+    // the price oracle
     function getPriceFeed() internal view returns (IPriceFeed) {
         return governance.getPriceFeed();
     }
