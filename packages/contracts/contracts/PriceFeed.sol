@@ -3,6 +3,7 @@
 pragma solidity 0.6.11;
 
 import "./Interfaces/IPriceFeed.sol";
+import "./Interfaces/IOracle.sol";
 import "./Dependencies/AggregatorV3Interface.sol";
 import "./Dependencies/SafeMath.sol";
 import "./Dependencies/Ownable.sol";
@@ -27,6 +28,9 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     // Mainnet Chainlink aggregator.
     AggregatorV3Interface public priceAggregator;  
 
+    // GMU oracle.
+    IOracle public gmuOracle;
+
     // Use to convert a price answer to an 18-digit precision uint.
     uint constant public TARGET_DIGITS = 18;
 
@@ -41,14 +45,17 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     // --- Dependency setters ---
     
     function setAddresses(
-        address _priceAggregatorAddress
+        address _priceAggregatorAddress,
+        address _gmuOracle
     )
         external
         onlyOwner
     {
         checkContract(_priceAggregatorAddress);
+        checkContract(_gmuOracle);
     
         priceAggregator = AggregatorV3Interface(_priceAggregatorAddress);
+        gmuOracle = IOracle(_gmuOracle);
 
         _renounceOwnership();
     }
@@ -68,10 +75,21 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     *
     */
     function fetchPrice() external override returns (uint) {
-       return _fetchChainlinkPrice();
+       return _fetchPrice();
     }
 
     // --- Helper functions ---
+    
+    function _fetchPrice() internal view returns (uint) {
+        uint chainlinkPrice = _fetchChainlinkPrice();
+        
+        uint256 gmuPrice = gmuOracle.getPrice();
+        uint256 gmuPricePrecision = gmuOracle.getDecimalPrecision();
+
+        return (
+            chainlinkPrice.mul(10 ** gmuPricePrecision).div(gmuPrice)
+        );
+    }
 
     function _scaleChainlinkPriceByDigits(uint _price, uint _answerDigits) internal pure returns (uint) {
         /*
