@@ -111,6 +111,27 @@ contract('PriceFeed', async accounts => {
         await setAddresses()
     })
 
+    it("Should work fine with chainlink price = 0.5, chainlink decimals = 8 decimals", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.5e8))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '500000000000000000')
+    })
+
+    it("Should work fine with chainlink price = 0.5, chainlink decimals = 7 decimals", async () => {
+        await mockChainlink.setDecimals(7)
+        await mockChainlink.setPrice(toBN(0.5e7))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '500000000000000000')
+    })
+
+    it("Should work fine with chainlink price = 0.5, chainlink decimals = 9 decimals", async () => {
+        await mockChainlink.setDecimals(9)
+        await mockChainlink.setPrice(toBN(0.5e9))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '500000000000000000')
+    })
+
     it("Should work fine with chainlink price = 1, chainlink decimals = 8 decimals", async () => {
         await mockChainlink.setDecimals(8)
         await mockChainlink.setPrice(dec(1, 8))
@@ -152,7 +173,157 @@ contract('PriceFeed', async accounts => {
 
         assert.equal(await priceFeed.fetchPrice.call(), '10000000000000000000')
     })
+  })
 
+  describe('- Different chainlink decimal precisions and GMU/USD != 1', async () => {
+    beforeEach(async () => {
+        await setAddresses()
+    })
+
+    it("Should work fine with chainlink price = 0.5, chainlink decimals = 8 decimals & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.5e8))
+        await gmuOracle.setPrice(11.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '44523597506678539')
+    })
+
+    it("Should work fine with chainlink price = 0.5, chainlink decimals = 8 decimals & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.5e8))
+        await gmuOracle.setPrice(0.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '2173913043478260869')
+    })
+
+    it("Should work fine with chainlink price = 0.5, chainlink decimals = 7 decimals & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(7)
+        await mockChainlink.setPrice(toBN(0.5e7))
+        await gmuOracle.setPrice(11.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '44523597506678539')
+    })
+
+    it("Should work fine with chainlink price = 0.5, chainlink decimals = 7 decimals & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(7)
+        await mockChainlink.setPrice(toBN(0.5e7))
+        await gmuOracle.setPrice(0.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '2173913043478260869')
+    })
+
+    it("Should work fine with chainlink price = 0.5, chainlink decimals = 9 decimals & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(9)
+        await mockChainlink.setPrice(toBN(0.5e9))
+        await gmuOracle.setPrice(11.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '44523597506678539')
+    })
+
+    it("Should work fine with chainlink price = 0.5, chainlink decimals = 9 decimals & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(9)
+        await mockChainlink.setPrice(toBN(0.5e9))
+        await gmuOracle.setPrice(0.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '2173913043478260869')
+    })
+
+    it("Should work fine with chainlink price = 1, chainlink decimals = 8 decimals & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(dec(1, 8))
+        await gmuOracle.setPrice(11.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '89047195013357079')
+    })
+
+    it("Should work fine with chainlink price = 1, chainlink decimals = 8 decimals & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(dec(1, 8))
+        await gmuOracle.setPrice(0.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '4347826086956521739')
+    })
+
+    it("Should work fine with chainlink price = 1, chainlink decimals = 7 decimals & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(7)
+        await mockChainlink.setPrice(dec(1, 7))
+        await gmuOracle.setPrice(11.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '89047195013357079')
+    })
+
+    it("Should work fine with chainlink price = 1, chainlink decimals = 7 decimals & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(7)
+        await mockChainlink.setPrice(dec(1, 7))
+        await gmuOracle.setPrice(0.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '4347826086956521739')
+    })
+
+    it("Should work fine with chainlink price = 1, chainlink decimals = 9 decimals & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(9)
+        await mockChainlink.setPrice(dec(1, 9))
+        await gmuOracle.setPrice(11.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '89047195013357079')
+    })
+
+    it("Should work fine with chainlink price = 1, chainlink decimals = 9 decimals & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(9)
+        await mockChainlink.setPrice(dec(1, 9))
+        await gmuOracle.setPrice(0.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '4347826086956521739')
+    })
+
+    it("Should work fine with chainlink price = 10, chainlink decimals = 7 decimals & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(7)
+        await mockChainlink.setPrice(dec(10, 7))
+        await gmuOracle.setPrice(11.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '890471950133570792')
+    })
+
+    it("Should work fine with chainlink price = 10, chainlink decimals = 7 decimals & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(7)
+        await mockChainlink.setPrice(dec(10, 7))
+        await gmuOracle.setPrice(0.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '43478260869565217391')
+    })
+
+    it("Should work fine with chainlink price = 10, chainlink decimals = 8 decimals & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(dec(10, 8))
+        await gmuOracle.setPrice(11.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '890471950133570792')
+    })
+
+    it("Should work fine with chainlink price = 10, chainlink decimals = 8 decimals & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(dec(10, 8))
+        await gmuOracle.setPrice(0.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '43478260869565217391')
+    })
+
+    it("Should work fine with chainlink price = 10, chainlink decimals = 9 decimals & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(9)
+        await mockChainlink.setPrice(dec(10, 9))
+
+        await gmuOracle.setPrice(11.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '890471950133570792')
+    })
+
+    it("Should work fine with chainlink price = 10, chainlink decimals = 9 decimals & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(9)
+        await mockChainlink.setPrice(dec(10, 9))
+        await gmuOracle.setPrice(0.23e6)
+
+        assert.equal(await priceFeed.fetchPrice.call(), '43478260869565217391')
+    })
   })
 
   describe('- Different chainlink values and GMU/USD = 1', async () => {
@@ -202,11 +373,32 @@ contract('PriceFeed', async accounts => {
         assert.equal(await priceFeed.fetchPrice.call(), '943234120000000000')
     })
 
+    it("Should work fine with chainlink price = 8.78778", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(8.78778e8))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '8787780000000000000')
+    })
+
+    it("Should work fine with chainlink price = 8.787789", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(8.787789e8))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '8787789000000000000')
+    })
+
     it("Should work fine with chainlink price = 9.4323412", async () => {
         await mockChainlink.setDecimals(8)
         await mockChainlink.setPrice(toBN(9.4323412e8))
 
         assert.equal(await priceFeed.fetchPrice.call(), '9432341200000000000')
+    })
+
+    it("Should work fine with chainlink price = 9.43234127", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(9.43234127e8))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '9432341270000000000')
     })
 
     it("Should work fine with chainlink price = 10", async () => {
@@ -216,11 +408,216 @@ contract('PriceFeed', async accounts => {
         assert.equal(await priceFeed.fetchPrice.call(), '10000000000000000000')
     })
 
+    it("Should work fine with chainlink price = 11.23", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(11.23e8))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '11230000000000000000')
+    })
+
     it("Should work fine with chainlink price = 50", async () => {
         await mockChainlink.setDecimals(8)
         await mockChainlink.setPrice(dec(50, 8))
 
         assert.equal(await priceFeed.fetchPrice.call(), '50000000000000000000')
+    })
+  })
+
+  describe('- Different chainlink values and GMU/USD != 1', async () => {
+    beforeEach(async () => {
+        await setAddresses()
+    })
+
+    it("Should work fine with chainlink price = 0.5 & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.5e8))
+        await gmuOracle.setPrice(toBN(11.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '44523597506678539')
+    })
+
+    it("Should work fine with chainlink price = 0.5 & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.5e8))
+        await gmuOracle.setPrice(toBN(0.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '2173913043478260869')
+    })
+
+    it("Should work fine with chainlink price = 0.35 & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.35e8))
+        await gmuOracle.setPrice(toBN(11.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '31166518254674977')
+    })
+
+    it("Should work fine with chainlink price = 0.35 & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.35e8))
+        await gmuOracle.setPrice(toBN(0.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '1521739130434782608')
+    })
+
+    it("Should work fine with chainlink price = 0.95 & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.95e8))
+        await gmuOracle.setPrice(toBN(11.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '84594835262689225')
+    })
+
+    it("Should work fine with chainlink price = 0.95 & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.95e8))
+        await gmuOracle.setPrice(toBN(0.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '4130434782608695652')
+    })
+
+    it("Should work fine with chainlink price = 0.878778 & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.878778e8))
+        await gmuOracle.setPrice(toBN(11.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '78252715939447907')
+    })
+
+    it("Should work fine with chainlink price = 0.878778 & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.878778e8))
+        await gmuOracle.setPrice(toBN(0.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '3820773913043478260')
+    })
+
+    it("Should work fine with chainlink price = 0.94323412 & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.94323412e8))
+        await gmuOracle.setPrice(toBN(11.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '943234120000000000')
+    })
+
+    it("Should work fine with chainlink price = 0.94323412 & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(0.94323412e8))
+        await gmuOracle.setPrice(toBN(0.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '83992352626892252')
+    })
+
+    it("Should work fine with chainlink price = 8.78778 & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(8.78778e8))
+        await gmuOracle.setPrice(toBN(11.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '782527159394479073')
+    })
+
+    it("Should work fine with chainlink price = 8.78778 & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(8.78778e8))
+        await gmuOracle.setPrice(toBN(0.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '38207739130434782608')
+    })
+
+    it("Should work fine with chainlink price = 8.787789 & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(8.787789e8))
+        await gmuOracle.setPrice(toBN(11.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '782527960819234194')
+    })
+
+    it("Should work fine with chainlink price = 8.787789 & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(8.787789e8))
+        await gmuOracle.setPrice(toBN(0.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '38207778260869565217')
+    })
+
+    it("Should work fine with chainlink price = 9.4323412 & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(9.4323412e8))
+        await gmuOracle.setPrice(toBN(11.23e6))
+        
+        assert.equal(await priceFeed.fetchPrice.call(), '839923526268922528')
+    })
+
+    it("Should work fine with chainlink price = 9.4323412 & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(9.4323412e8))
+        await gmuOracle.setPrice(toBN(0.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '41010179130434782608')
+    })
+
+    it("Should work fine with chainlink price = 9.43234127 & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(9.43234127e8))
+        await gmuOracle.setPrice(toBN(11.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '839923532502226179')
+    })
+
+    it("Should work fine with chainlink price = 9.43234127 & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(9.43234127e8))
+        await gmuOracle.setPrice(toBN(0.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '41010179434782608695')
+    })
+
+    it("Should work fine with chainlink price = 10 & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(dec(10, 8))
+        await gmuOracle.setPrice(toBN(11.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '890471950133570792')
+    })
+
+    it("Should work fine with chainlink price = 10 & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(dec(10, 8))
+        await gmuOracle.setPrice(toBN(0.23e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '43478260869565217391')
+    })
+
+    it("Should work fine with chainlink price = 11.23 & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(11.23e8))
+        await gmuOracle.setPrice(toBN(14.453e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '777001314605964159')
+    })
+
+    it("Should work fine with chainlink price = 11.23 & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(toBN(11.23e8))
+        await gmuOracle.setPrice(toBN(0.573e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '19598603839441535776')
+    })
+
+    it("Should work fine with chainlink price = 50 & GMU/USD > 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(dec(50, 8))
+        await gmuOracle.setPrice(toBN(14.453e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '3459489379367605341')
+    })
+
+    it("Should work fine with chainlink price = 50 & GMU/USD < 1", async () => {
+        await mockChainlink.setDecimals(8)
+        await mockChainlink.setPrice(dec(50, 8))
+        await gmuOracle.setPrice(toBN(0.453e6))
+
+        assert.equal(await priceFeed.fetchPrice.call(), '110375275938189845474')
     })
   })
 })
