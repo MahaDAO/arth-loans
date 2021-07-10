@@ -143,7 +143,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         lqtyStakingAddress = _lqtyStakingAddress;
         lqtyStaking = ILQTYStaking(_lqtyStakingAddress);
         weth = IERC20(_wethAddress);
-        
+
         emit TroveManagerAddressChanged(_troveManagerAddress);
         emit ActivePoolAddressChanged(_activePoolAddress);
         emit DefaultPoolAddressChanged(_defaultPoolAddress);
@@ -597,7 +597,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     // --- 'Require' wrapper functions ---
 
-    function _requireSingularCollChange(uint256 _ETHAmount, uint256 _collWithdrawal) internal view {
+    function _requireSingularCollChange(uint256 _ETHAmount, uint256 _collWithdrawal) internal pure {
         require(
             _ETHAmount == 0 || _collWithdrawal == 0,
             "BorrowerOperations: Cannot withdraw and add coll"
@@ -615,7 +615,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 _ETHAmount,
         uint256 _collWithdrawal,
         uint256 _LUSDChange
-    ) internal view {
+    ) internal pure {
         require(
             _ETHAmount != 0 || _collWithdrawal != 0 || _LUSDChange != 0,
             "BorrowerOps: There must be either a collateral change or a debt change"
