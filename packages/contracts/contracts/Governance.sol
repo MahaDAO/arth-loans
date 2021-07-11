@@ -18,10 +18,15 @@ contract Governance is Ownable, IGovernance {
     // Maximum amount of debt that this deployment can have (used to limit exposure to volatile assets)
     // set this according to how much ever debt we'd like to accumulate; default is infinity
     bool private allowMinting = true;
+
+    // MAHA; the governance token used for charging stability fees
     IERC20 private stabilityFeeToken;
+
+    // price feed
     IPriceFeed private priceFeed;
-    uint256 private maxDebtCeiling = uint256(-1);
-    uint256 private stabilityFee = uint256(-1);
+
+    uint256 private maxDebtCeiling = uint256(-1); // infinity
+    uint256 private stabilityFee = 10000000000000000; // 1%
 
     function setMaxDebtCeiling(uint256 _value) public onlyOwner {
         maxDebtCeiling = _value;
