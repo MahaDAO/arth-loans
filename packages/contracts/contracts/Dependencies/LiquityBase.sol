@@ -40,7 +40,6 @@ contract LiquityBase is BaseMath, ILiquityBase {
     IActivePool public activePool;
     IDefaultPool public defaultPool;
     IGovernance public governance;
-    IPriceFeed public override priceFeed; // TODO: should remove this in favour for the governance fn
 
     // --- Gas compensation functions ---
 
@@ -56,7 +55,7 @@ contract LiquityBase is BaseMath, ILiquityBase {
     }
 
     // the price oracle
-    function getPriceFeed() internal view returns (IPriceFeed) {
+    function getPriceFeed() public view override returns (IPriceFeed) {
         return governance.getPriceFeed();
     }
 
