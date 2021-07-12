@@ -1027,8 +1027,8 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         address stabilityFeeToken = address(governance.getStabilityFeeToken());
         
         uint256 stabilityFeeInLUSD = LUSDAmount.mul(governance.getStabilityFee()).div(_100pct);
-        // TODO: calculate correct stability fee considering asset price.
-        uint256 stabilityFee = stabilityFeeInLUSD.mul(1e18).div(1e18);
+        uint256 stabilityTokenPriceInLUSD = governance.getStabilityTokenPairOracle().consult(stabilityFeeToken, 1e18);
+        uint256 stabilityFee = stabilityFeeInLUSD.mul(1e18).div(stabilityTokenPriceInLUSD);
 
         if (stabilityFee > 0) {
             IBurnableERC20(stabilityFeeToken).burnFrom(msg.sender, stabilityFee);
