@@ -17,59 +17,90 @@ contract Governance is Ownable, IGovernance {
 
     // Maximum amount of debt that this deployment can have (used to limit exposure to volatile assets)
     // set this according to how much ever debt we'd like to accumulate; default is infinity
-    bool private allowMinting = true;
+    bool private _allowMinting = true;
 
     // MAHA; the governance token used for charging stability fees
-    IERC20 private stabilityFeeToken;
+    IERC20 private _stabilityFeeToken;
 
-    // price feed
-    IPriceFeed private priceFeed;
+    // Price feed.
+    IPriceFeed private _priceFeed;
 
-    uint256 private maxDebtCeiling = uint256(-1); // infinity
-    uint256 private stabilityFee = 10000000000000000; // 1%
+    uint256 private _maxDebtCeiling = uint256(-1); // infinity
+    uint256 private _stabilityFee = 10000000000000000; // 1%
+
+    event MaxDebtCeilingChanged(
+        uint256 oldValue, 
+        uint256 newValue, 
+        uint256 timestamp
+    );
+    event PriceFeedChanged(
+        address oldFeed, 
+        address newFeed, 
+        uint256 timestamp
+    );
+    event AllowMintingUpdated(
+        bool oldFlag,
+        bool newFlag,
+        uint256 timestamp
+    );
+    event StaibilityFeeChanged(
+        uint256 oldFee,
+        uint256 newFee,
+        uint256 timestamp
+    );
+    event StabilityTokenChanged(
+        address oldToken,
+        address newToken,
+        uint256 timestamp
+    );
 
     function setMaxDebtCeiling(uint256 _value) public onlyOwner {
-        maxDebtCeiling = _value;
-        // TODO: add events
+        uint256 oldValue = _maxDebtCeiling;
+        _maxDebtCeiling = _value;
+        emit MaxDebtCeilingChanged(oldValue, _value, block.timestamp);
     }
 
     function setPriceFeed(address _feed) public onlyOwner {
-        priceFeed = IPriceFeed(_feed);
-        // TODO: add events
+        address oldFeed = address(_priceFeed);
+        _priceFeed = IPriceFeed(_feed);
+        emit PriceFeedChanged(oldFeed, _feed, block.timestamp);
     }
 
     function setAllowMinting(bool _value) public onlyOwner {
-        allowMinting = _value;
-        // TODO: add events
+        bool oldFlag = _allowMinting;
+        _allowMinting = _value;
+        emit AllowMintingUpdated(oldFlag, _value, block.timestamp);
     }
 
     function setStabilityFee(uint256 _value) public onlyOwner {
-        stabilityFee = _value;
-        // TODO: add events
+        uint256 oldFee = _stabilityFee;
+        _stabilityFee = _value;
+        emit StaibilityFeeChanged(oldFee, _value, block.timestamp);
     }
 
-    function setStabilityFeeToken(uint256 _value) public onlyOwner {
-        stabilityFee = _value;
-        // TODO: add events
+    function setStabilityFeeToken(IERC20 token) public onlyOwner {
+        address oldToken = address(_stabilityFeeToken);
+        _stabilityFeeToken = token;
+        emit StabilityTokenChanged(oldToken, address(token), block.timestamp);
     }
 
     function getMaxDebtCeiling() external view override returns (uint256) {
-        return maxDebtCeiling;
+        return _maxDebtCeiling;
     }
 
     function getStabilityFee() external view override returns (uint256) {
-        return stabilityFee;
+        return _stabilityFee;
     }
 
     function getAllowMinting() external view override returns (bool) {
-        return allowMinting;
+        return _allowMinting;
     }
 
     function getStabilityFeeToken() external view override returns (IERC20) {
-        return stabilityFeeToken;
+        return _stabilityFeeToken;
     }
 
     function getPriceFeed() external view override returns (IPriceFeed) {
-        return priceFeed;
+        return _priceFeed;
     }
 }
