@@ -73,6 +73,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         ITroveManager troveManager;
         IActivePool activePool;
         ILUSDToken lusdToken;
+        IPriceFeed priceFeed;
     }
 
     enum BorrowerOperation {
@@ -168,10 +169,10 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _upperHint,
         address _lowerHint
     ) external override {
-        ContractsCache memory contractsCache = ContractsCache(troveManager, activePool, lusdToken);
+        ContractsCache memory contractsCache = ContractsCache(troveManager, activePool, lusdToken, getPriceFeed());
         LocalVariables_openTrove memory vars;
 
-        vars.price = getPriceFeed().fetchPrice();
+        vars.price = contractsCache.priceFeed.fetchPrice();
         bool isRecoveryMode = _checkRecoveryMode(vars.price);
 
         _requireValidMaxFeePercentage(_maxFeePercentage, isRecoveryMode);
@@ -338,10 +339,10 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _lowerHint,
         uint256 _maxFeePercentage
     ) internal {
-        ContractsCache memory contractsCache = ContractsCache(troveManager, activePool, lusdToken);
+        ContractsCache memory contractsCache = ContractsCache(troveManager, activePool, lusdToken, getPriceFeed());
         LocalVariables_adjustTrove memory vars;
 
-        vars.price = getPriceFeed().fetchPrice();
+        vars.price = contractsCache.priceFeed.fetchPrice();
         bool isRecoveryMode = _checkRecoveryMode(vars.price);
 
         if (_isDebtIncrease) {
@@ -449,9 +450,10 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         ITroveManager troveManagerCached = troveManager;
         IActivePool activePoolCached = activePool;
         ILUSDToken lusdTokenCached = lusdToken;
+        IPriceFeed priceFeed = getPriceFeed();
 
         _requireTroveisActive(troveManagerCached, msg.sender);
-        uint256 price = getPriceFeed().fetchPrice();
+        uint256 price = priceFeed.fetchPrice();
         _requireNotInRecoveryMode(price);
 
         troveManagerCached.applyPendingRewards(msg.sender);

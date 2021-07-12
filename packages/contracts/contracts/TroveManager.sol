@@ -177,6 +177,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         ISortedTroves sortedTroves;
         ICollSurplusPool collSurplusPool;
         address gasPoolAddress;
+        IPriceFeed priceFeed;
     }
     // --- Variable container structs for redemptions ---
 
@@ -503,7 +504,8 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
             ILQTYStaking(address(0)),
             sortedTroves,
             ICollSurplusPool(address(0)),
-            address(0)
+            address(0),
+            getPriceFeed()
         );
         IStabilityPool stabilityPoolCached = stabilityPool;
 
@@ -511,7 +513,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
         LiquidationTotals memory totals;
 
-        vars.price = getPriceFeed().fetchPrice();
+        vars.price = contractsCache.priceFeed.fetchPrice();
         vars.LUSDInStabPool = stabilityPoolCached.getTotalLUSDDeposits();
         vars.recoveryModeAtStart = _checkRecoveryMode(vars.price);
 
@@ -646,11 +648,12 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         IActivePool activePoolCached = activePool;
         IDefaultPool defaultPoolCached = defaultPool;
         IStabilityPool stabilityPoolCached = stabilityPool;
+        IPriceFeed priceFeed = getPriceFeed();
 
         LocalVariables_OuterLiquidationFunction memory vars;
         LiquidationTotals memory totals;
 
-        vars.price = getPriceFeed().fetchPrice();
+        vars.price = priceFeed.fetchPrice();
         vars.LUSDInStabPool = stabilityPoolCached.getTotalLUSDDeposits();
         vars.recoveryModeAtStart = _checkRecoveryMode(vars.price);
 
@@ -938,13 +941,14 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
             lqtyStaking,
             sortedTroves,
             collSurplusPool,
-            gasPoolAddress
+            gasPoolAddress,
+            getPriceFeed()
         );
         RedemptionTotals memory totals;
 
         _requireValidMaxFeePercentage(_maxFeePercentage);
         _requireAfterBootstrapPeriod();
-        totals.price = getPriceFeed().fetchPrice();
+        totals.price = contractsCache.priceFeed.fetchPrice();
         _requireTCRoverMCR(totals.price);
         _requireAmountGreaterThanZero(_LUSDamount);
         _requireLUSDBalanceCoversRedemption(contractsCache.lusdToken, msg.sender, _LUSDamount);
