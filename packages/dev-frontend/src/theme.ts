@@ -141,7 +141,7 @@ const modalOverlay: ThemeUIStyleObject = {
 };
 
 const headerGradient: ThemeUIStyleObject = {
-  background: `linear-gradient(90deg, ${colors.background}, ${colors.muted})`
+  // background: `linear-gradient(90deg, ${colors.background}, ${colors.muted})`
 };
 
 const theme: Theme = {
@@ -434,6 +434,7 @@ const theme: Theme = {
       flexDirection: "column",
       p: 0,
       m: 0,
+      background: 'rgb(30, 29, 29);',
       borderColor: "muted",
       mr: "25vw",
       height: "100%",

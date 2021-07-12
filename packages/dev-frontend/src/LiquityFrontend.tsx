@@ -1,5 +1,6 @@
 import React from "react";
 import { Flex, Container } from "theme-ui";
+import Button from './components/Button'
 import { HashRouter as Router, Switch, Route } from "react-router-dom";
 import { Wallet } from "@ethersproject/wallet";
 
@@ -48,16 +49,18 @@ export const LiquityFrontend: React.FC<LiquityFrontendProps> = ({ loader }) => {
                 <Flex sx={{ flexDirection: "column", minHeight: "100%" }}>
                   <Header>
                     <UserAccount />
-                    <SystemStatsPopup />
+                    {/* <SystemStatsPopup /> */}
                   </Header>
 
                   <Container
-                    variant="main"
+                    // variant="main"
                     sx={{
                       display: "flex",
                       flexGrow: 1,
                       flexDirection: "column",
-                      alignItems: "center"
+                      alignItems: "center",
+                      // background: '#161616'
+                      // paddingTop: 72
                     }}
                   >
                     <Switch>
@@ -67,9 +70,9 @@ export const LiquityFrontend: React.FC<LiquityFrontendProps> = ({ loader }) => {
                       <Route path="/risky-troves">
                         <RiskyTrovesPage />
                       </Route>
-                      <Route path="/redemption">
+                      {/* <Route path="/redemption">
                         <RedemptionPage />
-                      </Route>
+                      </Route> */}
                     </Switch>
                   </Container>
                 </Flex>

@@ -9,6 +9,8 @@ import { useLiquity } from "../hooks/LiquityContext";
 import { shortenAddress } from "../utils/shortenAddress";
 
 import { Icon } from "./Icon";
+import Button from "./Button";
+import AccountModal from '../components/Modals/AccountModal'
 
 const select = ({ accountBalance, lusdBalance, lqtyBalance }: LiquityStoreState) => ({
   accountBalance,
@@ -19,33 +21,20 @@ const select = ({ accountBalance, lusdBalance, lqtyBalance }: LiquityStoreState)
 export const UserAccount: React.FC = () => {
   const { account } = useLiquity();
   const { accountBalance, lusdBalance, lqtyBalance } = useLiquitySelector(select);
+  const [showModal, toggleModal] = React.useState(false);
 
   return (
-    <Box sx={{ display: ["none", "flex"] }}>
-      <Flex sx={{ alignItems: "center" }}>
-        <Icon name="user-circle" size="lg" />
-        <Flex sx={{ ml: 3, mr: 4, flexDirection: "column" }}>
-          <Heading sx={{ fontSize: 1 }}>Connected as</Heading>
-          <Text as="span" sx={{ fontSize: 1 }}>
-            {shortenAddress(account)}
-          </Text>
-        </Flex>
-      </Flex>
-
-      <Flex sx={{ alignItems: "center" }}>
-        <Icon name="wallet" size="lg" />
-
-        {([
-          ["ETH", accountBalance],
-          [COIN, lusdBalance],
-          [GT, lqtyBalance]
-        ] as const).map(([currency, balance], i) => (
-          <Flex key={i} sx={{ ml: 3, flexDirection: "column" }}>
-            <Heading sx={{ fontSize: 1 }}>{currency}</Heading>
-            <Text sx={{ fontSize: 1 }}>{balance.prettify()}</Text>
-          </Flex>
-        ))}
-      </Flex>
-    </Box>
+    <>
+      {showModal && <AccountModal onClose={() => toggleModal(!showModal)} />}
+      <Box sx={{ display: ["none", "flex"], alignSelf: 'center', marginRight: 108 }}>
+        <Button
+          variant={'transparent'}
+          text={'Connect'}
+          onClick={() => {
+            toggleModal(!showModal)
+          }}
+        />
+      </Box>
+    </>
   );
 };

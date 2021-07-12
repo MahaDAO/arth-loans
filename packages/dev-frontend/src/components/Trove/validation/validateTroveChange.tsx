@@ -156,7 +156,7 @@ export const validateTroveChange = (
   if (errorDescription) {
     return [undefined, errorDescription];
   }
-
+  // @ts-ignore
   return [change, <TroveChangeDescription params={change.params} />];
 };
 
