@@ -14,6 +14,7 @@ import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/console.sol";
 import "./Interfaces/IGovernance.sol";
+import "./Interfaces/IBurnableERC20.sol";
 
 contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     string constant public NAME = "TroveManager";
@@ -198,6 +199,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
     // --- Events ---
 
+    event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
     event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
     event LUSDTokenAddressChanged(address _newLUSDTokenAddress);
     event ActivePoolAddressChanged(address _activePoolAddress);
@@ -1015,9 +1017,24 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         // Update Active Pool LUSD, and send ETH to account
         contractsCache.activePool.decreaseLUSDDebt(totals.totalLUSDToRedeem);
         contractsCache.activePool.sendETH(msg.sender, totals.ETHToSendToRedeemer);
+
+        _chargeStabilityFee(_LUSDamount);
     }
 
     // --- Helper functions ---
+
+    function _chargeStabilityFee(uint256 LUSDAmount) internal {
+        address stabilityFeeToken = address(governance.getStabilityFeeToken());
+        
+        uint256 stabilityFeeInLUSD = LUSDAmount.mul(governance.getStabilityFee()).div(_100pct);
+        // TODO: calculate correct stability fee considering asset price.
+        uint256 stabilityFee = stabilityFeeInLUSD.mul(1e18).div(1e18);
+
+        if (stabilityFee > 0) {
+            IBurnableERC20(stabilityFeeToken).burnFrom(msg.sender, stabilityFee);
+            emit StabilityFeeCharged(LUSDAmount, stabilityFee, block.timestamp);
+        }
+    }
 
     // Return the nominal collateral ratio (ICR) of a given Trove, without the price. Takes a trove's pending coll and debt rewards from redistributions into account.
     function getNominalICR(address _borrower) public view override returns (uint) {
