@@ -5,20 +5,22 @@ pragma solidity 0.6.11;
 import "../LQTY/CommunityIssuance.sol";
 
 contract CommunityIssuanceTester is CommunityIssuance {
-    function obtainLQTY(uint _amount) external {
+    function obtainLQTY(uint256 _amount) external {
         lqtyToken.transfer(msg.sender, _amount);
     }
 
-    function getCumulativeIssuanceFraction() external view returns (uint) {
-       return _getCumulativeIssuanceFraction();
+    function getCumulativeIssuanceFraction() external view returns (uint256) {
+        return _getCumulativeIssuanceFraction();
     }
 
-    function unprotectedIssueLQTY() external returns (uint) {
+    function unprotectedIssueLQTY() external returns (uint256) {
         // No checks on caller address
-       
-        uint latestTotalLQTYIssued = LQTYSupplyCap.mul(_getCumulativeIssuanceFraction()).div(DECIMAL_PRECISION);
-        uint issuance = latestTotalLQTYIssued.sub(totalLQTYIssued);
-      
+
+        uint256 latestTotalLQTYIssued = LQTYSupplyCap.mul(_getCumulativeIssuanceFraction()).div(
+            DECIMAL_PRECISION
+        );
+        uint256 issuance = latestTotalLQTYIssued.sub(totalLQTYIssued);
+
         totalLQTYIssued = latestTotalLQTYIssued;
         return issuance;
     }

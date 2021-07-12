@@ -42,7 +42,7 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool {
         checkContract(_troveManagerAddress);
         checkContract(_activePoolAddress);
         checkContract(_wethAddress);
-        
+
         troveManagerAddress = _troveManagerAddress;
         activePoolAddress = _activePoolAddress;
         wethAddress = _wethAddress;

@@ -18,7 +18,11 @@ contract NonPayable {
         isPayable = _isPayable;
     }
 
-    function forward(address _dest, bytes calldata _data, uint256 _amount) external payable {
+    function forward(
+        address _dest,
+        bytes calldata _data,
+        uint256 _amount
+    ) external payable {
         weth.transferFrom(msg.sender, address(this), _amount);
         weth.approve(_dest, _amount);
         (bool success, bytes memory returnData) = _dest.call(_data);

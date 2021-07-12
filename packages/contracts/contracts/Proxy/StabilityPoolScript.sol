@@ -5,9 +5,8 @@ pragma solidity 0.6.11;
 import "../Dependencies/CheckContract.sol";
 import "../Interfaces/IStabilityPool.sol";
 
-
 contract StabilityPoolScript is CheckContract {
-    string constant public NAME = "StabilityPoolScript";
+    string public constant NAME = "StabilityPoolScript";
 
     IStabilityPool immutable stabilityPool;
 
@@ -16,11 +15,11 @@ contract StabilityPoolScript is CheckContract {
         stabilityPool = _stabilityPool;
     }
 
-    function provideToSP(uint _amount, address _frontEndTag) external {
+    function provideToSP(uint256 _amount, address _frontEndTag) external {
         stabilityPool.provideToSP(_amount, _frontEndTag);
     }
 
-    function withdrawFromSP(uint _amount) external {
+    function withdrawFromSP(uint256 _amount) external {
         stabilityPool.withdrawFromSP(_amount);
     }
 
