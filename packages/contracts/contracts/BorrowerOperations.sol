@@ -37,6 +37,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     // A doubly linked list of Troves, sorted by their collateral ratios
     ISortedTroves public sortedTroves;
 
+    // Keeps track of currently active LUSD(Debt).
+    uint256 totalLUSDMinted = 0;
+
     /* --- Variable container structs  ---
 
     Used to hold, return and assign variables inside a function, in order to avoid the error:
@@ -502,7 +505,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
         // Send fee to LQTY staking contract
         lqtyStaking.increaseF_LUSD(LUSDFee);
-        _lusdToken.mint(lqtyStakingAddress, LUSDFee);
+        _mintLUSD(lqtyStakingAddress, LUSDFee);
 
         return LUSDFee;
     }
@@ -584,7 +587,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 _netDebtIncrease
     ) internal {
         _activePool.increaseLUSDDebt(_netDebtIncrease);
-        _lusdToken.mint(_account, _LUSDAmount);
+        _mintLUSD(_account, _LUSDAmount);
     }
 
     // Burn the specified amount of LUSD from _account and decreases the total active debt
@@ -595,10 +598,25 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 _LUSD
     ) internal {
         _activePool.decreaseLUSDDebt(_LUSD);
+        totalLUSDMinted = totalLUSDMinted.sub(_LUSD);  // Reduce the debt as soon as LUSD is burnt.
         _lusdToken.burn(_account, _LUSD);
     }
 
+    function _mintLUSD(address _account, uint256 _LUSDAmount) internal {
+        _requireMintIsValid(_LUSDAmount);
+        totalLUSDMinted = totalLUSDMinted.add(_LUSDAmount); // Increase the debt as soon as LUSD is minted.
+        lusdToken.mint(_account, _LUSDAmount);
+    }
+
     // --- 'Require' wrapper functions ---
+
+    function _requireMintIsValid(uint256 _LUSDAmount) internal view {
+        require(
+            _allowMinting() &&  // Check that minting is allowed.
+            totalLUSDMinted.add(_LUSDAmount) <= _getMaxDebt(),  // Check that after miting debt will still be below max.
+            "BorrowerOperations: Maximum Debt limit reached"
+        );
+    }
 
     function _requireSingularCollChange(uint256 _ETHAmount, uint256 _collWithdrawal) internal pure {
         require(
