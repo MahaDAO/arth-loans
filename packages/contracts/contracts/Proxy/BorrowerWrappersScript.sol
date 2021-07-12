@@ -169,7 +169,8 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
     }
 
     function _getNetLUSDAmount(uint256 _collateral) internal returns (uint256) {
-        uint256 price = troveManager.getPriceFeed().fetchPrice();
+        IPriceFeed priceFeed = troveManager.getPriceFeed();
+        uint256 price = priceFeed.fetchPrice();
         uint256 ICR = troveManager.getCurrentICR(address(this), price);
 
         uint256 LUSDAmount = _collateral.mul(price).div(ICR);
