@@ -29,7 +29,7 @@ import "./Interfaces/IGovernance.sol";
 contract LUSDToken is CheckContract, ILUSDToken {
     using SafeMath for uint256;
 
-    IGovernance governance;
+    IGovernance public governance;
 
     uint256 private _totalSupply;
     string constant internal _NAME = "LUSD Stablecoin";
