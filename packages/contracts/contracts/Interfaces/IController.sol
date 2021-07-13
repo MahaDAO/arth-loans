@@ -5,7 +5,7 @@ pragma solidity 0.6.11;
 interface IController { 
     
     // --- Events ---
-    event ARTHAddressChanged(address _arthAddress);
+    event LUSDAddressChanged(address _lusdAddress);
     event GovernanceAddressChanged(address _governanceAddress);
     event TroveManagerAddressChanged(address _troveManagerAddress);
     event StabilityPoolAddressChanged(address _newStabilityPoolAddress);

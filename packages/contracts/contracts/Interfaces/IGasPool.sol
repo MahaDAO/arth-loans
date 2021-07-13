@@ -6,17 +6,17 @@ import "./IPool.sol";
 
 interface IGasPool {
     // --- Events ---
-    event ARTHAddressChanged(address _arthAddress);
+    event LUSDAddressChanged(address _lusdAddress);
     event TroveManagerAddressChanged(address _troveManagerAddress);
     event ReturnToLiquidator(address indexed to, uint256 amount, uint256 timestamp);
     event CoreControllerAddressChanged(address _coreControllerAddress);
     event BorrowerOperationsAddressChanged(address _borrowerOperationsAddress);
-    event ARTHBurnt(uint256 amount, uint256 timestamp);
+    event LUSDBurnt(uint256 amount, uint256 timestamp);
     
     // --- Functions ---
     function setAddresses(
         address _troveManagerAddress, 
-        address _arthTokenAddress, 
+        address _lusdTokenAddress, 
         address _borrowerOperationAddress, 
         address _coreControllerAddress
     ) external;
