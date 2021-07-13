@@ -2,14 +2,14 @@
 
 pragma solidity 0.6.11;
 
-import "./Interfaces/ILUSDToken.sol";
+import "./Interfaces/IController.sol";
 import "./Dependencies/SafeMath.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/console.sol";
 import "./Interfaces/IGovernance.sol";
 import "./Dependencies/IARTH.sol";
 
-contract Controller is CheckContract {
+contract Controller is CheckContract, IController {
     using SafeMath for uint256;
     
     IARTH public arth;
