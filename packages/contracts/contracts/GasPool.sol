@@ -48,12 +48,12 @@ contract GasPool is Ownable, CheckContract, IGasPool {
     }
 
     function returnFromPool(address _account, uint256 amount) external override {
-        _requireCallerIsTroveMorSP();
+        _requireCallerIsTroveM();
         emit ReturnFromPool(_account, amount, block.timestamp);
         arthToken.transfer(_account, amount);
     }
 
-    function _requireCallerIsTroveMorSP() internal view {
+    function _requireCallerIsTroveM() internal view {
         require(
             msg.sender == troveManager,
             "GasPool: Caller is not gas pool");
