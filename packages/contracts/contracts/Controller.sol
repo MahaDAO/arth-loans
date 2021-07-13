@@ -89,7 +89,8 @@ contract Controller is CheckContract, IController {
     }
 
     function returnFromPool(address _poolAddress, address _receiver, uint256 _amount) external override {
-        _requireCallerIsTroveMorSP();
+        // _requireCallerIsTroveMorSP();
+        _requireCallerIsStabilityPool();  // Since trove managers now uses gasPool which transfers funds itself.
         // NOTE: need to be approved by `_poolAddress` since this is potentially a contract.
         arth.transferFrom(_poolAddress, _receiver, _amount);
         // _transfer(_poolAddress, _receiver, _amount);
