@@ -15,7 +15,7 @@ interface IBorrowerOperations {
     event GasPoolAddressChanged(address _gasPoolAddress);
     event CollSurplusPoolAddressChanged(address _collSurplusPoolAddress);
     event SortedTrovesAddressChanged(address _sortedTrovesAddress);
-    event ARTHTokenAddressChanged(address _lusdTokenAddress);
+    event LUSDTokenAddressChanged(address _lusdTokenAddress);
     event LQTYStakingAddressChanged(address _lqtyStakingAddress);
 
     event TroveCreated(address indexed _borrower, uint256 arrayIndex);
@@ -38,7 +38,7 @@ interface IBorrowerOperations {
         address _gasPoolAddress,
         address _collSurplusPoolAddress,
         address _sortedTrovesAddress,
-        address _arthTokenAddress,
+        address _lusdTokenAddress,
         address _lqtyStakingAddress,
         address _wethAddress,
         address _governanceAddress,
