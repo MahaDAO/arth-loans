@@ -9,7 +9,7 @@ import "./Dependencies/console.sol";
 import "./Interfaces/IGovernance.sol";
 import "./Dependencies/IARTH.sol";
 
-contract LUSDToken is CheckContract {
+contract Controller is CheckContract {
     using SafeMath for uint256;
     
     IARTH public arth;
