@@ -57,11 +57,7 @@ contract EchidnaTester {
         defaultPool = new DefaultPool();
         stabilityPool = new StabilityPool();
         gasPool = new GasPool();
-        lusdToken = new LUSDToken(
-            address(troveManager),
-            address(stabilityPool),
-            address(borrowerOperations)
-        );
+        lusdToken = new LUSDToken();
         governance = new Governance();
         controller = new Controller(
             address(troveManager),
