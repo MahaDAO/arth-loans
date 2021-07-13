@@ -13,7 +13,7 @@ interface IController {
 
     // --- Functions ---
 
-    function totalSupply() external view returns (uint256);
+    function totalDebt() external view returns (uint256);
 
     function mint(address _account, uint256 _amount) external;
 

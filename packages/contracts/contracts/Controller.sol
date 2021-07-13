@@ -15,7 +15,7 @@ contract Controller is CheckContract, IController {
     IARTH public arth;
     IGovernance public governance;
 
-    uint256 private _totalSupply;
+    uint256 private _totalDebt;
     
     string constant public NAME = "Core controller";
     
@@ -97,8 +97,8 @@ contract Controller is CheckContract, IController {
 
     // --- External functions ---
 
-    function totalSupply() external view override returns (uint256) {
-        return _totalSupply;
+    function totalDebt() external view override returns (uint256) {
+        return _totalDebt;
     }
 
     // --- Internal operations ---
@@ -107,7 +107,8 @@ contract Controller is CheckContract, IController {
     function _mint(address account, uint256 amount) internal {
         assert(account != address(0));
 
-        _totalSupply = _totalSupply.add(amount);
+        _totalDebt = _totalDebt.add(amount);
+        // _totalSupply = _totalSupply.add(amount);
         // _balances[account] = _balances[account].add(amount);
         emit DebtAdded(amount, block.timestamp);
     }
@@ -116,7 +117,8 @@ contract Controller is CheckContract, IController {
         assert(account != address(0));
         
         // _balances[account] = _balances[account].sub(amount, "ERC20: burn amount exceeds balance");
-        _totalSupply = _totalSupply.sub(amount);
+        _totalDebt = _totalDebt.sub(amount);
+        // _totalSupply = _totalSupply.sub(amount);
         emit DebtReduced(amount, block.timestamp);
     }
 
@@ -131,7 +133,7 @@ contract Controller is CheckContract, IController {
 
     function _requireTotalDebtIsBelowMax(uint256 _amount) internal view {
         require(
-            _totalSupply.add(_amount) <= governance.getMaxDebtCeiling(),  // Check that after miting debt will still be below max.
+            _totalDebt.add(_amount) <= governance.getMaxDebtCeiling(),  // Check that after miting debt will still be below max.
             "Controller: Maximum Debt limit reached"
         );
     }
