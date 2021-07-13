@@ -3,10 +3,10 @@
 pragma solidity 0.6.11;
 
 import "./IStabilityPool.sol";
-import "./ILUSDToken.sol";
 import "./ILQTYToken.sol";
 import "./ILQTYStaking.sol";
 import "./ILiquityBase.sol";
+import "../Dependencies/IARTH.sol";
 
 // Common interface for the Trove Manager.
 interface ITroveManager is ILiquityBase {
@@ -14,7 +14,7 @@ interface ITroveManager is ILiquityBase {
     // --- Events ---
 
     event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
-    event LUSDTokenAddressChanged(address _newLUSDTokenAddress);
+    event ARTHTokenAddressChanged(address _newARTHTokenAddress);
     event ActivePoolAddressChanged(address _activePoolAddress);
     event DefaultPoolAddressChanged(address _defaultPoolAddress);
     event StabilityPoolAddressChanged(address _stabilityPoolAddress);
@@ -24,7 +24,8 @@ interface ITroveManager is ILiquityBase {
     event LQTYTokenAddressChanged(address _lqtyTokenAddress);
     event LQTYStakingAddressChanged(address _lqtyStakingAddress);
     event GovernanceAddressChanged(address _governanceAddress);
-    
+    event CoreControllerAddressChanged(address _coreControllerAddress);
+
     event Liquidation(uint _liquidatedDebt, uint _liquidatedColl, uint _collGasCompensation, uint _LUSDGasCompensation);
     event Redemption(uint _attemptedLUSDAmount, uint _actualLUSDAmount, uint _ETHSent, uint _ETHFee);
     event TroveUpdated(address indexed _borrower, uint _debt, uint _coll, uint stake, uint8 operation);
@@ -46,15 +47,16 @@ interface ITroveManager is ILiquityBase {
         address _stabilityPoolAddress,
         address _gasPoolAddress,
         address _collSurplusPoolAddress,
-        address _lusdTokenAddress,
+        address _arthTokenAddress,
         address _sortedTrovesAddress,
         address _lqtyTokenAddress,
         address _lqtyStakingAddress,
-        address _governanceAddress
+        address _governanceAddress,
+        address _coreControllerAddress
     ) external;
 
     function stabilityPool() external view returns (IStabilityPool);
-    function lusdToken() external view returns (ILUSDToken);
+    function arthToken() external view returns (IARTH);
     function lqtyToken() external view returns (ILQTYToken);
     function lqtyStaking() external view returns (ILQTYStaking);
 

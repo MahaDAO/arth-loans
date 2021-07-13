@@ -2,10 +2,10 @@
 
 pragma solidity 0.6.11;
 
-import "./Dependencies/IARTH.sol";
 import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Interfaces/IGasPool.sol";
+import "./Interfaces/IBurnableERC20.sol";
 
 /**
  * The purpose of this contract is to hold LUSD tokens for gas compensation:
@@ -20,12 +20,13 @@ import "./Interfaces/IGasPool.sol";
 contract GasPool is Ownable, CheckContract, IGasPool {
     string public constant NAME = "Gas pool";
 
-    IARTH public arthToken;
+    IBurnableERC20 public arthToken;
     address public troveManager;
 
     event ARTHAddressChanged(address _arthAddress);
     event TroveManagerAddressChanged(address _troveManagerAddress);
-    event ReturnFromPool(address indexed to, uint256 amount, uint256 timestamp);
+    event ReturnToLiquidator(address indexed to, uint256 amount, uint256 timestamp);
+    event ARTHBurnt(uint256 amount, uint256 timestamp);
 
     function setAddresses(
         address _troveManagerAddress,
@@ -38,7 +39,7 @@ contract GasPool is Ownable, CheckContract, IGasPool {
         checkContract(_arthTokenAddress);
         checkContract(_troveManagerAddress);
 
-        arthToken = IARTH(_arthTokenAddress);
+        arthToken = IBurnableERC20(_arthTokenAddress);
         troveManager = _troveManagerAddress;
 
         emit ARTHAddressChanged(_arthTokenAddress);
@@ -47,9 +48,15 @@ contract GasPool is Ownable, CheckContract, IGasPool {
         _renounceOwnership();
     }
 
-    function returnFromPool(address _account, uint256 amount) external override {
+    function burnARTH(uint256 _amount) external override {
         _requireCallerIsTroveM();
-        emit ReturnFromPool(_account, amount, block.timestamp);
+        emit ARTHBurnt(_amount, block.timestamp);
+        arthToken.burn(_amount);
+    }
+
+    function returnToLiquidator(address _account, uint256 amount) external override {
+        _requireCallerIsTroveM();
+        emit ReturnToLiquidator(_account, amount, block.timestamp);
         arthToken.transfer(_account, amount);
     }
 
