@@ -21,16 +21,20 @@ contract GasPool is Ownable, CheckContract, IGasPool {
     string public constant NAME = "Gas pool";
 
     IBurnableERC20 public arthToken;
+
     address public troveManager;
+    address public borrowerOperationsAddress;
 
     event ARTHAddressChanged(address _arthAddress);
     event TroveManagerAddressChanged(address _troveManagerAddress);
+    event BorrowerOperationsAddressChanged(address _borrowerOperationsAddress);
     event ReturnToLiquidator(address indexed to, uint256 amount, uint256 timestamp);
     event ARTHBurnt(uint256 amount, uint256 timestamp);
 
     function setAddresses(
         address _troveManagerAddress,
-        address _arthTokenAddress
+        address _arthTokenAddress,
+        address _borrowerOperationsAddress
     )
         external
         override
@@ -38,10 +42,13 @@ contract GasPool is Ownable, CheckContract, IGasPool {
     {
         checkContract(_arthTokenAddress);
         checkContract(_troveManagerAddress);
+        checkContract(_borrowerOperationsAddress);
 
         arthToken = IBurnableERC20(_arthTokenAddress);
         troveManager = _troveManagerAddress;
+        borrowerOperationsAddress = _borrowerOperationsAddress;
 
+        emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
         emit ARTHAddressChanged(_arthTokenAddress);
         emit TroveManagerAddressChanged(_troveManagerAddress);
 
@@ -49,7 +56,7 @@ contract GasPool is Ownable, CheckContract, IGasPool {
     }
 
     function burnARTH(uint256 _amount) external override {
-        _requireCallerIsTroveM();
+        _requireCallerIsTroveMOrBO();
         emit ARTHBurnt(_amount, block.timestamp);
         arthToken.burn(_amount);
     }
@@ -64,5 +71,11 @@ contract GasPool is Ownable, CheckContract, IGasPool {
         require(
             msg.sender == troveManager,
             "GasPool: Caller is not trove manager");
+    }
+
+    function _requireCallerIsTroveMOrBO() internal view {
+        require(
+            msg.sender == troveManager || msg.sender == borrowerOperationsAddress,
+            "GasPool: Caller is not trove manager nor borrower operations");
     }
 }
