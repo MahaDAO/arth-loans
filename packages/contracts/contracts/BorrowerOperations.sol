@@ -607,7 +607,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     ) internal {
         _activePool.decreaseLUSDDebt(_LUSD);
         if (_account == address(gasPool)) {
-            gasPool.burnARTH(_LUSD);
+            gasPool.burnLUSD(_LUSD);
         } else {
             coreController.burn(_account, _LUSD);
         }

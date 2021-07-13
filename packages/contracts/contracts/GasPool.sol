@@ -62,7 +62,7 @@ contract GasPool is Ownable, CheckContract, IGasPool {
         _renounceOwnership();
     }
 
-    function burnARTH(uint256 _amount) external override {
+    function burnLUSD(uint256 _amount) external override {
         _requireCallerIsTroveMOrBO();
         emit LUSDBurnt(_amount, block.timestamp);
         

@@ -21,5 +21,5 @@ interface IGasPool {
         address _coreControllerAddress
     ) external;
     function returnToLiquidator(address _account, uint256 amount) external;
-    function burnARTH(uint256 _amount) external;
+    function burnLUSD(uint256 _amount) external;
 }
