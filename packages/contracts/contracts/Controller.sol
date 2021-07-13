@@ -7,17 +7,17 @@ import "./Dependencies/SafeMath.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/console.sol";
 import "./Interfaces/IGovernance.sol";
-import "./Dependencies/IARTH.sol";
+import "./Interfaces/ILUSDToken.sol";
 
 contract Controller is CheckContract, IController {
     using SafeMath for uint256;
     
-    IARTH public arth;
+    ILUSDToken public lusdToken;
     IGovernance public governance;
 
     uint256 private _totalDebt;
     
-    string constant public NAME = "Core controller";
+    string constant public NAME = "CoreController";
     
     // --- Addresses ---
     address public immutable troveManagerAddress;
@@ -25,7 +25,7 @@ contract Controller is CheckContract, IController {
     address public immutable borrowerOperationsAddress;
     
     // --- Events ---
-    event ARTHAddressChanged(address _arthAddress);
+    event LUSDAddressChanged(address _lusdAddress);
     event DebtAdded(uint256 amount, uint256 timestamp);
     event DebtReduced(uint256 amount, uint256 timestamp);
     event GovernanceAddressChanged(address _governanceAddress);
@@ -39,7 +39,7 @@ contract Controller is CheckContract, IController {
         address _stabilityPoolAddress,
         address _borrowerOperationsAddress,
         address _governanceAddress,
-        address _arthAddress
+        address _lusdAddress
     ) 
         public 
     {  
@@ -47,10 +47,10 @@ contract Controller is CheckContract, IController {
         checkContract(_stabilityPoolAddress);
         checkContract(_borrowerOperationsAddress);
         checkContract(_governanceAddress);
-        checkContract(_arthAddress);
+        checkContract(_lusdAddress);
 
-        arth = IARTH(_arthAddress);
-        emit ARTHAddressChanged(_arthAddress);
+        lusdToken = ILUSDToken(_lusdAddress);
+        emit LUSDAddressChanged(_lusdAddress);
 
         troveManagerAddress = _troveManagerAddress;
         emit TroveManagerAddressChanged(_troveManagerAddress);
@@ -73,18 +73,18 @@ contract Controller is CheckContract, IController {
         _requireMintIsAllowed();
 
         _mint(_account, _amount);
-        arth.poolMint(_account, _amount);
+        lusdToken.poolMint(_account, _amount);
     }
 
     function burn(address _account, uint256 _amount) external override {
         _requireCallerIsBOorTroveMorSP();
         _burn(_account, _amount);
-        arth.poolBurnFrom(_account, _amount);
+        lusdToken.poolBurnFrom(_account, _amount);
     }
 
     function sendToPool(address _sender,  address _poolAddress, uint256 _amount) external override {
         _requireCallerIsStabilityPool();
-        arth.transferFrom(_sender, _poolAddress, _amount);
+        lusdToken.transferFrom(_sender, _poolAddress, _amount);
         // _transfer(_sender, _poolAddress, _amount);
     }
 
