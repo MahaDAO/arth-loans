@@ -10,6 +10,7 @@ const th = testHelpers.TestHelper
 
 const { dec, assertRevert, toBN } = th
 
+describe.skip('PriceFeed', () => {
 contract('PriceFeed', async accounts => {
 
   const [owner, alice] = accounts;
@@ -110,8 +111,6 @@ contract('PriceFeed', async accounts => {
       )
     })
   })
-
-  return;  // To be removed later.
 
   it("C1 Chainlink working: fetchPrice should return the correct price, taking into account the number of decimal digits on the aggregator", async () => {
     await setAddresses()
@@ -2254,4 +2253,4 @@ contract('PriceFeed', async accounts => {
     assert.equal(price, dec(246, 18))
   })
 })
-
+});
