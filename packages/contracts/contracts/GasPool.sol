@@ -56,6 +56,6 @@ contract GasPool is Ownable, CheckContract, IGasPool {
     function _requireCallerIsTroveM() internal view {
         require(
             msg.sender == troveManager,
-            "GasPool: Caller is not gas pool");
+            "GasPool: Caller is not trove manager");
     }
 }
