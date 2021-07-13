@@ -84,7 +84,8 @@ interface IStabilityPool {
         address _sortedTrovesAddress,
         address _communityIssuanceAddress,
         address _wethAddress,
-        address _governanceAddress
+        address _governanceAddress,
+        address _coreControllerAddress
     ) external;
 
     /*

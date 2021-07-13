@@ -16,6 +16,8 @@ import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/console.sol";
 import "./Interfaces/IGovernance.sol";
+import "./Interfaces/IController.sol";
+import "./Dependencies/IARTH.sol";
 
 /*
  * The Stability Pool holds LUSD tokens deposited by Stability Pool depositors.
@@ -155,7 +157,9 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
     ITroveManager public troveManager;
 
-    ILUSDToken public lusdToken;
+    IARTH public lusdToken;
+    
+    IController public coreController;
 
     // Needed to check if there are pending liquidations
     ISortedTroves public sortedTroves;
@@ -240,7 +244,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
     event StabilityPoolETHBalanceUpdated(uint256 _newBalance);
     event StabilityPoolLUSDBalanceUpdated(uint256 _newBalance);
-
+    event CoreControllerAddressChanged(address _newCoreControllerAddress);
     event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
     event TroveManagerAddressChanged(address _newTroveManagerAddress);
     event ActivePoolAddressChanged(address _newActivePoolAddress);
@@ -283,7 +287,8 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         address _sortedTrovesAddress,
         address _communityIssuanceAddress,
         address _wethAddress,
-        address _governanceAddress
+        address _governanceAddress,
+        address _coreControllerAddress
     ) external override onlyOwner {
         checkContract(_borrowerOperationsAddress);
         checkContract(_troveManagerAddress);
@@ -293,15 +298,17 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         checkContract(_communityIssuanceAddress);
         checkContract(_wethAddress);
         checkContract(_governanceAddress);
+        checkContract(_coreControllerAddress);
 
         borrowerOperations = IBorrowerOperations(_borrowerOperationsAddress);
         troveManager = ITroveManager(_troveManagerAddress);
         activePool = IActivePool(_activePoolAddress);
-        lusdToken = ILUSDToken(_lusdTokenAddress);
+        lusdToken = IARTH(_lusdTokenAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
         communityIssuance = ICommunityIssuance(_communityIssuanceAddress);
         weth = IERC20(_wethAddress);
         governance = IGovernance(_governanceAddress);
+        coreController = IController(_coreControllerAddress);
 
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
         emit TroveManagerAddressChanged(_troveManagerAddress);
@@ -310,6 +317,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         emit SortedTrovesAddressChanged(_sortedTrovesAddress);
         emit CommunityIssuanceAddressChanged(_communityIssuanceAddress);
         emit GovernanceAddressChanged(_governanceAddress);
+        emit CoreControllerAddressChanged(_coreControllerAddress);
 
         _renounceOwnership();
     }
@@ -654,7 +662,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         _decreaseLUSD(_debtToOffset);
 
         // Burn the debt that was successfully offset
-        lusdToken.burn(address(this), _debtToOffset);
+        coreController.burn(address(this), _debtToOffset);
 
         activePoolCached.sendETH(address(this), _collToAdd);
     }
@@ -882,7 +890,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
     // Transfer the LUSD tokens from the user to the Stability Pool's address, and update its recorded LUSD
     function _sendLUSDtoStabilityPool(address _address, uint256 _amount) internal {
-        lusdToken.sendToPool(_address, address(this), _amount);
+        coreController.sendToPool(_address, address(this), _amount);  // _address must approve coreController to send arth to this contract.
         uint256 newTotalLUSDDeposits = totalLUSDDeposits.add(_amount);
         totalLUSDDeposits = newTotalLUSDDeposits;
         emit StabilityPoolLUSDBalanceUpdated(newTotalLUSDDeposits);
@@ -906,7 +914,8 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
             return;
         }
 
-        lusdToken.returnFromPool(address(this), _depositor, LUSDWithdrawal);
+        lusdToken.approve(address(coreController), LUSDWithdrawal);
+        coreController.returnFromPool(address(this), _depositor, LUSDWithdrawal);
         _decreaseLUSD(LUSDWithdrawal);
     }
 

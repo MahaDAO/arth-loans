@@ -14,6 +14,8 @@ import "./PriceFeedTestnet.sol";
 import "../SortedTroves.sol";
 import "./EchidnaProxy.sol";
 import "../Dependencies/WETH.sol";
+import "../Controller.sol";
+import "../Governance.sol";
 
 //import "../Dependencies/console.sol";
 
@@ -41,6 +43,8 @@ contract EchidnaTester {
     PriceFeedTestnet priceFeedTestnet;
     SortedTroves sortedTroves;
     WETH public weth;
+    Controller public controller;
+    Governance public governance;
     
     EchidnaProxy[NUMBER_OF_ACTORS] public echidnaProxies;
 
@@ -57,6 +61,14 @@ contract EchidnaTester {
             address(troveManager),
             address(stabilityPool),
             address(borrowerOperations)
+        );
+        governance = new Governance();
+        controller = new Controller(
+            address(troveManager),
+            address(stabilityPool),
+            address(borrowerOperations),
+            address(governance),
+            address(0)  // TO be replaced by mock arth/arth.
         );
 
         weth = new WETH();
@@ -87,7 +99,7 @@ contract EchidnaTester {
         
         stabilityPool.setAddresses(address(borrowerOperations), 
             address(troveManager), address(activePool), address(lusdToken), 
-            address(sortedTroves), address(priceFeedTestnet), address(0),  address(weth));
+            address(sortedTroves), address(0),  address(weth), address(governance), address(controller));
 
         collSurplusPool.setAddresses(address(borrowerOperations), 
              address(troveManager), address(activePool), address(weth));
