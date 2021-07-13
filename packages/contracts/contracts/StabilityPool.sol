@@ -6,7 +6,6 @@ import "./Interfaces/IBorrowerOperations.sol";
 import "./Interfaces/IStabilityPool.sol";
 import "./Interfaces/IBorrowerOperations.sol";
 import "./Interfaces/ITroveManager.sol";
-import "./Interfaces/ILUSDToken.sol";
 import "./Interfaces/ISortedTroves.sol";
 import "./Interfaces/ICommunityIssuance.sol";
 import "./Dependencies/LiquityBase.sol";
@@ -157,7 +156,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
     ITroveManager public troveManager;
 
-    IARTH public lusdToken;
+    IARTH public arthToken;
     
     IController public coreController;
 
@@ -249,7 +248,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
     event TroveManagerAddressChanged(address _newTroveManagerAddress);
     event ActivePoolAddressChanged(address _newActivePoolAddress);
     event DefaultPoolAddressChanged(address _newDefaultPoolAddress);
-    event LUSDTokenAddressChanged(address _newLUSDTokenAddress);
+    event ARTHTokenAddressChanged(address _newLUSDTokenAddress);
     event SortedTrovesAddressChanged(address _newSortedTrovesAddress);
     event CommunityIssuanceAddressChanged(address _newCommunityIssuanceAddress);
 
@@ -283,7 +282,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         address _borrowerOperationsAddress,
         address _troveManagerAddress,
         address _activePoolAddress,
-        address _lusdTokenAddress,
+        address _arthTokenAddress,
         address _sortedTrovesAddress,
         address _communityIssuanceAddress,
         address _wethAddress,
@@ -293,7 +292,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         checkContract(_borrowerOperationsAddress);
         checkContract(_troveManagerAddress);
         checkContract(_activePoolAddress);
-        checkContract(_lusdTokenAddress);
+        checkContract(_arthTokenAddress);
         checkContract(_sortedTrovesAddress);
         checkContract(_communityIssuanceAddress);
         checkContract(_wethAddress);
@@ -303,7 +302,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         borrowerOperations = IBorrowerOperations(_borrowerOperationsAddress);
         troveManager = ITroveManager(_troveManagerAddress);
         activePool = IActivePool(_activePoolAddress);
-        lusdToken = IARTH(_lusdTokenAddress);
+        arthToken = IARTH(_arthTokenAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
         communityIssuance = ICommunityIssuance(_communityIssuanceAddress);
         weth = IERC20(_wethAddress);
@@ -313,7 +312,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
         emit TroveManagerAddressChanged(_troveManagerAddress);
         emit ActivePoolAddressChanged(_activePoolAddress);
-        emit LUSDTokenAddressChanged(_lusdTokenAddress);
+        emit ARTHTokenAddressChanged(_arthTokenAddress);
         emit SortedTrovesAddressChanged(_sortedTrovesAddress);
         emit CommunityIssuanceAddressChanged(_communityIssuanceAddress);
         emit GovernanceAddressChanged(_governanceAddress);
@@ -914,8 +913,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
             return;
         }
 
-        lusdToken.approve(address(coreController), LUSDWithdrawal);
-        coreController.returnFromPool(address(this), _depositor, LUSDWithdrawal);
+        arthToken.transfer(_depositor, LUSDWithdrawal);
         _decreaseLUSD(LUSDWithdrawal);
     }
 
