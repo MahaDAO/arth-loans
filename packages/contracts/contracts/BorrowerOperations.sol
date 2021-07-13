@@ -567,9 +567,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 _netDebtChange
     ) internal {
         if (_isDebtIncrease) {
-            _withdrawLUSD(_activePool, lusdToken, _borrower, _LUSDChange, _netDebtChange);
+            _withdrawLUSD(_activePool, _lusdToken, _borrower, _LUSDChange, _netDebtChange);
         } else {
-            _repayLUSD(_activePool, lusdToken, _borrower, _LUSDChange);
+            _repayLUSD(_activePool, _lusdToken, _borrower, _LUSDChange);
         }
 
         if (_isCollIncrease) {
