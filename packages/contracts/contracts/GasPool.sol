@@ -2,6 +2,10 @@
 
 pragma solidity 0.6.11;
 
+import "./Dependencies/IARTH.sol";
+import "./Dependencies/Ownable.sol";
+import "./Dependencies/CheckContract.sol";
+import "./Interfaces/IGasPool.sol";
 
 /**
  * The purpose of this contract is to hold LUSD tokens for gas compensation:
@@ -13,6 +17,45 @@ pragma solidity 0.6.11;
  * 50 LUSD debt on the trove is cancelled.
  * See this issue for more context: https://github.com/liquity/dev/issues/186
  */
-contract GasPool {
-    // do nothing, as the core contracts have permission to send to and burn from this address
+contract GasPool is Ownable, CheckContract, IGasPool {
+    string public constant NAME = "Gas pool";
+
+    IARTH public arthToken;
+    address public troveManager;
+
+    event ARTHAddressChanged(address _arthAddress);
+    event TroveManagerAddressChanged(address _troveManagerAddress);
+    event ReturnFromPool(address indexed to, uint256 amount, uint256 timestamp);
+
+    function setAddresses(
+        address _troveManagerAddress,
+        address _arthTokenAddress
+    )
+        external
+        override
+        onlyOwner
+    {
+        checkContract(_arthTokenAddress);
+        checkContract(_troveManagerAddress);
+
+        arthToken = IARTH(_arthTokenAddress);
+        troveManager = _troveManagerAddress;
+
+        emit ARTHAddressChanged(_arthTokenAddress);
+        emit TroveManagerAddressChanged(_troveManagerAddress);
+
+        _renounceOwnership();
+    }
+
+    function returnFromPool(address _account, uint256 amount) external override {
+        _requireCallerIsTroveMorSP();
+        emit ReturnFromPool(_account, amount, block.timestamp);
+        arthToken.transfer(_account, amount);
+    }
+
+    function _requireCallerIsTroveMorSP() internal view {
+        require(
+            msg.sender == troveManager,
+            "GasPool: Caller is not gas pool");
+    }
 }

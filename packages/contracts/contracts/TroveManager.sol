@@ -15,6 +15,7 @@ import "./Dependencies/CheckContract.sol";
 import "./Dependencies/console.sol";
 import "./Interfaces/IGovernance.sol";
 import "./Interfaces/IBurnableERC20.sol";
+import "./Interfaces/IGasPool.sol";
 
 contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     string constant public NAME = "TroveManager";
@@ -25,7 +26,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
     IStabilityPool public override stabilityPool;
 
-    address gasPoolAddress;
+    IGasPool gasPool;
 
     ICollSurplusPool collSurplusPool;
 
@@ -176,7 +177,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         ILQTYStaking lqtyStaking;
         ISortedTroves sortedTroves;
         ICollSurplusPool collSurplusPool;
-        address gasPoolAddress;
+        IGasPool gasPool;
         IPriceFeed priceFeed;
     }
     // --- Variable container structs for redemptions ---
@@ -268,7 +269,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         activePool = IActivePool(_activePoolAddress);
         defaultPool = IDefaultPool(_defaultPoolAddress);
         stabilityPool = IStabilityPool(_stabilityPoolAddress);
-        gasPoolAddress = _gasPoolAddress;
+        gasPool = IGasPool(_gasPoolAddress);
         collSurplusPool = ICollSurplusPool(_collSurplusPoolAddress);
         lusdToken = ILUSDToken(_lusdTokenAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
@@ -504,7 +505,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
             ILQTYStaking(address(0)),
             sortedTroves,
             ICollSurplusPool(address(0)),
-            address(0),
+            IGasPool(address(0)),
             getPriceFeed()
         );
         IStabilityPool stabilityPoolCached = stabilityPool;
@@ -795,7 +796,8 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
     function _sendGasCompensation(IActivePool _activePool, address _liquidator, uint _LUSD, uint _ETH) internal {
         if (_LUSD > 0) {
-            lusdToken.returnFromPool(gasPoolAddress, _liquidator, _LUSD);
+            gasPool.returnFromPool(_liquidator, _LUSD);
+            // lusdToken.returnFromPool(gasPoolAddress, _liquidator, _LUSD);
         }
 
         if (_ETH > 0) {
@@ -880,7 +882,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     * Any surplus ETH left in the trove, is sent to the Coll surplus pool, and can be later claimed by the borrower.
     */
     function _redeemCloseTrove(ContractsCache memory _contractsCache, address _borrower, uint _LUSD, uint _ETH) internal {
-        _contractsCache.lusdToken.burn(gasPoolAddress, _LUSD);
+        _contractsCache.lusdToken.burn(address(gasPool), _LUSD);
         // Update Active Pool LUSD, and send ETH to account
         _contractsCache.activePool.decreaseLUSDDebt(_LUSD);
 
@@ -941,7 +943,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
             lqtyStaking,
             sortedTroves,
             collSurplusPool,
-            gasPoolAddress,
+            gasPool,
             getPriceFeed()
         );
         RedemptionTotals memory totals;
