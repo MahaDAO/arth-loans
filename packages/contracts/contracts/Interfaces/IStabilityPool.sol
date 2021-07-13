@@ -43,7 +43,7 @@ interface IStabilityPool {
     event TroveManagerAddressChanged(address _newTroveManagerAddress);
     event ActivePoolAddressChanged(address _newActivePoolAddress);
     event DefaultPoolAddressChanged(address _newDefaultPoolAddress);
-    event ARTHTokenAddressChanged(address _newARTHTokenAddress);
+    event LUSDTokenAddressChanged(address _newLUSDTokenAddress);
     event SortedTrovesAddressChanged(address _newSortedTrovesAddress);
     event CommunityIssuanceAddressChanged(address _newCommunityIssuanceAddress);
 
@@ -80,7 +80,7 @@ interface IStabilityPool {
         address _borrowerOperationsAddress,
         address _troveManagerAddress,
         address _activePoolAddress,
-        address _arthTokenAddress,
+        address _lusdTokenAddress,
         address _sortedTrovesAddress,
         address _communityIssuanceAddress,
         address _wethAddress,
