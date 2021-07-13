@@ -9,9 +9,17 @@ interface IGasPool {
     event ARTHAddressChanged(address _arthAddress);
     event TroveManagerAddressChanged(address _troveManagerAddress);
     event ReturnToLiquidator(address indexed to, uint256 amount, uint256 timestamp);
-
+    event CoreControllerAddressChanged(address _coreControllerAddress);
+    event BorrowerOperationsAddressChanged(address _borrowerOperationsAddress);
+    event ARTHBurnt(uint256 amount, uint256 timestamp);
+    
     // --- Functions ---
-    function setAddresses(address _troveManagerAddress, address _arthTokenAddress, address _borrowerOperationAddress) external;
+    function setAddresses(
+        address _troveManagerAddress, 
+        address _arthTokenAddress, 
+        address _borrowerOperationAddress, 
+        address _coreControllerAddress
+    ) external;
     function returnToLiquidator(address _account, uint256 amount) external;
     function burnARTH(uint256 _amount) external;
 }
