@@ -21,22 +21,22 @@ import "./Dependencies/IERC20.sol";
 contract GasPool is Ownable, CheckContract, IGasPool {
     string public constant NAME = "Gas pool";
 
-    IERC20 public arthToken;
+    IERC20 public lusdToken;
     IController public coreController;
 
     address public troveManager;
     address public borrowerOperationsAddress;
 
-    event ARTHAddressChanged(address _arthAddress);
+    event LUSDAddressChanged(address _lusdAddress);
     event TroveManagerAddressChanged(address _troveManagerAddress);
     event CoreControllerAddressChanged(address _coreControllerAddress);
     event BorrowerOperationsAddressChanged(address _borrowerOperationsAddress);
     event ReturnToLiquidator(address indexed to, uint256 amount, uint256 timestamp);
-    event ARTHBurnt(uint256 amount, uint256 timestamp);
+    event LUSDBurnt(uint256 amount, uint256 timestamp);
 
     function setAddresses(
         address _troveManagerAddress,
-        address _arthTokenAddress,
+        address _lusdTokenAddress,
         address _borrowerOperationsAddress,
         address _coreControllerAddress
     )
@@ -44,19 +44,19 @@ contract GasPool is Ownable, CheckContract, IGasPool {
         override
         onlyOwner
     {
-        checkContract(_arthTokenAddress);
+        checkContract(_lusdTokenAddress);
         checkContract(_troveManagerAddress);
         checkContract(_borrowerOperationsAddress);
         checkContract(_coreControllerAddress);
 
-        arthToken = IERC20(_arthTokenAddress);
+        lusdToken = IERC20(_lusdTokenAddress);
         troveManager = _troveManagerAddress;
         borrowerOperationsAddress = _borrowerOperationsAddress;
         coreController = IController(_coreControllerAddress);
 
         emit CoreControllerAddressChanged(_coreControllerAddress);
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
-        emit ARTHAddressChanged(_arthTokenAddress);
+        emit LUSDAddressChanged(_lusdTokenAddress);
         emit TroveManagerAddressChanged(_troveManagerAddress);
 
         _renounceOwnership();
@@ -64,16 +64,16 @@ contract GasPool is Ownable, CheckContract, IGasPool {
 
     function burnARTH(uint256 _amount) external override {
         _requireCallerIsTroveMOrBO();
-        emit ARTHBurnt(_amount, block.timestamp);
+        emit LUSDBurnt(_amount, block.timestamp);
         
-        arthToken.approve(address(coreController), _amount);
+        lusdToken.approve(address(coreController), _amount);
         coreController.burn(address(this), _amount);
     }
 
     function returnToLiquidator(address _account, uint256 amount) external override {
         _requireCallerIsTroveM();
         emit ReturnToLiquidator(_account, amount, block.timestamp);
-        arthToken.transfer(_account, amount);
+        lusdToken.transfer(_account, amount);
     }
 
     function _requireCallerIsTroveM() internal view {
