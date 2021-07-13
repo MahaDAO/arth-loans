@@ -84,7 +84,7 @@ contract Controller is CheckContract, IController {
 
     function sendToPool(address _sender,  address _poolAddress, uint256 _amount) external override {
         _requireCallerIsStabilityPool();
-        lusdToken.transferFrom(_sender, _poolAddress, _amount);
+        lusdToken.transferFrom(_sender, _poolAddress, _amount); // Has to be approved from UI.
         // _transfer(_sender, _poolAddress, _amount);
     }
 

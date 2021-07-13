@@ -661,6 +661,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         _decreaseLUSD(_debtToOffset);
 
         // Burn the debt that was successfully offset
+        lusdToken.approve(address(coreController), _debtToOffset);
         coreController.burn(address(this), _debtToOffset);
 
         activePoolCached.sendETH(address(this), _collToAdd);
@@ -913,6 +914,8 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
             return;
         }
 
+        // Rather than just doing a transfer from coreController, transfer the amount from here itself.
+        // Since this contract itself has balance and is the sender.
         lusdToken.transfer(_depositor, LUSDWithdrawal);
         _decreaseLUSD(LUSDWithdrawal);
     }

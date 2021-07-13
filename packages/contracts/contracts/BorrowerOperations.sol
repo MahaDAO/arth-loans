@@ -609,6 +609,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         if (_account == address(gasPool)) {
             gasPool.burnLUSD(_LUSD);
         } else {
+            // Should be approved from UI, approval should be given to 
+            // contorller since that is the function calling the poolBurnFrom on ARTH.
             coreController.burn(_account, _LUSD);
         }
     }
