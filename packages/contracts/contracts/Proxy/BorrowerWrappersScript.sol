@@ -23,7 +23,7 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
     ITroveManager immutable troveManager;
     IStabilityPool immutable stabilityPool;
     
-    IERC20 immutable lusdToken;
+    IERC20 immutable arthToken;
     IERC20 immutable lqtyToken;
     ILQTYStaking immutable lqtyStaking;
 
@@ -44,9 +44,9 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
         checkContract(address(stabilityPoolCached));
         stabilityPool = stabilityPoolCached;
 
-        address lusdTokenCached = address(troveManagerCached.lusdToken());
-        checkContract(lusdTokenCached);
-        lusdToken = IERC20(lusdTokenCached);
+        address arthTokenCached = address(troveManagerCached.arthToken());
+        checkContract(arthTokenCached);
+        arthToken = IERC20(arthTokenCached);
 
         address lqtyTokenCached = address(troveManagerCached.lqtyToken());
         checkContract(lqtyTokenCached);
@@ -130,14 +130,14 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
         address _lowerHint
     ) external {
         uint256 collBalanceBefore = address(this).balance;
-        uint256 lusdBalanceBefore = lusdToken.balanceOf(address(this));
+        uint256 lusdBalanceBefore = arthToken.balanceOf(address(this));
         uint256 lqtyBalanceBefore = lqtyToken.balanceOf(address(this));
 
         // Claim gains
         lqtyStaking.unstake(0);
 
         uint256 gainedCollateral = address(this).balance.sub(collBalanceBefore); // stack too deep issues :'(
-        uint256 gainedLUSD = lusdToken.balanceOf(address(this)).sub(lusdBalanceBefore);
+        uint256 gainedLUSD = arthToken.balanceOf(address(this)).sub(lusdBalanceBefore);
 
         uint256 netLUSDAmount;
         // Top up trove and get more LUSD, keeping ICR constant
