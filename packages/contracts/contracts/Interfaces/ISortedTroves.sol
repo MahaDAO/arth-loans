@@ -10,7 +10,8 @@ interface ISortedTroves {
     event BorrowerOperationsAddressChanged(address _borrowerOperationsAddress);
     event NodeAdded(address _id, uint256 _NICR);
     event NodeRemoved(address _id);
-
+    event NodeOwnerUpdated(address id, address newId, uint256 timestamp);
+    
     // --- Functions ---
 
     function setParams(
@@ -27,6 +28,8 @@ interface ISortedTroves {
     ) external;
 
     function remove(address _id) external;
+
+    function moveNodeOwner(address id, address newId) external;
 
     function reInsert(
         address _id,
