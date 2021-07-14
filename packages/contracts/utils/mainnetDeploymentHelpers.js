@@ -65,6 +65,8 @@ class MainnetDeploymentHelper {
 
   async deployLiquityCoreMainnet(tellorMasterAddr, deploymentState) {
     // Get contract factories
+    const governanceFactory = await this.getFactory('Governance')
+    const gmuOracleFactory = await this.getFactory("GMUOracle");
     const priceFeedFactory = await this.getFactory("PriceFeed")
     const sortedTrovesFactory = await this.getFactory("SortedTroves")
     const troveManagerFactory = await this.getFactory("TroveManager")
@@ -79,6 +81,8 @@ class MainnetDeploymentHelper {
     const tellorCallerFactory = await this.getFactory("TellorCaller")
 
     // Deploy txs
+    const governance = this.loadOrDeploy(governanceFactory, 'governance', deploymentState)
+    const gmuOracle = this.loadOrDeploy(gmuOracleFactory, 'gmuOracle', deploymentState)
     const priceFeed = await this.loadOrDeploy(priceFeedFactory, 'priceFeed', deploymentState)
     const sortedTroves = await this.loadOrDeploy(sortedTrovesFactory, 'sortedTroves', deploymentState)
     const troveManager = await this.loadOrDeploy(troveManagerFactory, 'troveManager', deploymentState)
@@ -106,6 +110,8 @@ class MainnetDeploymentHelper {
     if (!this.configParams.ETHERSCAN_BASE_URL) {
       console.log('No Etherscan Url defined, skipping verification')
     } else {
+      await this.verifyContract('governance', deploymentState)
+      await this.verifyContract('gmuOracle', deploymentState)
       await this.verifyContract('priceFeed', deploymentState)
       await this.verifyContract('sortedTroves', deploymentState)
       await this.verifyContract('troveManager', deploymentState)
@@ -121,7 +127,9 @@ class MainnetDeploymentHelper {
     }
 
     const coreContracts = {
+      gmuOracle,
       priceFeed,
+      governance,
       lusdToken,
       sortedTroves,
       troveManager,
@@ -227,7 +235,7 @@ class MainnetDeploymentHelper {
     // Set ChainlinkAggregatorProxy and TellorCaller in the PriceFeed
     
     await this.isOwnershipRenounced(contracts.priceFeed) ||
-      await this.sendAndWaitForTransaction(contracts.priceFeed.setAddresses(chainlinkProxyAddress, contracts.tellorCaller.address, {gasPrice}))
+      await this.sendAndWaitForTransaction(contracts.priceFeed.setAddresses(chainlinkProxyAddress, contracts.gmuOracle.address, {gasPrice}))
 
       
     // set TroveManager addr in SortedTroves
@@ -248,11 +256,11 @@ class MainnetDeploymentHelper {
         contracts.stabilityPool.address,
         contracts.gasPool.address,
         contracts.collSurplusPool.address,
-        contracts.priceFeed.address,
         contracts.lusdToken.address,
         contracts.sortedTroves.address,
         LQTYContracts.lqtyToken.address,
         LQTYContracts.lqtyStaking.address,
+        contracts.governance.address,
 	{gasPrice}
       ))
     // set contracts in BorrowerOperations 
@@ -264,11 +272,11 @@ class MainnetDeploymentHelper {
         contracts.stabilityPool.address,
         contracts.gasPool.address,
         contracts.collSurplusPool.address,
-        contracts.priceFeed.address,
         contracts.sortedTroves.address,
         contracts.lusdToken.address,
         LQTYContracts.lqtyStaking.address,
         this.configParams.externalAddrs.WETH_ERC20,
+        contracts.governance.address,
 	{gasPrice}
       ))
       
@@ -280,9 +288,9 @@ class MainnetDeploymentHelper {
         contracts.activePool.address,
         contracts.lusdToken.address,
         contracts.sortedTroves.address,
-        contracts.priceFeed.address,
         LQTYContracts.communityIssuance.address,
         this.configParams.externalAddrs.WETH_ERC20,
+        contracts.governance.address,
 	{gasPrice}
       ))
       
