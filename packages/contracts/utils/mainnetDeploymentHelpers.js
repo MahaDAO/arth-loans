@@ -237,6 +237,8 @@ class MainnetDeploymentHelper {
     await this.isOwnershipRenounced(contracts.priceFeed) ||
       await this.sendAndWaitForTransaction(contracts.priceFeed.setAddresses(chainlinkProxyAddress, contracts.gmuOracle.address, {gasPrice}))
 
+      await this.sendAndWaitForTransaction(contracts.governance.setPriceFeed(contracts.priceFeed.address, {gasPrice}))
+
     // set TroveManager addr in SortedTroves
     await this.isOwnershipRenounced(contracts.sortedTroves) ||
       await this.sendAndWaitForTransaction(contracts.sortedTroves.setParams(
