@@ -73,13 +73,11 @@ contract Controller is CheckContract, IController {
         _requireMintIsAllowed();
 
         _mint(_account, _amount);
-        lusdToken.poolMint(_account, _amount);
     }
 
     function burn(address _account, uint256 _amount) external override {
         _requireCallerIsBOorTroveMorSP();
         _burn(_account, _amount);
-        lusdToken.poolBurnFrom(_account, _amount);
     }
 
     function sendToPool(address _sender,  address _poolAddress, uint256 _amount) external override {
@@ -104,6 +102,7 @@ contract Controller is CheckContract, IController {
         // _totalSupply = _totalSupply.add(amount);
         // _balances[account] = _balances[account].add(amount);
         emit DebtAdded(amount, block.timestamp);
+        lusdToken.poolMint(account, amount);
     }
 
     function _burn(address account, uint256 amount) internal {
@@ -113,6 +112,7 @@ contract Controller is CheckContract, IController {
         _totalDebt = _totalDebt.sub(amount);
         // _totalSupply = _totalSupply.sub(amount);
         emit DebtReduced(amount, block.timestamp);
+        lusdToken.poolBurnFrom(account, amount);
     }
 
     // --- 'require' functions ---
