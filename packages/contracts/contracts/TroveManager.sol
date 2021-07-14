@@ -550,6 +550,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         
         _moveTrove(msg.sender, dest); 
         _moveRewardSnapshot(msg.sender, dest);
+        return _moveSortedTroveOwner(msg.sender, dest);
     }
 
     function _moveTrove(address owner, address newOwner) internal {
@@ -592,6 +593,10 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         // 3. Delete the old position mapped in the name of owner.
         delete rewardSnapshots[_owner];
         emit RewardSnapshotDetailsUpdated(_owner, newOwner, block.timestamp);
+    }
+
+    function _moveSortedTroveOwner(address _owner, address newOwner) internal {
+        return sortedTroves.moveNodeOwner(_owner, newOwner);
     }
 
     /* In a full liquidation, returns the values for a trove's coll and debt to be offset, and coll and debt to be

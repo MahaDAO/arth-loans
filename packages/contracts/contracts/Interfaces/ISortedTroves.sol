@@ -29,7 +29,7 @@ interface ISortedTroves {
 
     function remove(address _id) external;
 
-    function moveNodeOwner(address id, address newId) external 
+    function moveNodeOwner(address id, address newId) external;
 
     function reInsert(
         address _id,
