@@ -526,11 +526,14 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
     // moves a trove from current holder to another address
     function moveTrove(address dest) external override {
-        // _moveTrove(msg.sender, dest);
-        // TODO: yash; pls implement this function
-        // step 1. check if the trove exists for the current user
-        // step 2. check if a trove does not exist for the dest user
-        // step 3. replace current user with the dest user in all data strucutres.
+        _requireTroveIsActive(msg.sender);  // check if the trove exists for the current user.
+        _requireTroveIsNotActive(dest);  // check if a trove does not exist for the dest user.
+
+        return _moveTrove(msg.sender, dest); 
+    }
+
+    function _moveTrove(address owner, address newOwner) internal {
+        // step 3. replace current user with the dest user in all data strucutres. 
     }
 
     /* In a full liquidation, returns the values for a trove's coll and debt to be offset, and coll and debt to be
@@ -1826,6 +1829,13 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         require(
             Troves[_borrower].status == Status.active,
             "TroveManager: Trove does not exist or is closed"
+        );
+    }
+
+    function _requireTroveIsNotActive(address _borrower) internal view {
+        require(
+            Troves[_borrower].status != Status.active,
+            "TroveManager: Trove is open"
         );
     }
 
