@@ -1,3 +1,4 @@
+const { BigNumber } = require('ethers')
 const fs = require('fs')
 
 const ZERO_ADDRESS = '0x' + '0'.repeat(40)
@@ -81,8 +82,8 @@ class MainnetDeploymentHelper {
     const tellorCallerFactory = await this.getFactory("TellorCaller")
 
     // Deploy txs
-    const governance = this.loadOrDeploy(governanceFactory, 'governance', deploymentState)
-    const gmuOracle = this.loadOrDeploy(gmuOracleFactory, 'gmuOracle', deploymentState)
+    const governance = await this.loadOrDeploy(governanceFactory, 'governance', deploymentState)
+    const gmuOracle = await this.loadOrDeploy(gmuOracleFactory, 'gmuOracle', deploymentState, [BigNumber.from(2e6)])
     const priceFeed = await this.loadOrDeploy(priceFeedFactory, 'priceFeed', deploymentState)
     const sortedTroves = await this.loadOrDeploy(sortedTrovesFactory, 'sortedTroves', deploymentState)
     const troveManager = await this.loadOrDeploy(troveManagerFactory, 'troveManager', deploymentState)
@@ -233,11 +234,9 @@ class MainnetDeploymentHelper {
   async connectCoreContractsMainnet(contracts, LQTYContracts, chainlinkProxyAddress) {
     const gasPrice = this.configParams.GAS_PRICE
     // Set ChainlinkAggregatorProxy and TellorCaller in the PriceFeed
-    
     await this.isOwnershipRenounced(contracts.priceFeed) ||
       await this.sendAndWaitForTransaction(contracts.priceFeed.setAddresses(chainlinkProxyAddress, contracts.gmuOracle.address, {gasPrice}))
 
-      
     // set TroveManager addr in SortedTroves
     await this.isOwnershipRenounced(contracts.sortedTroves) ||
       await this.sendAndWaitForTransaction(contracts.sortedTroves.setParams(
@@ -246,7 +245,7 @@ class MainnetDeploymentHelper {
         contracts.borrowerOperations.address, 
 	{gasPrice}
       ))
-      
+
     // set contracts in the Trove Manager
     await this.isOwnershipRenounced(contracts.troveManager) ||
       await this.sendAndWaitForTransaction(contracts.troveManager.setAddresses(
@@ -263,6 +262,7 @@ class MainnetDeploymentHelper {
         contracts.governance.address,
 	{gasPrice}
       ))
+
     // set contracts in BorrowerOperations 
     await this.isOwnershipRenounced(contracts.borrowerOperations) ||
       await this.sendAndWaitForTransaction(contracts.borrowerOperations.setAddresses(
@@ -279,7 +279,6 @@ class MainnetDeploymentHelper {
         contracts.governance.address,
 	{gasPrice}
       ))
-      
     // set contracts in the Pools
     await this.isOwnershipRenounced(contracts.stabilityPool) ||
       await this.sendAndWaitForTransaction(contracts.stabilityPool.setAddresses(
@@ -293,7 +292,7 @@ class MainnetDeploymentHelper {
         contracts.governance.address,
 	{gasPrice}
       ))
-      
+
     await this.isOwnershipRenounced(contracts.activePool) ||
       await this.sendAndWaitForTransaction(contracts.activePool.setAddresses(
         contracts.borrowerOperations.address,
@@ -304,7 +303,6 @@ class MainnetDeploymentHelper {
         this.configParams.externalAddrs.WETH_ERC20,
 	{gasPrice}
       ))
-      
     await this.isOwnershipRenounced(contracts.defaultPool) ||
       await this.sendAndWaitForTransaction(contracts.defaultPool.setAddresses(
         contracts.troveManager.address,
@@ -312,7 +310,7 @@ class MainnetDeploymentHelper {
         this.configParams.externalAddrs.WETH_ERC20,
 	{gasPrice}
       ))
-      
+    
     await this.isOwnershipRenounced(contracts.collSurplusPool) ||
       await this.sendAndWaitForTransaction(contracts.collSurplusPool.setAddresses(
         contracts.borrowerOperations.address,
@@ -321,7 +319,7 @@ class MainnetDeploymentHelper {
         this.configParams.externalAddrs.WETH_ERC20,
 	{gasPrice}
       ))
-      
+    
     // set contracts in HintHelpers
     await this.isOwnershipRenounced(contracts.hintHelpers) ||
       await this.sendAndWaitForTransaction(contracts.hintHelpers.setAddresses(
