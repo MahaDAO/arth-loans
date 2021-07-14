@@ -2,33 +2,13 @@
 
 pragma solidity 0.6.11;
 
-import "../Dependencies/IERC20.sol";
-import "../Dependencies/IERC2612.sol";
+import {IERC20} from "../Dependencies/IERC20.sol";
+import {IAnyswapV4Token} from "../Dependencies/IAnyswapV4Token.sol";
 
-interface ILUSDToken is IERC20, IERC2612 {
-    // --- Events ---
+interface ILUSDToken is IERC20, IAnyswapV4Token {
+    function poolMint(address who, uint256 amount) external;
 
-    event TroveManagerAddressChanged(address _troveManagerAddress);
-    event StabilityPoolAddressChanged(address _newStabilityPoolAddress);
-    event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
+    function poolBurnFrom(address who, uint256 amount) external;
 
-    event LUSDTokenBalanceUpdated(address _user, uint256 _amount);
-
-    // --- Functions ---
-
-    function mint(address _account, uint256 _amount) external;
-
-    function burn(address _account, uint256 _amount) external;
-
-    function sendToPool(
-        address _sender,
-        address poolAddress,
-        uint256 _amount
-    ) external;
-
-    function returnFromPool(
-        address poolAddress,
-        address user,
-        uint256 _amount
-    ) external;
+    function setArthController(address _controller) external;
 }

@@ -3,10 +3,10 @@
 pragma solidity 0.6.11;
 
 import "./IStabilityPool.sol";
-import "./ILUSDToken.sol";
 import "./ILQTYToken.sol";
 import "./ILQTYStaking.sol";
 import "./ILiquityBase.sol";
+import "../Interfaces/ILUSDToken.sol";
 
 // Common interface for the Trove Manager.
 interface ITroveManager is ILiquityBase {
@@ -23,6 +23,7 @@ interface ITroveManager is ILiquityBase {
     event LQTYTokenAddressChanged(address _lqtyTokenAddress);
     event LQTYStakingAddressChanged(address _lqtyStakingAddress);
     event GovernanceAddressChanged(address _governanceAddress);
+    event CoreControllerAddressChanged(address _coreControllerAddress);
 
     event Liquidation(
         uint256 _liquidatedDebt,
@@ -65,7 +66,8 @@ interface ITroveManager is ILiquityBase {
         address _sortedTrovesAddress,
         address _lqtyTokenAddress,
         address _lqtyStakingAddress,
-        address _governanceAddress
+        address _governanceAddress,
+        address _coreControllerAddress
     ) external;
 
     function stabilityPool() external view returns (IStabilityPool);

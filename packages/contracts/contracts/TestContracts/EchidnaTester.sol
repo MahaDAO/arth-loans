@@ -14,6 +14,8 @@ import "./PriceFeedTestnet.sol";
 import "../SortedTroves.sol";
 import "./EchidnaProxy.sol";
 import "../Dependencies/WETH.sol";
+import "../Controller.sol";
+import "../Governance.sol";
 
 //import "../Dependencies/console.sol";
 
@@ -41,6 +43,8 @@ contract EchidnaTester {
     PriceFeedTestnet priceFeedTestnet;
     SortedTroves sortedTroves;
     WETH public weth;
+    Controller public controller;
+    Governance public governance;
 
     EchidnaProxy[NUMBER_OF_ACTORS] public echidnaProxies;
 
@@ -53,10 +57,14 @@ contract EchidnaTester {
         defaultPool = new DefaultPool();
         stabilityPool = new StabilityPool();
         gasPool = new GasPool();
-        lusdToken = new LUSDToken(
+        lusdToken = new LUSDToken();
+        governance = new Governance();
+        controller = new Controller(
             address(troveManager),
             address(stabilityPool),
-            address(borrowerOperations)
+            address(borrowerOperations),
+            address(governance),
+            address(0) // TO be replaced by mock arth/arth.
         );
 
         weth = new WETH();
@@ -65,6 +73,13 @@ contract EchidnaTester {
 
         sortedTroves = new SortedTroves();
 
+        gasPool.setAddresses(
+            address(troveManager),
+            address(lusdToken),
+            address(borrowerOperations),
+            address(controller)
+        );
+
         troveManager.setAddresses(
             address(borrowerOperations),
             address(activePool),
@@ -72,11 +87,12 @@ contract EchidnaTester {
             address(stabilityPool),
             address(gasPool),
             address(collSurplusPool),
-            address(priceFeedTestnet),
             address(lusdToken),
             address(sortedTroves),
             address(0),
-            address(0)
+            address(0),
+            address(governance),
+            address(controller)
         );
 
         borrowerOperations.setAddresses(
@@ -86,11 +102,12 @@ contract EchidnaTester {
             address(stabilityPool),
             address(gasPool),
             address(collSurplusPool),
-            address(priceFeedTestnet),
             address(sortedTroves),
             address(lusdToken),
             address(0),
-            address(weth)
+            address(weth),
+            address(governance),
+            address(controller)
         );
 
         activePool.setAddresses(
@@ -110,9 +127,10 @@ contract EchidnaTester {
             address(activePool),
             address(lusdToken),
             address(sortedTroves),
-            address(priceFeedTestnet),
             address(0),
-            address(weth)
+            address(weth),
+            address(governance),
+            address(controller)
         );
 
         collSurplusPool.setAddresses(
