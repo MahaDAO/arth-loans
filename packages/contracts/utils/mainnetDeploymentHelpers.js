@@ -94,7 +94,7 @@ class MainnetDeploymentHelper {
     const collSurplusPool = await this.loadOrDeploy(collSurplusPoolFactory, 'collSurplusPool', deploymentState)
     const borrowerOperations = await this.loadOrDeploy(borrowerOperationsFactory, 'borrowerOperations', deploymentState)
     const hintHelpers = await this.loadOrDeploy(hintHelpersFactory, 'hintHelpers', deploymentState)
-    const tellorCaller = await this.loadOrDeploy(tellorCallerFactory, 'tellorCaller', deploymentState, [tellorMasterAddr])
+    // const tellorCaller = await this.loadOrDeploy(tellorCallerFactory, 'tellorCaller', deploymentState, [tellorMasterAddr])
 
     const lusdTokenParams = [
       troveManager.address,
@@ -123,7 +123,7 @@ class MainnetDeploymentHelper {
       await this.verifyContract('collSurplusPool', deploymentState)
       await this.verifyContract('borrowerOperations', deploymentState)
       await this.verifyContract('hintHelpers', deploymentState)
-      await this.verifyContract('tellorCaller', deploymentState, [tellorMasterAddr])
+      // await this.verifyContract('tellorCaller', deploymentState, [tellorMasterAddr])
       await this.verifyContract('lusdToken', deploymentState, lusdTokenParams)
     }
 
@@ -141,7 +141,7 @@ class MainnetDeploymentHelper {
       collSurplusPool,
       borrowerOperations,
       hintHelpers,
-      tellorCaller
+      // tellorCaller
     }
     return coreContracts
   }
