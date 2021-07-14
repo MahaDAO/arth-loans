@@ -74,6 +74,8 @@ contract Leverage is FlashLoanReceiverBase {
         // 5-A. Check that the swapped amount is atleast equal to that required to complete flashloan.
         require(swappedAmount >= _amount.add(_fee));  // Not sure if required.
 
+        // TODO: 5-B. Check collateral balance before and after the swap.
+
         // 6. Transfer the funds back to aave with fee.
         transferFundsBackToPoolInternal(_reserve, _amount.add(_fee));
 
