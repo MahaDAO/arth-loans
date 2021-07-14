@@ -227,6 +227,11 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         address newOwner,
         uint256 timestamp
     );
+    event RewardSnapshotDetailsUpdated(
+        address owner,
+        address newOwner,
+        uint256 timestamp
+    );
     event TroveOwnersUpdated(
         address owner, 
         address newOwner, 
@@ -542,7 +547,9 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
         uint256 TroveOwnersArrayLength = TroveOwners.length;
         _moveTroveOwner(msg.sender, dest, TroveOwnersArrayLength);
+        
         _moveTrove(msg.sender, dest); 
+        _moveRewardSnapshot(msg.sender, dest);
     }
 
     function _moveTrove(address owner, address newOwner) internal {
@@ -572,6 +579,19 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
         TroveOwners[index] = newOwner;
         emit TroveOwnersUpdated(_owner, newOwner, index, block.timestamp);
+    }
+
+    function _moveRewardSnapshot(address _owner, address newOwner) internal {
+        // 1. Copy the details of snapshot in the mapping in the name of newOwner.
+        rewardSnapshots[newOwner] = rewardSnapshots[_owner];
+
+        // 2. Ensure that all the details are copied precisely.
+        require(rewardSnapshots[newOwner].ETH == rewardSnapshots[_owner].ETH, "TroveManager: Reward migration not successfull");
+        require(rewardSnapshots[newOwner].LUSDDebt == rewardSnapshots[_owner].LUSDDebt, "TroveManager: Reward migration not successfull");
+
+        // 3. Delete the old position mapped in the name of owner.
+        delete rewardSnapshots[_owner];
+        emit RewardSnapshotDetailsUpdated(_owner, newOwner, block.timestamp);
     }
 
     /* In a full liquidation, returns the values for a trove's coll and debt to be offset, and coll and debt to be
