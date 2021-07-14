@@ -222,6 +222,12 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     event GovernanceAddressChanged(address _governanceAddress);
     event CoreControllerChanged(address _coreControllerAddress);
 
+    event TroveOwnersUpdated(
+        address owner, 
+        address newOwner, 
+        uint256 idx, 
+        uint256 timestamp
+    );
     event Liquidation(
         uint256 _liquidatedDebt,
         uint256 _liquidatedColl,
@@ -534,6 +540,19 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
     function _moveTrove(address owner, address newOwner) internal {
         // step 3. replace current user with the dest user in all data strucutres. 
+    }
+
+    function _moveTroveOwner(address _owner, address newOwner, uint256 TroveOwnersArrayLength) internal {
+        _requireTroveIsActive(_owner); 
+        _requireTroveIsNotActive(newOwner);
+
+        uint128 index = Troves[_owner].arrayIndex;
+        uint256 length = TroveOwnersArrayLength;
+        uint256 idxLast = length.sub(1);
+        assert(index <= idxLast);
+
+        TroveOwners[index] = newOwner;
+        emit TroveOwnersUpdated(_owner, newOwner, index, block.timestamp);
     }
 
     /* In a full liquidation, returns the values for a trove's coll and debt to be offset, and coll and debt to be
