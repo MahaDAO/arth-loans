@@ -15,9 +15,11 @@ contract Leverage is FlashLoanReceiverBase {
     using SafeMath for uint256;
     
     IUniswapV2Router02 public router;
-    IBorrowerOperations public borrowerOperations;
     ITroveManager public troveManager;
+    IBorrowerOperations public borrowerOperations;
 
+    // Because there might not be direct pair between `USDC to Collateral`. 
+    // (Since we are swapping from LUSD to USDC and then to collateral).
     address[] public lusdToCollateralSwapPath;
 
     struct LeverageAndTroveDetails {
@@ -30,14 +32,19 @@ contract Leverage is FlashLoanReceiverBase {
 
     constructor(
         IUniswapV2Router02 _router,
-        ILendingPoolAddressesProvider lendingPoolAddressProvider,
+        ILendingPoolAddressesProvider _lendingPoolAddressProvider,
+        IBorrowerOperations _borrowerOperations,
+        ITroveManager _troveManager,
         address[] memory _lusdToCollateralSwapPath
     ) 
-        FlashLoanReceiverBase(lendingPoolAddressProvider) 
+        FlashLoanReceiverBase(_lendingPoolAddressProvider) 
         public 
     {   
         lusdToCollateralSwapPath = _lusdToCollateralSwapPath;
+        
         router = _router;
+        troveManager = _troveManager;
+        borrowerOperations = _borrowerOperations;
     }
 
     function executeOperation(
@@ -80,6 +87,7 @@ contract Leverage is FlashLoanReceiverBase {
             IERC20(_reserve).transfer(tx.origin, IERC20(_reserve).balanceOf(address(this)));
         }
 
+        // 8. Finally if everything is successful move the trove.
         _moveTrove(tx.origin);
     }
 
@@ -114,11 +122,12 @@ contract Leverage is FlashLoanReceiverBase {
         // 2. Note the balance of LUSD before opening a trove.
         uint256 lusdBalanceBefore = IERC20(lusdToCollateralSwapPath[0]).balanceOf(address(this));
 
-        // 3. Open the trove.
-        IBorrowerOperations(borrowerOperations).openTrove(
+        // 3. Open the trove with leverage and expect loan fees to be compensated in LUSD(as per defi saver code).
+        // Refer: https://github.com/DecenterApps/defisaver-contracts/blob/master/contracts/mcd/create/MCDCreateFlashLoan.sol#L43
+        borrowerOperations.openTrove(
             troveDetails.maxFee, 
             troveDetails.lusdAmount.add(_fee), 
-            troveDetails.collateralAmount.add(_loanedAmount), 
+            troveDetails.collateralAmount.add(_loanedAmount),
             troveDetails.upperHint, 
             troveDetails.lowerHint
         );
@@ -127,7 +136,12 @@ contract Leverage is FlashLoanReceiverBase {
         uint256 lusdBalanceAfter = IERC20(lusdToCollateralSwapPath[0]).balanceOf(address(this));
 
        // 5. Return the amount of LUSD minted.
-       return lusdBalanceAfter.sub(lusdBalanceBefore);
+       uint256 lusdMinted = lusdBalanceAfter.sub(lusdBalanceBefore);
+
+       // 6. Check that expected LUSD is minted.
+       require(lusdMinted >= troveDetails.lusdAmount, "Leverage: Slippage while opening trove");
+
+       return lusdMinted;
     }
 
     function _moveTrove(
