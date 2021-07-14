@@ -98,7 +98,6 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
         } else {
             weth.approve(_account, _amount);
             IActivePool(_account).receiveETH(_amount);
-            weth.approve(_account, _amount); // Just a safety approve, not sure if needed.
         }
     }
 

@@ -4,6 +4,7 @@ pragma solidity 0.6.11;
 
 import "../Dependencies/IERC20.sol";
 import "./IPriceFeed.sol";
+import "../Dependencies/IUniswapPairOracle.sol";
 
 interface IGovernance {
     function getMaxDebtCeiling() external view returns (uint256);
@@ -15,4 +16,6 @@ interface IGovernance {
     function getStabilityFee() external view returns (uint256);
 
     function getStabilityFeeToken() external view returns (IERC20);
+
+    function getStabilityTokenPairOracle() external view returns (IUniswapPairOracle);
 }

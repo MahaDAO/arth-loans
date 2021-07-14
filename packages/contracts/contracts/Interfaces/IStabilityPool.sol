@@ -38,14 +38,13 @@ interface IStabilityPool {
 
     event StabilityPoolETHBalanceUpdated(uint256 _newBalance);
     event StabilityPoolLUSDBalanceUpdated(uint256 _newBalance);
-
+    event GovernanceAddressChanged(address _governanceAddress);
     event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
     event TroveManagerAddressChanged(address _newTroveManagerAddress);
     event ActivePoolAddressChanged(address _newActivePoolAddress);
     event DefaultPoolAddressChanged(address _newDefaultPoolAddress);
     event LUSDTokenAddressChanged(address _newLUSDTokenAddress);
     event SortedTrovesAddressChanged(address _newSortedTrovesAddress);
-    event PriceFeedAddressChanged(address _newPriceFeedAddress);
     event CommunityIssuanceAddressChanged(address _newCommunityIssuanceAddress);
 
     event P_Updated(uint256 _P);
@@ -83,9 +82,9 @@ interface IStabilityPool {
         address _activePoolAddress,
         address _lusdTokenAddress,
         address _sortedTrovesAddress,
-        address _priceFeedAddress,
         address _communityIssuanceAddress,
-        address _wethAddress
+        address _wethAddress,
+        address _governanceAddress
     ) external;
 
     /*
