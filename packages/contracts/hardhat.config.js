@@ -74,6 +74,13 @@ module.exports = {
                 blockNumber: 12152522
             }
         },
+        maticMumbai: {
+            url: 'https://matic-mumbai.chainstacklabs.com',
+            accounts: [
+                getSecret('DEPLOYER_PRIVATEKEY', '0x60ddfe7f579ab6867cbe7a2dc03853dc141d7a4ab6dbefc0dae2d2b1bd4e487f'),
+                getSecret('ACCOUNT2_PRIVATEKEY', '0x3ec7cedbafd0cb9ec05bf9f7ccfa1e8b42b3e3a02c75addfccbfeb328d1b383b')
+            ]
+          },
         mainnet: {
             url: alchemyUrl(),
             gasPrice: 150000000000,
