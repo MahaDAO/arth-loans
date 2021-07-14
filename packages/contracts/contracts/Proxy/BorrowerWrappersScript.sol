@@ -22,7 +22,7 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
 
     ITroveManager immutable troveManager;
     IStabilityPool immutable stabilityPool;
-    IPriceFeed immutable priceFeed;
+    
     IERC20 immutable lusdToken;
     IERC20 immutable lqtyToken;
     ILQTYStaking immutable lqtyStaking;
@@ -43,10 +43,6 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
         IStabilityPool stabilityPoolCached = troveManagerCached.stabilityPool();
         checkContract(address(stabilityPoolCached));
         stabilityPool = stabilityPoolCached;
-
-        IPriceFeed priceFeedCached = troveManagerCached.priceFeed();
-        checkContract(address(priceFeedCached));
-        priceFeed = priceFeedCached;
 
         address lusdTokenCached = address(troveManagerCached.lusdToken());
         checkContract(lusdTokenCached);
@@ -173,6 +169,7 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
     }
 
     function _getNetLUSDAmount(uint256 _collateral) internal returns (uint256) {
+        IPriceFeed priceFeed = troveManager.getPriceFeed();
         uint256 price = priceFeed.fetchPrice();
         uint256 ICR = troveManager.getCurrentICR(address(this), price);
 

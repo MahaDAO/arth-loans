@@ -6,13 +6,13 @@ pragma solidity 0.6.11;
 interface IBorrowerOperations {
     // --- Events ---
 
+    event GovernanceAddressChanged(address _governanceAddress);
     event TroveManagerAddressChanged(address _newTroveManagerAddress);
     event ActivePoolAddressChanged(address _activePoolAddress);
     event DefaultPoolAddressChanged(address _defaultPoolAddress);
     event StabilityPoolAddressChanged(address _stabilityPoolAddress);
     event GasPoolAddressChanged(address _gasPoolAddress);
     event CollSurplusPoolAddressChanged(address _collSurplusPoolAddress);
-    event PriceFeedAddressChanged(address _newPriceFeedAddress);
     event SortedTrovesAddressChanged(address _sortedTrovesAddress);
     event LUSDTokenAddressChanged(address _lusdTokenAddress);
     event LQTYStakingAddressChanged(address _lqtyStakingAddress);
@@ -36,11 +36,11 @@ interface IBorrowerOperations {
         address _stabilityPoolAddress,
         address _gasPoolAddress,
         address _collSurplusPoolAddress,
-        address _priceFeedAddress,
         address _sortedTrovesAddress,
         address _lusdTokenAddress,
         address _lqtyStakingAddress,
-        address _wethAddress
+        address _wethAddress,
+        address _governanceAddress
     ) external;
 
     function openTrove(

@@ -4,6 +4,7 @@ pragma solidity 0.6.11;
 
 import "./Interfaces/IGovernance.sol";
 import "./Dependencies/Ownable.sol";
+import "./Dependencies/IUniswapPairOracle.sol";
 
 /*
  * The Default Pool holds the ETH and LUSD debt (but not LUSD tokens) from liquidations that have been redistributed
@@ -25,32 +26,50 @@ contract Governance is Ownable, IGovernance {
     // price feed
     IPriceFeed private priceFeed;
 
+    IUniswapPairOracle private stabilityTokenPairOracle;
+
     uint256 private maxDebtCeiling = uint256(-1); // infinity
     uint256 private stabilityFee = 10000000000000000; // 1%
 
+    event AllowMintingChanged(bool oldFlag, bool newFlag, uint256 timestamp);
+    event StabilityFeeChanged(uint256 oldValue, uint256 newValue, uint256 timestamp);
+    event PriceFeedChanged(address oldAddress, address newAddress, uint256 timestamp);
+    event MaxDebtCeilingChanged(uint256 oldValue, uint256 newValue, uint256 timestamp);
+    event StabilityFeeTokenChanged(address oldAddress, address newAddress, uint256 timestamp);
+    event StabilityTokenPairOracleChanged(address oldAddress, address newAddress, uint256 timestamp);
+
     function setMaxDebtCeiling(uint256 _value) public onlyOwner {
+        uint256 oldValue = maxDebtCeiling;
         maxDebtCeiling = _value;
-        // TODO: add events
+        emit MaxDebtCeilingChanged(oldValue, _value, block.timestamp);
     }
 
     function setPriceFeed(address _feed) public onlyOwner {
+        address oldAddress = address(priceFeed);
         priceFeed = IPriceFeed(_feed);
-        // TODO: add events
+        emit PriceFeedChanged(oldAddress, _feed, block.timestamp);
     }
 
     function setAllowMinting(bool _value) public onlyOwner {
+        bool oldFlag = allowMinting;
         allowMinting = _value;
-        // TODO: add events
+        emit AllowMintingChanged(oldFlag, _value, block.timestamp);
     }
 
     function setStabilityFee(uint256 _value) public onlyOwner {
+        uint256 oldValue = stabilityFee;
         stabilityFee = _value;
-        // TODO: add events
+        emit StabilityFeeChanged(oldValue, _value, block.timestamp);
     }
 
-    function setStabilityFeeToken(uint256 _value) public onlyOwner {
-        stabilityFee = _value;
-        // TODO: add events
+    function setStabilityFeeToken(IERC20 token, IUniswapPairOracle oracle) public onlyOwner {
+        address oldAddress = address(stabilityFeeToken);
+        stabilityFeeToken = token;
+        emit StabilityFeeTokenChanged(oldAddress, address(token), block.timestamp);
+
+        oldAddress = address(stabilityTokenPairOracle);
+        stabilityTokenPairOracle = oracle;
+        emit StabilityTokenPairOracleChanged(oldAddress, address(oracle), block.timestamp);
     }
 
     function getMaxDebtCeiling() external view override returns (uint256) {
@@ -59,6 +78,10 @@ contract Governance is Ownable, IGovernance {
 
     function getStabilityFee() external view override returns (uint256) {
         return stabilityFee;
+    }
+
+    function getStabilityTokenPairOracle() external view override returns(IUniswapPairOracle) {
+        return stabilityTokenPairOracle;
     }
 
     function getAllowMinting() external view override returns (bool) {

@@ -13,6 +13,8 @@ import "./Dependencies/LiquityBase.sol";
 import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/console.sol";
+import "./Interfaces/IGovernance.sol";
+import "./Interfaces/IBurnableERC20.sol";
 
 contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     string public constant NAME = "TroveManager";
@@ -178,6 +180,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         ISortedTroves sortedTroves;
         ICollSurplusPool collSurplusPool;
         address gasPoolAddress;
+        IPriceFeed priceFeed;
     }
     // --- Variable container structs for redemptions ---
 
@@ -200,8 +203,8 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
     // --- Events ---
 
+    event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
     event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
-    event PriceFeedAddressChanged(address _newPriceFeedAddress);
     event LUSDTokenAddressChanged(address _newLUSDTokenAddress);
     event ActivePoolAddressChanged(address _activePoolAddress);
     event DefaultPoolAddressChanged(address _defaultPoolAddress);
@@ -211,6 +214,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     event SortedTrovesAddressChanged(address _sortedTrovesAddress);
     event LQTYTokenAddressChanged(address _lqtyTokenAddress);
     event LQTYStakingAddressChanged(address _lqtyStakingAddress);
+    event GovernanceAddressChanged(address _governanceAddress);
 
     event Liquidation(
         uint256 _liquidatedDebt,
@@ -261,23 +265,27 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         address _stabilityPoolAddress,
         address _gasPoolAddress,
         address _collSurplusPoolAddress,
-        address _priceFeedAddress,
         address _lusdTokenAddress,
         address _sortedTrovesAddress,
         address _lqtyTokenAddress,
-        address _lqtyStakingAddress
-    ) external override onlyOwner {
+        address _lqtyStakingAddress,
+        address _governanceAddress
+    )
+        external
+        override
+        onlyOwner
+    {
         checkContract(_borrowerOperationsAddress);
         checkContract(_activePoolAddress);
         checkContract(_defaultPoolAddress);
         checkContract(_stabilityPoolAddress);
         checkContract(_gasPoolAddress);
         checkContract(_collSurplusPoolAddress);
-        checkContract(_priceFeedAddress);
         checkContract(_lusdTokenAddress);
         checkContract(_sortedTrovesAddress);
         checkContract(_lqtyTokenAddress);
         checkContract(_lqtyStakingAddress);
+        checkContract(_governanceAddress);
 
         borrowerOperationsAddress = _borrowerOperationsAddress;
         activePool = IActivePool(_activePoolAddress);
@@ -285,19 +293,19 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         stabilityPool = IStabilityPool(_stabilityPoolAddress);
         gasPoolAddress = _gasPoolAddress;
         collSurplusPool = ICollSurplusPool(_collSurplusPoolAddress);
-        priceFeed = IPriceFeed(_priceFeedAddress);
         lusdToken = ILUSDToken(_lusdTokenAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
         lqtyToken = ILQTYToken(_lqtyTokenAddress);
         lqtyStaking = ILQTYStaking(_lqtyStakingAddress);
+        governance = IGovernance(_governanceAddress);
 
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
+        emit GovernanceAddressChanged(_governanceAddress);
         emit ActivePoolAddressChanged(_activePoolAddress);
         emit DefaultPoolAddressChanged(_defaultPoolAddress);
         emit StabilityPoolAddressChanged(_stabilityPoolAddress);
         emit GasPoolAddressChanged(_gasPoolAddress);
         emit CollSurplusPoolAddressChanged(_collSurplusPoolAddress);
-        emit PriceFeedAddressChanged(_priceFeedAddress);
         emit LUSDTokenAddressChanged(_lusdTokenAddress);
         emit SortedTrovesAddressChanged(_sortedTrovesAddress);
         emit LQTYTokenAddressChanged(_lqtyTokenAddress);
@@ -593,7 +601,8 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
             ILQTYStaking(address(0)),
             sortedTroves,
             ICollSurplusPool(address(0)),
-            address(0)
+            address(0),
+            getPriceFeed()
         );
         IStabilityPool stabilityPoolCached = stabilityPool;
 
@@ -601,7 +610,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
         LiquidationTotals memory totals;
 
-        vars.price = priceFeed.fetchPrice();
+        vars.price = contractsCache.priceFeed.fetchPrice();
         vars.LUSDInStabPool = stabilityPoolCached.getTotalLUSDDeposits();
         vars.recoveryModeAtStart = _checkRecoveryMode(vars.price);
 
@@ -794,6 +803,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         IActivePool activePoolCached = activePool;
         IDefaultPool defaultPoolCached = defaultPool;
         IStabilityPool stabilityPoolCached = stabilityPool;
+        IPriceFeed priceFeed = getPriceFeed();
 
         LocalVariables_OuterLiquidationFunction memory vars;
         LiquidationTotals memory totals;
@@ -1183,13 +1193,14 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
             lqtyStaking,
             sortedTroves,
             collSurplusPool,
-            gasPoolAddress
+            gasPoolAddress,
+            getPriceFeed()
         );
         RedemptionTotals memory totals;
 
         _requireValidMaxFeePercentage(_maxFeePercentage);
         _requireAfterBootstrapPeriod();
-        totals.price = priceFeed.fetchPrice();
+        totals.price = contractsCache.priceFeed.fetchPrice();
         _requireTCRoverMCR(totals.price);
         _requireAmountGreaterThanZero(_LUSDamount);
         _requireLUSDBalanceCoversRedemption(contractsCache.lusdToken, msg.sender, _LUSDamount);
@@ -1280,9 +1291,24 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         // Update Active Pool LUSD, and send ETH to account
         contractsCache.activePool.decreaseLUSDDebt(totals.totalLUSDToRedeem);
         contractsCache.activePool.sendETH(msg.sender, totals.ETHToSendToRedeemer);
+
+        _chargeStabilityFee(_LUSDamount);
     }
 
     // --- Helper functions ---
+
+    function _chargeStabilityFee(uint256 LUSDAmount) internal {
+        address stabilityFeeToken = address(governance.getStabilityFeeToken());
+
+        uint256 stabilityFeeInLUSD = LUSDAmount.mul(governance.getStabilityFee()).div(_100pct);
+        uint256 stabilityTokenPriceInLUSD = governance.getStabilityTokenPairOracle().consult(stabilityFeeToken, 1e18);
+        uint256 stabilityFee = stabilityFeeInLUSD.mul(1e18).div(stabilityTokenPriceInLUSD);
+
+        if (stabilityFee > 0) {
+            IBurnableERC20(stabilityFeeToken).burnFrom(msg.sender, stabilityFee);
+            emit StabilityFeeCharged(LUSDAmount, stabilityFee, block.timestamp);
+        }
+    }
 
     // Return the nominal collateral ratio (ICR) of a given Trove, without the price. Takes a trove's pending coll and debt rewards from redistributions into account.
     function getNominalICR(address _borrower) public view override returns (uint256) {

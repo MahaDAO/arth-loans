@@ -15,6 +15,7 @@ import "./Dependencies/LiquitySafeMath128.sol";
 import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/console.sol";
+import "./Interfaces/IGovernance.sol";
 
 /*
  * The Stability Pool holds LUSD tokens deposited by Stability Pool depositors.
@@ -246,7 +247,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
     event DefaultPoolAddressChanged(address _newDefaultPoolAddress);
     event LUSDTokenAddressChanged(address _newLUSDTokenAddress);
     event SortedTrovesAddressChanged(address _newSortedTrovesAddress);
-    event PriceFeedAddressChanged(address _newPriceFeedAddress);
     event CommunityIssuanceAddressChanged(address _newCommunityIssuanceAddress);
 
     event P_Updated(uint256 _P);
@@ -271,6 +271,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
     event LQTYPaidToDepositor(address indexed _depositor, uint256 _LQTY);
     event LQTYPaidToFrontEnd(address indexed _frontEnd, uint256 _LQTY);
     event EtherSent(address _to, uint256 _amount);
+    event GovernanceAddressChanged(address _governanceAddress);
 
     // --- Contract setters ---
 
@@ -280,35 +281,35 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         address _activePoolAddress,
         address _lusdTokenAddress,
         address _sortedTrovesAddress,
-        address _priceFeedAddress,
         address _communityIssuanceAddress,
-        address _wethAddress
+        address _wethAddress,
+        address _governanceAddress
     ) external override onlyOwner {
         checkContract(_borrowerOperationsAddress);
         checkContract(_troveManagerAddress);
         checkContract(_activePoolAddress);
         checkContract(_lusdTokenAddress);
         checkContract(_sortedTrovesAddress);
-        checkContract(_priceFeedAddress);
         checkContract(_communityIssuanceAddress);
         checkContract(_wethAddress);
+        checkContract(_governanceAddress);
 
         borrowerOperations = IBorrowerOperations(_borrowerOperationsAddress);
         troveManager = ITroveManager(_troveManagerAddress);
         activePool = IActivePool(_activePoolAddress);
         lusdToken = ILUSDToken(_lusdTokenAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
-        priceFeed = IPriceFeed(_priceFeedAddress);
         communityIssuance = ICommunityIssuance(_communityIssuanceAddress);
         weth = IERC20(_wethAddress);
+        governance = IGovernance(_governanceAddress);
 
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
         emit TroveManagerAddressChanged(_troveManagerAddress);
         emit ActivePoolAddressChanged(_activePoolAddress);
         emit LUSDTokenAddressChanged(_lusdTokenAddress);
         emit SortedTrovesAddressChanged(_sortedTrovesAddress);
-        emit PriceFeedAddressChanged(_priceFeedAddress);
         emit CommunityIssuanceAddressChanged(_communityIssuanceAddress);
+        emit GovernanceAddressChanged(_governanceAddress);
 
         _renounceOwnership();
     }
@@ -1011,6 +1012,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
     }
 
     function _requireNoUnderCollateralizedTroves() internal {
+        IPriceFeed priceFeed = getPriceFeed();
         uint256 price = priceFeed.fetchPrice();
         address lowestTrove = sortedTroves.getLast();
         uint256 ICR = troveManager.getCurrentICR(lowestTrove, price);
