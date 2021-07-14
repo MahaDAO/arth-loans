@@ -222,6 +222,11 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     event GovernanceAddressChanged(address _governanceAddress);
     event CoreControllerChanged(address _coreControllerAddress);
 
+    event TroveOwnerDetailsUpdated(
+        address owner,
+        address newOwner,
+        uint256 timestamp
+    );
     event TroveOwnersUpdated(
         address owner, 
         address newOwner, 
@@ -535,11 +540,25 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         _requireTroveIsActive(msg.sender);  // check if the trove exists for the current user.
         _requireTroveIsNotActive(dest);  // check if a trove does not exist for the dest user.
 
-        return _moveTrove(msg.sender, dest); 
+        uint256 TroveOwnersArrayLength = TroveOwners.length;
+        _moveTroveOwner(msg.sender, dest, TroveOwnersArrayLength);
+        _moveTrove(msg.sender, dest); 
     }
 
     function _moveTrove(address owner, address newOwner) internal {
-        // step 3. replace current user with the dest user in all data strucutres. 
+        // 1. Copy the details of position in the mapping in the name of newOwner.
+        Troves[newOwner] = Troves[owner];
+
+        // 2. Ensure that all the details are copied precisely.
+        require(Troves[owner].debt == Troves[newOwner].debt, "TroveManager: Trove migration not successful");
+        require(Troves[owner].coll == Troves[newOwner].coll, "TroveManager: Trove migration not successful");
+        require(Troves[owner].stake == Troves[newOwner].stake, "TroveManager: Trove migration not successful");
+        require(Troves[owner].status == Troves[newOwner].status, "TroveManager: Trove migration not successful");
+        require(Troves[owner].arrayIndex == Troves[newOwner].arrayIndex, "TroveManager: Trove migration not successful");
+
+        // 3. Delete the old position mapped in the name of owner.
+        delete Troves[owner];
+        emit TroveOwnerDetailsUpdated(owner, newOwner, block.timestamp);
     }
 
     function _moveTroveOwner(address _owner, address newOwner, uint256 TroveOwnersArrayLength) internal {
