@@ -25,6 +25,16 @@ interface ITroveManager is ILiquityBase {
     event GovernanceAddressChanged(address _governanceAddress);
     event CoreControllerAddressChanged(address _coreControllerAddress);
 
+    event TroveOwnerDetailsUpdated(
+        address owner,
+        address newOwner,
+        uint256 timestamp
+    );
+    event RewardSnapshotDetailsUpdated(
+        address owner,
+        address newOwner,
+        uint256 timestamp
+    );
     event TroveOwnersUpdated(
         address owner, 
         address newOwner, 
