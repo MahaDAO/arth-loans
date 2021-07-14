@@ -14,7 +14,6 @@ library EthAddressLib {
 }
 
 abstract contract FlashLoanReceiverBase is IFlashLoanReceiver {
-
     using SafeERC20 for ERC20;
     using SafeMath for uint256;
 
@@ -45,7 +44,6 @@ abstract contract FlashLoanReceiverBase is IFlashLoanReceiver {
 
     function getBalanceInternal(address _target, address _reserve) internal view returns(uint256) {
         if(_reserve == EthAddressLib.ethAddress()) {
-
             return _target.balance;
         }
 
