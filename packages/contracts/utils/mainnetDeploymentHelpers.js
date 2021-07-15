@@ -108,23 +108,23 @@ class MainnetDeploymentHelper {
         stabilityPool.address,
         borrowerOperations.address,
         governance.address,
-        lusdToken.addrss
+        lusdToken.address
     ]
     const controller = await this.loadOrDeploy(coreControllerFactory, 'controller', deploymentState, controllerParams)
 
     const arthControllerParams = [
         lusdToken.address,
         ZERO_ADDRESS,  // TODO: replace with MAHA.
-        ZERO_ADDRESS,  // TODO: replace with owner.
-        ZERO_ADDRESS,  // TODO: replace with timelock.
+        this.configParams.liquityAddrs.DEPLOYER,
+        this.configParams.liquityAddrs.TIMELOCK,
     ]
     const arthController = await this.loadOrDeploy(arthControllerFactory, 'arthController', deploymentState, arthControllerParams)
 
     if (!this.configParams.ETHERSCAN_BASE_URL) {
       console.log('No Etherscan Url defined, skipping verification')
     } else {
-      await this.verifyContract('controller', deploymentState)
-      await this.verifyContract('arthController', deploymentState)
+      await this.verifyContract('controller', deploymentState, controllerParams)
+      await this.verifyContract('arthController', deploymentState, arthControllerParams)
       await this.verifyContract('governance', deploymentState)
       await this.verifyContract('gmuOracle', deploymentState)
       await this.verifyContract('priceFeed', deploymentState)
@@ -138,7 +138,7 @@ class MainnetDeploymentHelper {
       await this.verifyContract('borrowerOperations', deploymentState)
       await this.verifyContract('hintHelpers', deploymentState)
       // await this.verifyContract('tellorCaller', deploymentState, [tellorMasterAddr])
-      await this.verifyContract('lusdToken', deploymentState, lusdTokenParams)
+      await this.verifyContract('lusdToken', deploymentState)
     }
 
     const coreContracts = {
@@ -255,10 +255,10 @@ class MainnetDeploymentHelper {
     // Set ChainlinkAggregatorProxy and TellorCaller in the PriceFeed
     await this.isOwnershipRenounced(contracts.priceFeed) ||
       await this.sendAndWaitForTransaction(contracts.priceFeed.setAddresses(chainlinkProxyAddress, contracts.gmuOracle.address, {gasPrice}))
-
+    
     await this.sendAndWaitForTransaction(contracts.governance.setPriceFeed(contracts.priceFeed.address, {gasPrice}))
     await this.sendAndWaitForTransaction(contracts.arthController.addPool(contracts.controller.address, {gasPrice}))
-
+    
     // set TroveManager addr in SortedTroves
     await this.isOwnershipRenounced(contracts.sortedTroves) ||
       await this.sendAndWaitForTransaction(contracts.sortedTroves.setParams(
@@ -337,7 +337,7 @@ class MainnetDeploymentHelper {
         this.configParams.externalAddrs.WETH_ERC20,
 	    {gasPrice}
       ))
-    
+
     await this.isOwnershipRenounced(contracts.collSurplusPool) ||
       await this.sendAndWaitForTransaction(contracts.collSurplusPool.setAddresses(
         contracts.borrowerOperations.address,
@@ -355,7 +355,7 @@ class MainnetDeploymentHelper {
         contracts.controller.address,
 	    {gasPrice}
       ))
-    
+
     // set contracts in HintHelpers
     await this.isOwnershipRenounced(contracts.hintHelpers) ||
       await this.sendAndWaitForTransaction(contracts.hintHelpers.setAddresses(
