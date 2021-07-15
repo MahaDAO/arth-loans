@@ -112,13 +112,11 @@ contract Leverage is FlashLoanReceiverBase {
         transferFundsBackToPoolInternal(_reserve, _amount.add(_fee));
 
         // 7-A. If there is some eth left (0x fee), return it to user
-        // solhint-disable-next-line
         if (_reserve == EthAddressLib.ethAddress() && address(this).balance > 0) {
             tx.origin.transfer(address(this).balance);
         }
 
         // 7-B. If there is some collateral left (0x fee), return it to user
-        // solhint-disable-next-line
         if (_reserve != EthAddressLib.ethAddress() && IERC20(_reserve).balanceOf(address(this)) > 0) {
             IERC20(_reserve).transfer(
                 tx.origin, 
