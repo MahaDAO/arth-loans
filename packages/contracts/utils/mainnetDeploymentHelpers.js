@@ -66,7 +66,7 @@ class MainnetDeploymentHelper {
 
   async deployLiquityCoreMainnet(tellorMasterAddr, deploymentState) {
     // Get contract factories
-    const arthControllerFactory = await this.getFactory("ArthController")
+    const arthControllerFactory = await this.getFactory("ARTHController")
     const coreControllerFactory = await this.getFactory("Controller")
     const governanceFactory = await this.getFactory('Governance')
     const gmuOracleFactory = await this.getFactory("GMUOracle");
@@ -84,7 +84,6 @@ class MainnetDeploymentHelper {
     // const tellorCallerFactory = await this.getFactory("TellorCaller")
 
     // Deploy txs
-    const arthController = await this.loadOrDeploy(arthControllerFactory, 'arthController', deploymentState)
     const governance = await this.loadOrDeploy(governanceFactory, 'governance', deploymentState)
     const gmuOracle = await this.loadOrDeploy(gmuOracleFactory, 'gmuOracle', deploymentState, [BigNumber.from(2e6)])
     const priceFeed = await this.loadOrDeploy(priceFeedFactory, 'priceFeed', deploymentState)
@@ -112,6 +111,14 @@ class MainnetDeploymentHelper {
         lusdToken.addrss
     ]
     const controller = await this.loadOrDeploy(coreControllerFactory, 'controller', deploymentState, controllerParams)
+
+    const arthControllerParams = [
+        lusdToken.address,
+        ZERO_ADDRESS,  // TODO: replace with MAHA.
+        ZERO_ADDRESS,  // TODO: replace with owner.
+        ZERO_ADDRESS,  // TODO: replace with timelock.
+    ]
+    const arthController = await this.loadOrDeploy(arthControllerFactory, 'arthController', deploymentState, arthControllerParams)
 
     if (!this.configParams.ETHERSCAN_BASE_URL) {
       console.log('No Etherscan Url defined, skipping verification')
