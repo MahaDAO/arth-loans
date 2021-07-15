@@ -10,7 +10,7 @@ import {AccessControl} from "./Dependencies/AccessControl.sol";
 import {IARTHController} from "./Dependencies/IARTHController.sol";
 import {IUniswapPairOracle} from "./Dependencies/IUniswapPairOracle.sol";
 
-contract ArthController is AccessControl, IARTHController {
+contract ARTHController is AccessControl, IARTHController {
     using SafeMath for uint256;
 
     IERC20 public ARTH;
