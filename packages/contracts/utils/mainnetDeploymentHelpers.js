@@ -66,6 +66,8 @@ class MainnetDeploymentHelper {
 
   async deployLiquityCoreMainnet(tellorMasterAddr, deploymentState) {
     // Get contract factories
+    const arthControllerFactory = await this.getFactory("ArthController")
+    const coreControllerFactory = await this.getFactory("Controller")
     const governanceFactory = await this.getFactory('Governance')
     const gmuOracleFactory = await this.getFactory("GMUOracle");
     const priceFeedFactory = await this.getFactory("PriceFeed")
@@ -79,9 +81,10 @@ class MainnetDeploymentHelper {
     const borrowerOperationsFactory = await this.getFactory("BorrowerOperations")
     const hintHelpersFactory = await this.getFactory("HintHelpers")
     const lusdTokenFactory = await this.getFactory("LUSDToken")
-    const tellorCallerFactory = await this.getFactory("TellorCaller")
+    // const tellorCallerFactory = await this.getFactory("TellorCaller")
 
     // Deploy txs
+    const arthController = await this.loadOrDeploy(arthControllerFactory, 'arthController', deploymentState)
     const governance = await this.loadOrDeploy(governanceFactory, 'governance', deploymentState)
     const gmuOracle = await this.loadOrDeploy(gmuOracleFactory, 'gmuOracle', deploymentState, [BigNumber.from(2e6)])
     const priceFeed = await this.loadOrDeploy(priceFeedFactory, 'priceFeed', deploymentState)
@@ -95,22 +98,26 @@ class MainnetDeploymentHelper {
     const borrowerOperations = await this.loadOrDeploy(borrowerOperationsFactory, 'borrowerOperations', deploymentState)
     const hintHelpers = await this.loadOrDeploy(hintHelpersFactory, 'hintHelpers', deploymentState)
     // const tellorCaller = await this.loadOrDeploy(tellorCallerFactory, 'tellorCaller', deploymentState, [tellorMasterAddr])
-
-    const lusdTokenParams = [
-      troveManager.address,
-      stabilityPool.address,
-      borrowerOperations.address
-    ]
     const lusdToken = await this.loadOrDeploy(
-      lusdTokenFactory,
-      'lusdToken',
-      deploymentState,
-      lusdTokenParams
+        lusdTokenFactory,
+        'lusdToken',
+        deploymentState,
     )
+
+    const controllerParams = [
+        troveManager.address,
+        stabilityPool.address,
+        borrowerOperations.address,
+        governance.address,
+        lusdToken.addrss
+    ]
+    const controller = await this.loadOrDeploy(coreControllerFactory, 'controller', deploymentState, controllerParams)
 
     if (!this.configParams.ETHERSCAN_BASE_URL) {
       console.log('No Etherscan Url defined, skipping verification')
     } else {
+      await this.verifyContract('controller', deploymentState)
+      await this.verifyContract('arthController', deploymentState)
       await this.verifyContract('governance', deploymentState)
       await this.verifyContract('gmuOracle', deploymentState)
       await this.verifyContract('priceFeed', deploymentState)
@@ -141,8 +148,11 @@ class MainnetDeploymentHelper {
       collSurplusPool,
       borrowerOperations,
       hintHelpers,
+      arthController,
+      controller,
       // tellorCaller
     }
+
     return coreContracts
   }
 
@@ -230,14 +240,17 @@ class MainnetDeploymentHelper {
     const owner = await contract.owner()
     return owner == ZERO_ADDRESS
   }
+  
   // Connect contracts to their dependencies
   async connectCoreContractsMainnet(contracts, LQTYContracts, chainlinkProxyAddress) {
     const gasPrice = this.configParams.GAS_PRICE
+    
     // Set ChainlinkAggregatorProxy and TellorCaller in the PriceFeed
     await this.isOwnershipRenounced(contracts.priceFeed) ||
       await this.sendAndWaitForTransaction(contracts.priceFeed.setAddresses(chainlinkProxyAddress, contracts.gmuOracle.address, {gasPrice}))
 
-      await this.sendAndWaitForTransaction(contracts.governance.setPriceFeed(contracts.priceFeed.address, {gasPrice}))
+    await this.sendAndWaitForTransaction(contracts.governance.setPriceFeed(contracts.priceFeed.address, {gasPrice}))
+    await this.sendAndWaitForTransaction(contracts.arthController.addPool(contracts.controller.address, {gasPrice}))
 
     // set TroveManager addr in SortedTroves
     await this.isOwnershipRenounced(contracts.sortedTroves) ||
@@ -245,7 +258,7 @@ class MainnetDeploymentHelper {
         maxBytes32,
         contracts.troveManager.address,
         contracts.borrowerOperations.address, 
-	{gasPrice}
+	    {gasPrice}
       ))
 
     // set contracts in the Trove Manager
@@ -262,7 +275,8 @@ class MainnetDeploymentHelper {
         LQTYContracts.lqtyToken.address,
         LQTYContracts.lqtyStaking.address,
         contracts.governance.address,
-	{gasPrice}
+        contracts.controller.address,
+	    {gasPrice}
       ))
 
     // set contracts in BorrowerOperations 
@@ -279,8 +293,10 @@ class MainnetDeploymentHelper {
         LQTYContracts.lqtyStaking.address,
         this.configParams.externalAddrs.WETH_ERC20,
         contracts.governance.address,
-	{gasPrice}
+        contracts.controller.address,
+	    {gasPrice}
       ))
+
     // set contracts in the Pools
     await this.isOwnershipRenounced(contracts.stabilityPool) ||
       await this.sendAndWaitForTransaction(contracts.stabilityPool.setAddresses(
@@ -292,7 +308,8 @@ class MainnetDeploymentHelper {
         LQTYContracts.communityIssuance.address,
         this.configParams.externalAddrs.WETH_ERC20,
         contracts.governance.address,
-	{gasPrice}
+        contracts.controller.address,
+	    {gasPrice}
       ))
 
     await this.isOwnershipRenounced(contracts.activePool) ||
@@ -303,14 +320,15 @@ class MainnetDeploymentHelper {
         contracts.defaultPool.address,
         contracts.collSurplusPool.address,
         this.configParams.externalAddrs.WETH_ERC20,
-	{gasPrice}
+	    {gasPrice}
       ))
+
     await this.isOwnershipRenounced(contracts.defaultPool) ||
       await this.sendAndWaitForTransaction(contracts.defaultPool.setAddresses(
         contracts.troveManager.address,
         contracts.activePool.address,
         this.configParams.externalAddrs.WETH_ERC20,
-	{gasPrice}
+	    {gasPrice}
       ))
     
     await this.isOwnershipRenounced(contracts.collSurplusPool) ||
@@ -319,7 +337,16 @@ class MainnetDeploymentHelper {
         contracts.troveManager.address,
         contracts.activePool.address,
         this.configParams.externalAddrs.WETH_ERC20,
-	{gasPrice}
+	    {gasPrice}
+      ))
+
+    await this.isOwnershipRenounced(contracts.gasPool) ||
+      await this.sendAndWaitForTransaction(contracts.gasPool.setAddresses(
+        contracts.troveManager.address,
+        contracts.lusdToken.address,
+        contracts.borrowerOperations.address,
+        contracts.controller.address,
+	    {gasPrice}
       ))
     
     // set contracts in HintHelpers
@@ -327,7 +354,7 @@ class MainnetDeploymentHelper {
       await this.sendAndWaitForTransaction(contracts.hintHelpers.setAddresses(
         contracts.sortedTroves.address,
         contracts.troveManager.address,
-	{gasPrice}
+	    {gasPrice}
       ))
   }
 
@@ -348,14 +375,14 @@ class MainnetDeploymentHelper {
         coreContracts.borrowerOperations.address,
         coreContracts.activePool.address,
         this.configParams.externalAddrs.WETH_ERC20,
-	{gasPrice}
+	    {gasPrice}
       ))
 
     await this.isOwnershipRenounced(LQTYContracts.communityIssuance) ||
       await this.sendAndWaitForTransaction(LQTYContracts.communityIssuance.setAddresses(
         LQTYContracts.lqtyToken.address,
         coreContracts.stabilityPool.address,
-	{gasPrice}
+	    {gasPrice}
       ))
   }
 
@@ -371,6 +398,7 @@ class MainnetDeploymentHelper {
       console.error(`  --> No deployment state for contract ${name}!!`)
       return
     }
+
     if (deploymentState[name].verification) {
       console.log(`Contract ${name} already verified`)
       return
