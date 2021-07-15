@@ -10,6 +10,9 @@ const CollSurplusPool = artifacts.require("./CollSurplusPool.sol")
 const FunctionCaller = artifacts.require("./TestContracts/FunctionCaller.sol")
 const BorrowerOperations = artifacts.require("./BorrowerOperations.sol")
 const HintHelpers = artifacts.require("./HintHelpers.sol")
+const Controller = artifacts.require("./Controller.sol");
+const Governance = artifacts.require("./Governance.sol");
+const ARTHController = artifacts.require("./ARTHController.sol");
 
 const WETH = artifacts.require("./WETH.sol")
 const LQTYStaking = artifacts.require("./LQTYStaking.sol")
@@ -88,6 +91,7 @@ class DeploymentHelper {
 
   static async deployLiquityCoreHardhat() {
     const weth = await WETH.new()
+    const governance = await Governance.new()
     const priceFeedTestnet = await PriceFeedTestnet.new()
     const sortedTroves = await SortedTroves.new()
     const troveManager = await TroveManager.new()
@@ -99,11 +103,24 @@ class DeploymentHelper {
     const functionCaller = await FunctionCaller.new()
     const borrowerOperations = await BorrowerOperations.new()
     const hintHelpers = await HintHelpers.new()
-    const lusdToken = await LUSDToken.new(
-      troveManager.address,
-      stabilityPool.address,
-      borrowerOperations.address
+    const lusdToken = await LUSDToken.new()
+    const arthController = await ARTHController.new(
+        lusdToken.address, 
+        lusdToken.address, // MAHA.
+        ZERO_ADDRESS, // Owner.
+        ZERO_ADDRESS, // Timelock.
     )
+    const controller = await Controller.new(
+        troveManager.address,
+        stabilityPool.address,
+        borrowerOperations.address,
+        governance.address,
+        lusdToken.address
+    )
+    
+    Controller.setAsDeployed(controller)
+    Governance.setAsDeployed(governance)
+    ARTHController.setAsDeployed(arthController)
     LUSDToken.setAsDeployed(lusdToken)
     DefaultPool.setAsDeployed(defaultPool)
     PriceFeedTestnet.setAsDeployed(priceFeedTestnet)
@@ -130,8 +147,12 @@ class DeploymentHelper {
       functionCaller,
       borrowerOperations,
       hintHelpers,
-      weth
+      weth,
+      governance,
+      arthController,
+      controller,
     }
+
     return coreContracts
   }
 

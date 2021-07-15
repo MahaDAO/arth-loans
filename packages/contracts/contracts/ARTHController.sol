@@ -15,10 +15,8 @@ contract ArthController is AccessControl, IARTHController {
 
     IERC20 public ARTH;
     IERC20 public MAHA;
-    IERC20 public ARTHX;
 
     IUniswapPairOracle public MAHAGMUOracle;
-    IUniswapPairOracle public ARTHXGMUOracle;
 
     address public ownerAddress;
     address public timelockAddress;
@@ -55,14 +53,12 @@ contract ArthController is AccessControl, IARTHController {
 
     constructor(
         IERC20 _arth,
-        IERC20 _arthx,
         IERC20 _maha,
         address _owner,
         address _timelockAddress
     ) public {
         ARTH = _arth;
         MAHA = _maha;
-        ARTHX = _arthx;
 
         timelockAddress = _timelockAddress;
 
@@ -117,14 +113,6 @@ contract ArthController is AccessControl, IARTHController {
         }
     }
 
-    function setARTHXGMUOracle(address _arthxOracleAddress)
-        external
-        override
-        onlyByOwnerOrGovernance
-    {
-        ARTHXGMUOracle = IUniswapPairOracle(_arthxOracleAddress);
-    }
-
     function setMAHAGMUOracle(address oracle)
         external
         override
@@ -151,10 +139,6 @@ contract ArthController is AccessControl, IARTHController {
 
     function getMAHAPrice() public view override returns (uint256) {
         return MAHAGMUOracle.consult(address(MAHA), 1e18);
-    }
-
-    function getARTHXPrice() public view override returns (uint256) {
-        return ARTHXGMUOracle.consult(address(ARTHX), 1e18);
     }
 
     function isPool(address pool) external view override returns (bool) {

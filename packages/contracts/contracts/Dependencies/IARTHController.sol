@@ -16,13 +16,9 @@ interface IARTHController {
 
     function setMAHAGMUOracle(address oracle) external;
 
-    function setARTHXGMUOracle(address _arthxOracleAddress) external;
-
     function setOwner(address _ownerAddress) external;
 
     function setTimelock(address newTimelock) external;
-
-    function getARTHXPrice() external view returns (uint256);
 
     function getMAHAPrice() external view returns (uint256);
 
