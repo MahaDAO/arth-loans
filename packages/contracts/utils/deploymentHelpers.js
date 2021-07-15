@@ -354,6 +354,9 @@ class DeploymentHelper {
   // Connect contracts to their dependencies
   static async connectCoreContracts(contracts, LQTYContracts) {
 
+    await contracts.arthController.addPool(contracts.controller.address);
+    await contracts.governance.setPriceFeed(contracts.priceFeedTestnet.address);
+
     // set TroveManager addr in SortedTroves
     await contracts.sortedTroves.setParams(
       maxBytes32,
@@ -373,11 +376,12 @@ class DeploymentHelper {
       contracts.stabilityPool.address,
       contracts.gasPool.address,
       contracts.collSurplusPool.address,
-      contracts.priceFeedTestnet.address,
       contracts.lusdToken.address,
       contracts.sortedTroves.address,
       LQTYContracts.lqtyToken.address,
-      LQTYContracts.lqtyStaking.address
+      LQTYContracts.lqtyStaking.address,
+      contracts.governance.address,
+      contracts.controller.address
     )
 
     // set contracts in BorrowerOperations 
@@ -388,11 +392,12 @@ class DeploymentHelper {
       contracts.stabilityPool.address,
       contracts.gasPool.address,
       contracts.collSurplusPool.address,
-      contracts.priceFeedTestnet.address,
       contracts.sortedTroves.address,
       contracts.lusdToken.address,
       LQTYContracts.lqtyStaking.address,
-      contracts.weth.address
+      contracts.weth.address,
+      contracts.governance.address,
+      contracts.controller.address,
     )
 
     // set contracts in the Pools
@@ -402,9 +407,10 @@ class DeploymentHelper {
       contracts.activePool.address,
       contracts.lusdToken.address,
       contracts.sortedTroves.address,
-      contracts.priceFeedTestnet.address,
       LQTYContracts.communityIssuance.address,
-      contracts.weth.address
+      contracts.weth.address,
+      contracts.governance.address,
+      contracts.controller.address,
     )
 
     await contracts.activePool.setAddresses(
@@ -427,6 +433,13 @@ class DeploymentHelper {
       contracts.troveManager.address,
       contracts.activePool.address,
       contracts.weth.address
+    )
+
+    await contracts.gasPool.setAddresses(
+        contracts.troveManager.address,
+        contracts.lusdToken.address,
+        contracts.borrowerOperations.address,
+        contracts.controller.address
     )
 
     // set contracts in HintHelpers
