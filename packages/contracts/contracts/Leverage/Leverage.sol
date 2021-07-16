@@ -160,7 +160,7 @@ contract Leverage is FlashLoanReceiverBase {
         IERC20(_reserve).transferFrom(_collateralOwner, address(this), troveDetails.ownerCollAmount);
 
         // 2. Get the amount of LUSD that should be minted to cover fee.
-        uint256 expectedAmountsIn = router.getAmountsIn(_fee, lusdToCollateralSwapPath);
+        uint256[] memory expectedAmountsIn = router.getAmountsIn(_fee, lusdToCollateralSwapPath);
         uint256 expectedLUSDMintToCoverFee = expectedAmountsIn[0];
 
         // 3. Note the balance of LUSD before opening a trove.
