@@ -157,7 +157,7 @@ contract Leverage is FlashLoanReceiverBase {
         address _collateralOwner
     ) internal returns (uint256) {
         // 1. Transfer the collateral fund from `tx.origin` to this address.
-        IERC20(_reserve).transferFrom(_collateralOwner, address(this), troveDetails.collateralAmount);
+        IERC20(_reserve).transferFrom(_collateralOwner, address(this), troveDetails.ownerCollAmount);
 
         // 2. Get the amount of LUSD that should be minted to cover fee.
         uint256 expectedAmountsIn = router.getAmountsIn(_fee, lusdToCollateralSwapPath);
