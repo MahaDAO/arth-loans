@@ -24,19 +24,12 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     // --- Connected contract declarations ---
 
     address public borrowerOperationsAddress;
-
     IStabilityPool public override stabilityPool;
-
     IGasPool gasPool;
-
     ICollSurplusPool collSurplusPool;
-
     ILUSDToken public override lusdToken;
-
     ILQTYToken public override lqtyToken;
-
     ILQTYStaking public override lqtyStaking;
-
     IController public coreController;
 
     // A doubly linked list of Troves, sorted by their sorted by their collateral ratios
@@ -52,7 +45,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     uint256 public constant MINUTE_DECAY_FACTOR = 999037758833783000;
     uint256 public constant REDEMPTION_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5; // 0.5%
     uint256 public constant MAX_BORROWING_FEE = (DECIMAL_PRECISION / 100) * 5; // 5%
-
     // During bootsrap period redemptions are not allowed
     uint256 public constant BOOTSTRAP_PERIOD = 14 days;
 
@@ -61,9 +53,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
      * Corresponds to (1 / ALPHA) in the white paper.
      */
     uint256 public constant BETA = 2;
-
     uint256 public baseRate;
-
     // The timestamp of the latest fee operation (redemption or new LUSD issuance)
     uint256 public lastFeeOperationTime;
 
@@ -87,10 +77,8 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     mapping(address => Trove) public Troves;
 
     uint256 public totalStakes;
-
     // Snapshot of the value of totalStakes, taken immediately after the latest liquidation
     uint256 public totalStakesSnapshot;
-
     // Snapshot of the total collateral across the ActivePool and DefaultPool, immediately after the latest liquidation.
     uint256 public totalCollateralSnapshot;
 
@@ -206,50 +194,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         bool cancelledPartial;
     }
 
-    // --- Events ---
-
-    event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
-    event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
-    event LUSDTokenAddressChanged(address _newLUSDTokenAddress);
-    event ActivePoolAddressChanged(address _activePoolAddress);
-    event DefaultPoolAddressChanged(address _defaultPoolAddress);
-    event StabilityPoolAddressChanged(address _stabilityPoolAddress);
-    event GasPoolAddressChanged(address _gasPoolAddress);
-    event CollSurplusPoolAddressChanged(address _collSurplusPoolAddress);
-    event SortedTrovesAddressChanged(address _sortedTrovesAddress);
-    event LQTYTokenAddressChanged(address _lqtyTokenAddress);
-    event LQTYStakingAddressChanged(address _lqtyStakingAddress);
-    event GovernanceAddressChanged(address _governanceAddress);
-    event CoreControllerChanged(address _coreControllerAddress);
-
-    event TroveOwnerDetailsUpdated(
-        address owner,
-        address newOwner,
-        uint256 timestamp
-    );
-    event RewardSnapshotDetailsUpdated(
-        address owner,
-        address newOwner,
-        uint256 timestamp
-    );
-    event TroveOwnersUpdated(
-        address owner, 
-        address newOwner, 
-        uint256 idx, 
-        uint256 timestamp
-    );
-    event Liquidation(
-        uint256 _liquidatedDebt,
-        uint256 _liquidatedColl,
-        uint256 _collGasCompensation,
-        uint256 _LUSDGasCompensation
-    );
-    event Redemption(
-        uint256 _attemptedLUSDAmount,
-        uint256 _actualLUSDAmount,
-        uint256 _ETHSent,
-        uint256 _ETHFee
-    );
     event TroveUpdated(
         address indexed _borrower,
         uint256 _debt,
@@ -263,13 +207,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         uint256 _coll,
         TroveManagerOperation _operation
     );
-    event BaseRateUpdated(uint256 _baseRate);
-    event LastFeeOpTimeUpdated(uint256 _lastFeeOpTime);
-    event TotalStakesUpdated(uint256 _newTotalStakes);
-    event SystemSnapshotsUpdated(uint256 _totalStakesSnapshot, uint256 _totalCollateralSnapshot);
-    event LTermsUpdated(uint256 _L_ETH, uint256 _L_LUSDDebt);
-    event TroveSnapshotsUpdated(uint256 _L_ETH, uint256 _L_LUSDDebt);
-    event TroveIndexUpdated(address _borrower, uint256 _newIndex);
 
     enum TroveManagerOperation {
         applyPendingRewards,
@@ -558,11 +495,11 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         Troves[newOwner] = Troves[owner];
 
         // 2. Ensure that all the details are copied precisely.
-        require(Troves[owner].debt == Troves[newOwner].debt, "TroveManager: Trove migration not successful");
-        require(Troves[owner].coll == Troves[newOwner].coll, "TroveManager: Trove migration not successful");
-        require(Troves[owner].stake == Troves[newOwner].stake, "TroveManager: Trove migration not successful");
-        require(Troves[owner].status == Troves[newOwner].status, "TroveManager: Trove migration not successful");
-        require(Troves[owner].arrayIndex == Troves[newOwner].arrayIndex, "TroveManager: Trove migration not successful");
+        require(Troves[owner].debt == Troves[newOwner].debt);
+        require(Troves[owner].coll == Troves[newOwner].coll);
+        require(Troves[owner].stake == Troves[newOwner].stake);
+        require(Troves[owner].status == Troves[newOwner].status);
+        require(Troves[owner].arrayIndex == Troves[newOwner].arrayIndex);
 
         // 3. Delete the old position mapped in the name of owner.
         delete Troves[owner];
@@ -587,8 +524,8 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         rewardSnapshots[newOwner] = rewardSnapshots[_owner];
 
         // 2. Ensure that all the details are copied precisely.
-        require(rewardSnapshots[newOwner].ETH == rewardSnapshots[_owner].ETH, "TroveManager: Reward migration not successfull");
-        require(rewardSnapshots[newOwner].LUSDDebt == rewardSnapshots[_owner].LUSDDebt, "TroveManager: Reward migration not successfull");
+        require(rewardSnapshots[newOwner].ETH == rewardSnapshots[_owner].ETH);
+        require(rewardSnapshots[newOwner].LUSDDebt == rewardSnapshots[_owner].LUSDDebt);
 
         // 3. Delete the old position mapped in the name of owner.
         delete rewardSnapshots[_owner];
