@@ -22,7 +22,7 @@ contract Governance is Ownable, IGovernance {
     string public constant NAME = "Governance";
     uint256 public constant _100pct = 1000000000000000000; // 1e18 == 100%
 
-    address public troveManagerAddress;
+    address public immutable troveManagerAddress;
 
     // Maximum amount of debt that this deployment can have (used to limit exposure to volatile assets)
     // set this according to how much ever debt we'd like to accumulate; default is infinity
