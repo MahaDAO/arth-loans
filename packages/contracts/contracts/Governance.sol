@@ -2,9 +2,12 @@
 
 pragma solidity 0.6.11;
 
-import "./Interfaces/IGovernance.sol";
-import "./Dependencies/Ownable.sol";
+import "./Dependencies/IERC20.sol";
 import "./Dependencies/IUniswapPairOracle.sol";
+import "./Dependencies/LiquityMath.sol";
+import "./Dependencies/Ownable.sol";
+import "./Interfaces/IBurnableERC20.sol";
+import "./Interfaces/IGovernance.sol";
 
 /*
  * The Default Pool holds the ETH and LUSD debt (but not LUSD tokens) from liquidations that have been redistributed
@@ -14,14 +17,17 @@ import "./Dependencies/IUniswapPairOracle.sol";
  * from the Default Pool to the Active Pool.
  */
 contract Governance is Ownable, IGovernance {
+    using SafeMath for uint256;
+
     string public constant NAME = "Governance";
+    uint256 public constant _100pct = 1000000000000000000; // 1e18 == 100%
 
     // Maximum amount of debt that this deployment can have (used to limit exposure to volatile assets)
     // set this according to how much ever debt we'd like to accumulate; default is infinity
     bool private allowMinting = true;
 
     // MAHA; the governance token used for charging stability fees
-    IERC20 private stabilityFeeToken;
+    IBurnableERC20 private stabilityFeeToken;
 
     // price feed
     IPriceFeed private priceFeed;
@@ -37,6 +43,7 @@ contract Governance is Ownable, IGovernance {
     event MaxDebtCeilingChanged(uint256 oldValue, uint256 newValue, uint256 timestamp);
     event StabilityFeeTokenChanged(address oldAddress, address newAddress, uint256 timestamp);
     event StabilityTokenPairOracleChanged(address oldAddress, address newAddress, uint256 timestamp);
+    event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
 
     function setMaxDebtCeiling(uint256 _value) public onlyOwner {
         uint256 oldValue = maxDebtCeiling;
@@ -62,9 +69,9 @@ contract Governance is Ownable, IGovernance {
         emit StabilityFeeChanged(oldValue, _value, block.timestamp);
     }
 
-    function setStabilityFeeToken(IERC20 token, IUniswapPairOracle oracle) public onlyOwner {
+    function setStabilityFeeToken(address token, IUniswapPairOracle oracle) public onlyOwner {
         address oldAddress = address(stabilityFeeToken);
-        stabilityFeeToken = token;
+        stabilityFeeToken = IBurnableERC20(token);
         emit StabilityFeeTokenChanged(oldAddress, address(token), block.timestamp);
 
         oldAddress = address(stabilityTokenPairOracle);
@@ -80,7 +87,7 @@ contract Governance is Ownable, IGovernance {
         return stabilityFee;
     }
 
-    function getStabilityTokenPairOracle() external view override returns(IUniswapPairOracle) {
+    function getStabilityTokenPairOracle() external view override returns (IUniswapPairOracle) {
         return stabilityTokenPairOracle;
     }
 
@@ -94,5 +101,19 @@ contract Governance is Ownable, IGovernance {
 
     function getPriceFeed() external view override returns (IPriceFeed) {
         return priceFeed;
+    }
+
+    function chargeStabilityFee(uint256 LUSDAmount) external override {
+        uint256 stabilityFeeInLUSD = LUSDAmount.mul(stabilityFee).div(_100pct);
+        uint256 stabilityTokenPriceInLUSD = stabilityTokenPairOracle.consult(
+            address(stabilityFeeToken),
+            1e18
+        );
+        uint256 _stabilityFee = stabilityFeeInLUSD.mul(1e18).div(stabilityTokenPriceInLUSD);
+
+        if (stabilityFee > 0) {
+            stabilityFeeToken.burnFrom(msg.sender, _stabilityFee);
+            emit StabilityFeeCharged(LUSDAmount, _stabilityFee, block.timestamp);
+        }
     }
 }
