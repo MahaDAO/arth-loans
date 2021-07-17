@@ -11,7 +11,6 @@ import "./Interfaces/ILQTYStaking.sol";
 import "./Dependencies/LiquityBase.sol";
 import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
-import "./Dependencies/console.sol";
 import "./Interfaces/IGovernance.sol";
 import "./Interfaces/IGasPool.sol";
 import "./Interfaces/ILUSDToken.sol";
@@ -21,7 +20,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     string public constant NAME = "TroveManager";
 
     // --- Connected contract declarations ---
-
     address public borrowerOperationsAddress;
 
     IStabilityPool public override stabilityPool;
@@ -214,7 +212,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     event GovernanceAddressChanged(address _governanceAddress);
     event CoreControllerChanged(address _coreControllerAddress);
 
-    event TroveOwnerDetailsUpdated(address owner, address newOwner, uint256 timestamp);
     event RewardSnapshotDetailsUpdated(address owner, address newOwner, uint256 timestamp);
     event TroveOwnersUpdated(address owner, address newOwner, uint256 idx, uint256 timestamp);
     event Liquidation(
@@ -522,26 +519,20 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     // moves a trove from current holder to another address
     function moveTrove(address dest) external override {
         _requireTroveIsActive(msg.sender); // check if the trove exists for the current user.
-        _requireTroveIsNotActive(dest); // check if a trove does not exist for the dest user.
-        uint256 TroveOwnersArrayLength = TroveOwners.length;
+        // check if a trove does not exist for the dest user.
+        require(Troves[dest].status != Status.active, "TroveManager: Trove is open");
 
         // move owner
         uint128 index = Troves[msg.sender].arrayIndex;
-        uint256 length = TroveOwnersArrayLength;
-        uint256 idxLast = length.sub(1);
-        assert(index <= idxLast);
         TroveOwners[index] = dest;
-        emit TroveOwnersUpdated(msg.sender, dest, index, block.timestamp);
 
         // move trove
         Troves[dest] = Troves[msg.sender];
         delete Troves[msg.sender];
-        emit TroveOwnerDetailsUpdated(msg.sender, dest, block.timestamp);
 
         // move snapshot
         rewardSnapshots[dest] = rewardSnapshots[msg.sender];
         delete rewardSnapshots[msg.sender];
-        emit RewardSnapshotDetailsUpdated(msg.sender, dest, block.timestamp);
 
         return sortedTroves.moveNodeOwner(msg.sender, dest);
     }
@@ -1823,10 +1814,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
             Troves[_borrower].status == Status.active,
             "TroveManager: Trove does not exist or is closed"
         );
-    }
-
-    function _requireTroveIsNotActive(address _borrower) internal view {
-        require(Troves[_borrower].status != Status.active, "TroveManager: Trove is open");
     }
 
     function _requireLUSDBalanceCoversRedemption(
