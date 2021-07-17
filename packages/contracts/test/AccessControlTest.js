@@ -32,20 +32,21 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
   let defaultPool
   let functionCaller
   let borrowerOperations
-
+  let controller
   let lqtyStaking
   let lqtyToken
   let communityIssuance
   let lockupContractFactory
 
   before(async () => {
-    coreContracts = await deploymentHelper.deployLiquityCore()
+    coreContracts = await deploymentHelper.deployLiquityCore(owner, owner)
     coreContracts.troveManager = await TroveManagerTester.new()
-    coreContracts = await deploymentHelper.deployLUSDTokenTester(coreContracts)
+    // coreContracts = await deploymentHelper.deployLUSDTokenTester(coreContracts)
     const LQTYContracts = await deploymentHelper.deployLQTYTesterContractsHardhat(bountyAddress, lpRewardsAddress, multisig)
     
     priceFeed = coreContracts.priceFeed
     lusdToken = coreContracts.lusdToken
+    controller = coreContracts.controller
     sortedTroves = coreContracts.sortedTroves
     troveManager = coreContracts.troveManager
     nameRegistry = coreContracts.nameRegistry
@@ -353,7 +354,7 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
     //    mint
     it("mint(): reverts when called by an account that is not BorrowerOperations", async () => {
       // Attempt call from alice
-      const txAlice = lusdToken.mint(bob, 100, { from: alice })
+      const txAlice = controller.mint(bob, 100, { from: alice })
       await th.assertRevert(txAlice, "Caller is not BorrowerOperations")
     })
 
@@ -361,7 +362,16 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
     it("burn(): reverts when called by an account that is not BO nor TroveM nor SP", async () => {
       // Attempt call from alice
       try {
-        const txAlice = await lusdToken.burn(bob, 100, { from: alice })
+        const txAlice = await controller.burn(bob, 100, { from: alice })
+        
+      } catch (err) {
+        assert.include(err.message, "revert")
+        assert.include(err.message, "Caller is neither BorrowerOperations nor TroveManager nor StabilityPool")
+      }
+
+      try {
+        await lusdToken.approve(controller.address, 100, {from: alice})
+        const txAlice = await controller.burn(bob, 100, { from: alice })
         
       } catch (err) {
         assert.include(err.message, "revert")
@@ -373,7 +383,16 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
     it("sendToPool(): reverts when called by an account that is not StabilityPool", async () => {
       // Attempt call from alice
       try {
-        const txAlice = await lusdToken.sendToPool(bob, activePool.address, 100, { from: alice })
+        const txAlice = await controller.sendToPool(bob, activePool.address, 100, { from: alice })
+        
+      } catch (err) {
+        assert.include(err.message, "revert")
+        assert.include(err.message, "Caller is not the StabilityPool")
+      }
+
+      try {
+        await lusdToken.approve(controller.address, 100, {from: alice})
+        const txAlice = await controller.sendToPool(bob, activePool.address, 100, { from: alice })
         
       } catch (err) {
         assert.include(err.message, "revert")
@@ -381,17 +400,17 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
       }
     })
 
-    // returnFromPool
-    it("returnFromPool(): reverts when called by an account that is not TroveManager nor StabilityPool", async () => {
-      // Attempt call from alice
-      try {
-        const txAlice = await lusdToken.returnFromPool(activePool.address, bob, 100, { from: alice })
+    // // returnFromPool
+    // it("returnFromPool(): reverts when called by an account that is not TroveManager nor StabilityPool", async () => {
+    //   // Attempt call from alice
+    //   try {
+    //     const txAlice = await lusdToken.returnFromPool(activePool.address, bob, 100, { from: alice })
         
-      } catch (err) {
-        assert.include(err.message, "revert")
-        assert.include(err.message, "Caller is neither TroveManager nor StabilityPool")
-      }
-    })
+    //   } catch (err) {
+    //     assert.include(err.message, "revert")
+    //     assert.include(err.message, "Caller is neither TroveManager nor StabilityPool")
+    //   }
+    // })
   })
 
   describe('SortedTroves', async accounts => {
