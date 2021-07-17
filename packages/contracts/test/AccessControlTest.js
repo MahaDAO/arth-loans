@@ -2,6 +2,7 @@ const deploymentHelper = require("../utils/deploymentHelpers.js")
 const testHelpers = require("../utils/testHelpers.js")
 const TroveManagerTester = artifacts.require("TroveManagerTester")
 const Controller = artifacts.require("Controller");
+const Governance = artifacts.require("Governance");
 
 const th = testHelpers.TestHelper
 const timeValues = testHelpers.TimeValues
@@ -42,12 +43,14 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
   before(async () => {
     coreContracts = await deploymentHelper.deployLiquityCore(owner, owner)
     coreContracts.troveManager = await TroveManagerTester.new()
+    coreContracts.governance = await Governance.new(coreContracts.troveManager.address)
     coreContracts.controller = await Controller.new(
         coreContracts.troveManager.address,
         coreContracts.stabilityPool.address,
         coreContracts.borrowerOperations.address,
         coreContracts.governance.address,
-        coreContracts.lusdToken.address
+        coreContracts.lusdToken.address,
+        coreContracts.gasPool.address 
     )
 
     // coreContracts = await deploymentHelper.deployLUSDTokenTester(coreContracts)

@@ -23,7 +23,8 @@ contract Controller is CheckContract, IController {
     address public immutable troveManagerAddress;
     address public immutable stabilityPoolAddress;
     address public immutable borrowerOperationsAddress;
-    
+    address public immutable gasPoolAddress;
+
     // --- Events ---
     event LUSDAddressChanged(address _lusdAddress);
     event DebtAdded(uint256 amount, uint256 timestamp);
@@ -32,6 +33,7 @@ contract Controller is CheckContract, IController {
     event TroveManagerAddressChanged(address _troveManagerAddress);
     event StabilityPoolAddressChanged(address _newStabilityPoolAddress);
     event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
+    event GasPoolAddressChanged(address _gasPoolAddress);
 
     constructor
     ( 
@@ -39,7 +41,8 @@ contract Controller is CheckContract, IController {
         address _stabilityPoolAddress,
         address _borrowerOperationsAddress,
         address _governanceAddress,
-        address _lusdAddress
+        address _lusdAddress,
+        address _gasPoolAddress
     ) 
         public 
     {  
@@ -48,9 +51,13 @@ contract Controller is CheckContract, IController {
         checkContract(_borrowerOperationsAddress);
         checkContract(_governanceAddress);
         checkContract(_lusdAddress);
+        checkContract(_gasPoolAddress);
 
         lusdToken = ILUSDToken(_lusdAddress);
         emit LUSDAddressChanged(_lusdAddress);
+
+        gasPoolAddress = _gasPoolAddress;
+        emit GasPoolAddressChanged(_gasPoolAddress);
 
         troveManagerAddress = _troveManagerAddress;
         emit TroveManagerAddressChanged(_troveManagerAddress);
@@ -76,7 +83,7 @@ contract Controller is CheckContract, IController {
     }
 
     function burn(address _account, uint256 _amount) external override {
-        _requireCallerIsBOorTroveMorSP();
+        _requireCallerIsBOorTroveMorSPorGP();
         _burn(_account, _amount);
     }
 
@@ -154,6 +161,16 @@ contract Controller is CheckContract, IController {
             msg.sender == borrowerOperationsAddress ||
             msg.sender == troveManagerAddress ||
             msg.sender == stabilityPoolAddress,
+            "Controller: Caller is neither BorrowerOperations nor TroveManager nor StabilityPool"
+        );
+    }
+
+    function _requireCallerIsBOorTroveMorSPorGP() internal view {
+        require(
+            msg.sender == borrowerOperationsAddress ||
+            msg.sender == troveManagerAddress ||
+            msg.sender == stabilityPoolAddress ||
+            msg.sender == gasPoolAddress,
             "Controller: Caller is neither BorrowerOperations nor TroveManager nor StabilityPool"
         );
     }
