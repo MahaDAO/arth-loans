@@ -58,13 +58,14 @@ contract EchidnaTester {
         stabilityPool = new StabilityPool();
         gasPool = new GasPool();
         lusdToken = new LUSDToken();
-        governance = new Governance();
+        governance = new Governance(address(troveManager));
         controller = new Controller(
             address(troveManager),
             address(stabilityPool),
             address(borrowerOperations),
             address(governance),
-            address(0) // TO be replaced by mock arth/arth.
+            address(lusdToken),
+            address(gasPool)
         );
 
         weth = new WETH();

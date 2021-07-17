@@ -1307,7 +1307,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         contractsCache.activePool.decreaseLUSDDebt(totals.totalLUSDToRedeem);
         contractsCache.activePool.sendETH(msg.sender, totals.ETHToSendToRedeemer);
 
-        governance.chargeStabilityFee(_LUSDamount);
+        governance.chargeStabilityFee(msg.sender, _LUSDamount);
     }
 
     // --- Helper functions ---
