@@ -19,5 +19,5 @@ interface IGovernance {
 
     function getStabilityTokenPairOracle() external view returns (IUniswapPairOracle);
 
-    function chargeStabilityFee(uint256 LUSDAmount) external;
+    function chargeStabilityFee(address who, uint256 LUSDAmount) external;
 }

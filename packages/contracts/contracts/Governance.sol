@@ -22,6 +22,8 @@ contract Governance is Ownable, IGovernance {
     string public constant NAME = "Governance";
     uint256 public constant _100pct = 1000000000000000000; // 1e18 == 100%
 
+    address public troveManagerAddress;
+
     // Maximum amount of debt that this deployment can have (used to limit exposure to volatile assets)
     // set this according to how much ever debt we'd like to accumulate; default is infinity
     bool private allowMinting = true;
@@ -44,6 +46,10 @@ contract Governance is Ownable, IGovernance {
     event StabilityFeeTokenChanged(address oldAddress, address newAddress, uint256 timestamp);
     event StabilityTokenPairOracleChanged(address oldAddress, address newAddress, uint256 timestamp);
     event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
+
+    constructor(address _troveManagerAddress) public {
+        troveManagerAddress = _troveManagerAddress;
+    }
 
     function setMaxDebtCeiling(uint256 _value) public onlyOwner {
         uint256 oldValue = maxDebtCeiling;
@@ -103,7 +109,9 @@ contract Governance is Ownable, IGovernance {
         return priceFeed;
     }
 
-    function chargeStabilityFee(uint256 LUSDAmount) external override {
+    function chargeStabilityFee(address who, uint256 LUSDAmount) external override {
+        _requireCallerIsTroveManager();
+
         uint256 stabilityFeeInLUSD = LUSDAmount.mul(stabilityFee).div(_100pct);
         uint256 stabilityTokenPriceInLUSD = stabilityTokenPairOracle.consult(
             address(stabilityFeeToken),
@@ -112,8 +120,12 @@ contract Governance is Ownable, IGovernance {
         uint256 _stabilityFee = stabilityFeeInLUSD.mul(1e18).div(stabilityTokenPriceInLUSD);
 
         if (stabilityFee > 0) {
-            stabilityFeeToken.burnFrom(msg.sender, _stabilityFee);
+            stabilityFeeToken.burnFrom(who, _stabilityFee);
             emit StabilityFeeCharged(LUSDAmount, _stabilityFee, block.timestamp);
         }
+    }
+
+    function _requireCallerIsTroveManager() internal view {
+        require(msg.sender == troveManagerAddress, "Governance: Caller is not TroveManager");
     }
 }

@@ -23,7 +23,7 @@ contract Controller is CheckContract, IController {
     address public immutable troveManagerAddress;
     address public immutable stabilityPoolAddress;
     address public immutable borrowerOperationsAddress;
-    address public immutable gasPool;
+    address public immutable gasPoolAddress;
 
     // --- Events ---
     event LUSDAddressChanged(address _lusdAddress);
