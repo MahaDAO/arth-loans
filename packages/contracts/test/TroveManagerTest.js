@@ -55,7 +55,7 @@ contract('TroveManager', async accounts => {
   const withdrawLUSD = async (params) => th.withdrawLUSD(contracts, params)
 
   beforeEach(async () => {
-    contracts = await deploymentHelper.deployLiquityCore()
+    contracts = await deploymentHelper.deployLiquityCore(owner, owner)
     contracts.troveManager = await TroveManagerTester.new()
     contracts.governance = await Governance.new(contracts.troveManager.address)
     contracts.controller = await Controller.new(
@@ -84,7 +84,8 @@ contract('TroveManager', async accounts => {
     lqtyToken = LQTYContracts.lqtyToken
     communityIssuance = LQTYContracts.communityIssuance
     lockupContractFactory = LQTYContracts.lockupContractFactory
-
+    controller = contracts.controller
+    
     await deploymentHelper.connectCoreContracts(contracts, LQTYContracts)
     await deploymentHelper.connectLQTYContracts(LQTYContracts)
     await deploymentHelper.connectLQTYContractsToCore(LQTYContracts, contracts)

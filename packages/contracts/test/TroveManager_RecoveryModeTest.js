@@ -54,7 +54,7 @@ contract('TroveManager - in Recovery Mode', async accounts => {
   const openTrove = async (params) => th.openTrove(contracts, params)
 
   beforeEach(async () => {
-    contracts = await deploymentHelper.deployLiquityCore()
+    contracts = await deploymentHelper.deployLiquityCore(owner, owner)
     contracts.troveManager = await TroveManagerTester.new()
     contracts.governance = await Governance.new(contracts.troveManager.address)
     contracts.controller = await Controller.new(
