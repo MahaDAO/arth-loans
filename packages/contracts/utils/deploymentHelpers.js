@@ -13,7 +13,7 @@ const HintHelpers = artifacts.require("./HintHelpers.sol")
 const ARTHController = artifacts.require("ARTHController")
 const Controller = artifacts.require("Controller")
 const Governance = artifacts.require("Governance")
-const MahaToken = artifacts.require("MahaToken")
+const MahaToken = artifacts.require("MockMaha")
 const MockUniswapOracle = artifacts.require("MockUniswapOracle")
 
 const WETH = artifacts.require("./WETH.sol")
