@@ -3,6 +3,8 @@ const testHelpers = require("../utils/testHelpers.js")
 const TroveManagerTester = artifacts.require("./TroveManagerTester.sol")
 const BorrowerOperationsTester = artifacts.require("./BorrowerOperationsTester.sol")
 const LUSDToken = artifacts.require("LUSDToken")
+const Governance = artifacts.require("Governance")
+const Controller = artifacts.require("Controller")
 
 const th = testHelpers.TestHelper
 const dec = th.dec
@@ -26,7 +28,7 @@ contract('Gas compensation tests', async accounts => {
   let stabilityPool
   let defaultPool
   let borrowerOperations
-
+  let controller
   let contracts
   let troveManagerTester
   let borrowerOperationsTester
@@ -49,12 +51,16 @@ contract('Gas compensation tests', async accounts => {
   })
 
   beforeEach(async () => {
-    contracts = await deploymentHelper.deployLiquityCore()
+    contracts = await deploymentHelper.deployLiquityCore(owner, owner)
     contracts.troveManager = await TroveManagerTester.new()
-    contracts.lusdToken = await LUSDToken.new(
-      contracts.troveManager.address,
-      contracts.stabilityPool.address,
-      contracts.borrowerOperations.address
+    contracts.governance = await Governance.new(contracts.troveManager.address)
+    contracts.controller = await Controller.new(
+        contracts.troveManager.address,
+        contracts.stabilityPool.address,
+        contracts.borrowerOperations.address,
+        contracts.governance.address,
+        contracts.lusdToken.address,
+        contracts.gasPool.address 
     )
     const LQTYContracts = await deploymentHelper.deployLQTYContracts(bountyAddress, lpRewardsAddress, multisig)
     
@@ -67,10 +73,18 @@ contract('Gas compensation tests', async accounts => {
     stabilityPool = contracts.stabilityPool
     defaultPool = contracts.defaultPool
     borrowerOperations = contracts.borrowerOperations
-
+    controller = contracts.controller
     await deploymentHelper.connectLQTYContracts(LQTYContracts)
     await deploymentHelper.connectCoreContracts(contracts, LQTYContracts) 
     await deploymentHelper.connectLQTYContractsToCore(LQTYContracts, contracts)
+
+    for (const account of  [
+        owner, liquidator,
+        alice, bob, carol, dennis, erin, flyn, graham, harriet, ida,
+        defaulter_1, defaulter_2, defaulter_3, defaulter_4, whale
+    ]) {
+        await lusdToken.approve(controller.address, dec(1000000000, 18), {from: account})
+    }
   })
 
   // --- Raw gas compensation calculations ---
