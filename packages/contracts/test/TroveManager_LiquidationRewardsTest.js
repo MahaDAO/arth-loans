@@ -77,6 +77,8 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
         A, B, C, D, E,
         whale, defaulter_1, defaulter_2, defaulter_3, defaulter_4
     ]) {
+        await contracts.mahaToken.mint(account, dec(1, 39), {from: account})
+        await contracts.mahaToken.approve(contracts.governance.address, dec(1, 39), {from: account})
         await lusdToken.approve(controller.address, dec(100000000000, 18), {from: account})
     }
   })

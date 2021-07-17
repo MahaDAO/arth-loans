@@ -96,6 +96,8 @@ contract('TroveManager', async accounts => {
         defaulter_1, defaulter_2, defaulter_3, defaulter_4, whale,
         A, B, C, D, E]
     ) {
+        await contracts.mahaToken.mint(account, dec(1, 39), {from: account})
+        await contracts.mahaToken.approve(contracts.governance.address, dec(1, 39), {from: account})
         await lusdToken.approve(controller.address, dec(10000000, 18), {from: account})
     }
   })
