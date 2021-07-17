@@ -91,7 +91,6 @@ class DeploymentHelper {
 
   static async deployLiquityCoreHardhat(deployer, timelock) {
     const weth = await WETH.new()
-    const governance = await Governance.new()
     const priceFeedTestnet = await PriceFeedTestnet.new()
     const sortedTroves = await SortedTroves.new()
     const troveManager = await TroveManager.new()
@@ -104,6 +103,7 @@ class DeploymentHelper {
     const borrowerOperations = await BorrowerOperations.new()
     const hintHelpers = await HintHelpers.new()
     const lusdToken = await LUSDToken.new()
+    const governance = await Governance.new(troveManager.address)
     const arthController = await ARTHController.new(
         lusdToken.address, 
         lusdToken.address,
@@ -115,7 +115,8 @@ class DeploymentHelper {
         stabilityPool.address,
         borrowerOperations.address,
         governance.address,
-        lusdToken.address
+        lusdToken.address,
+        gasPool.address
     )
 
     Governance.setAsDeployed(governance)
