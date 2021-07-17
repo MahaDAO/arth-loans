@@ -1,5 +1,7 @@
 const deploymentHelper = require("../utils/deploymentHelpers.js")
 const testHelpers = require("../utils/testHelpers.js")
+const Governance = artifacts.require("Governance")
+const Controller = artifacts.require("Controller")
 
 const th = testHelpers.TestHelper
 const dec = th.dec
@@ -54,11 +56,16 @@ contract('TroveManager - in Recovery Mode', async accounts => {
   beforeEach(async () => {
     contracts = await deploymentHelper.deployLiquityCore()
     contracts.troveManager = await TroveManagerTester.new()
-    contracts.lusdToken = await LUSDToken.new(
-      contracts.troveManager.address,
-      contracts.stabilityPool.address,
-      contracts.borrowerOperations.address
+    contracts.governance = await Governance.new(contracts.troveManager.address)
+    contracts.controller = await Controller.new(
+        contracts.troveManager.address,
+        contracts.stabilityPool.address,
+        contracts.borrowerOperations.address,
+        contracts.governance.address,
+        contracts.lusdToken.address,
+        contracts.gasPool.address 
     )
+
     const LQTYContracts = await deploymentHelper.deployLQTYContracts(bountyAddress, lpRewardsAddress, multisig)
 
     priceFeed = contracts.priceFeedTestnet
@@ -72,10 +79,20 @@ contract('TroveManager - in Recovery Mode', async accounts => {
     borrowerOperations = contracts.borrowerOperations
     collSurplusPool = contracts.collSurplusPool
     weth = contracts.weth;
-
+    controller = contracts.controller
+    
     await deploymentHelper.connectLQTYContracts(LQTYContracts)
     await deploymentHelper.connectCoreContracts(contracts, LQTYContracts)
     await deploymentHelper.connectLQTYContractsToCore(LQTYContracts, contracts)
+
+    for (const account of [
+        owner,
+        alice, bob, carol, dennis, erin, freddy, greta, harry, ida,
+        whale, defaulter_1, defaulter_2, defaulter_3, defaulter_4,
+        A, B, C, D, E, F, G, H, I
+    ]) {
+        await lusdToken.approve(controller.address, dec(1000000000, 18), {from: account})
+    }
   })
 
   it("checkRecoveryMode(): Returns true if TCR falls below CCR", async () => {

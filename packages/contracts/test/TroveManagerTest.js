@@ -2,6 +2,8 @@ const deploymentHelper = require("../utils/deploymentHelpers.js")
 const testHelpers = require("../utils/testHelpers.js")
 const TroveManagerTester = artifacts.require("./TroveManagerTester.sol")
 const LUSDTokenTester = artifacts.require("./LUSDTokenTester.sol")
+const Governance = artifacts.require("Governance")
+const Controller = artifacts.require("Controller")
 
 const th = testHelpers.TestHelper
 const dec = th.dec
@@ -43,6 +45,7 @@ contract('TroveManager', async accounts => {
   let hintHelpers
   let weth
   let contracts
+  let controller
 
   const getOpenTroveTotalDebt = async (lusdAmount) => th.getOpenTroveTotalDebt(contracts, lusdAmount)
   const getOpenTroveLUSDAmount = async (totalDebt) => th.getOpenTroveLUSDAmount(contracts, totalDebt)
@@ -54,11 +57,16 @@ contract('TroveManager', async accounts => {
   beforeEach(async () => {
     contracts = await deploymentHelper.deployLiquityCore()
     contracts.troveManager = await TroveManagerTester.new()
-    contracts.lusdToken = await LUSDTokenTester.new(
-      contracts.troveManager.address,
-      contracts.stabilityPool.address,
-      contracts.borrowerOperations.address
+    contracts.governance = await Governance.new(contracts.troveManager.address)
+    contracts.controller = await Controller.new(
+        contracts.troveManager.address,
+        contracts.stabilityPool.address,
+        contracts.borrowerOperations.address,
+        contracts.governance.address,
+        contracts.lusdToken.address,
+        contracts.gasPool.address 
     )
+
     const LQTYContracts = await deploymentHelper.deployLQTYContracts(bountyAddress, lpRewardsAddress, multisig)
 
     priceFeed = contracts.priceFeedTestnet
@@ -80,6 +88,15 @@ contract('TroveManager', async accounts => {
     await deploymentHelper.connectCoreContracts(contracts, LQTYContracts)
     await deploymentHelper.connectLQTYContracts(LQTYContracts)
     await deploymentHelper.connectLQTYContractsToCore(LQTYContracts, contracts)
+
+    for (const account of [
+        owner,
+        alice, bob, carol, dennis, erin, flyn, graham, harriet, ida,
+        defaulter_1, defaulter_2, defaulter_3, defaulter_4, whale,
+        A, B, C, D, E]
+    ) {
+        await lusdToken.approve(controller.address, dec(10000000, 18), {from: account})
+    }
   })
 
   it('liquidate(): closes a Trove that has ICR < MCR', async () => {

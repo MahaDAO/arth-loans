@@ -1,5 +1,7 @@
 const deploymentHelper = require("../utils/deploymentHelpers.js")
 const testHelpers = require("../utils/testHelpers.js")
+const Governance = artifacts.require("Governance")
+const Controller = artifacts.require("Controller")
 
 const th = testHelpers.TestHelper
 const dec = th.dec
@@ -32,6 +34,7 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
   let borrowerOperations
   let weth
   let contracts
+  let controller
 
   const getOpenTroveLUSDAmount = async (totalDebt) => th.getOpenTroveLUSDAmount(contracts, totalDebt)
   const getNetBorrowingAmount = async (debtWithFee) => th.getNetBorrowingAmount(contracts, debtWithFee)
@@ -40,10 +43,14 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
   beforeEach(async () => {
     contracts = await deploymentHelper.deployLiquityCore()
     contracts.troveManager = await TroveManagerTester.new()
-    contracts.lusdToken = await LUSDToken.new(
-      contracts.troveManager.address,
-      contracts.stabilityPool.address,
-      contracts.borrowerOperations.address
+    contracts.governance = await Governance.new(contracts.troveManager.address)
+    contracts.controller = await Controller.new(
+        contracts.troveManager.address,
+        contracts.stabilityPool.address,
+        contracts.borrowerOperations.address,
+        contracts.governance.address,
+        contracts.lusdToken.address,
+        contracts.gasPool.address 
     )
     const LQTYContracts = await deploymentHelper.deployLQTYContracts(bountyAddress, lpRewardsAddress, multisig)
     
@@ -58,10 +65,20 @@ contract('TroveManager - Redistribution reward calculations', async accounts => 
     defaultPool = contracts.defaultPool
     functionCaller = contracts.functionCaller
     borrowerOperations = contracts.borrowerOperations
-
+    controller = contracts.controller
+    
     await deploymentHelper.connectLQTYContracts(LQTYContracts)
     await deploymentHelper.connectCoreContracts(contracts, LQTYContracts)
     await deploymentHelper.connectLQTYContractsToCore(LQTYContracts, contracts)
+
+    for (const account of [
+        owner,
+        alice, bob, carol, dennis, erin, freddy, greta, harry, ida,
+        A, B, C, D, E,
+        whale, defaulter_1, defaulter_2, defaulter_3, defaulter_4
+    ]) {
+        await lusdToken.approve(controller.address, dec(100000000000, 18), {from: account})
+    }
   })
 
   it("redistribution: A, B Open. B Liquidated. C, D Open. D Liquidated. Distributes correct rewards", async () => {
