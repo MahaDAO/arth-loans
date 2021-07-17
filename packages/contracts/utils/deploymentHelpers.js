@@ -13,6 +13,8 @@ const HintHelpers = artifacts.require("./HintHelpers.sol")
 const ARTHController = artifacts.require("ARTHController")
 const Controller = artifacts.require("Controller")
 const Governance = artifacts.require("Governance")
+const MahaToken = artifacts.require("MahaToken")
+const MockUniswapOracle = artifacts.require("MockUniswapOracle")
 
 const WETH = artifacts.require("./WETH.sol")
 const LQTYStaking = artifacts.require("./LQTYStaking.sol")
@@ -104,6 +106,8 @@ class DeploymentHelper {
     const hintHelpers = await HintHelpers.new()
     const lusdToken = await LUSDToken.new()
     const governance = await Governance.new(troveManager.address)
+    const mahaToken = await MahaToken.new()
+    const mahaMockUniswapOracle = await MockUniswapOracle.new()
     const arthController = await ARTHController.new(
         lusdToken.address, 
         lusdToken.address,
@@ -119,6 +123,8 @@ class DeploymentHelper {
         gasPool.address
     )
 
+    MahaToken.setAsDeployed(mahaToken)
+    MockUniswapOracle.setAsDeployed(mahaMockUniswapOracle)
     Governance.setAsDeployed(governance)
     Controller.setAsDeployed(controller)
     ARTHController.setAsDeployed(arthController)
@@ -151,7 +157,9 @@ class DeploymentHelper {
       functionCaller,
       borrowerOperations,
       hintHelpers,
-      weth
+      weth,
+      mahaToken,
+      mahaMockUniswapOracle
     }
     return coreContracts
   }
@@ -371,7 +379,7 @@ class DeploymentHelper {
     await contracts.lusdToken.setArthController(contracts.arthController.address);
     await contracts.arthController.addPool(contracts.controller.address);
     await contracts.governance.setPriceFeed(contracts.priceFeedTestnet.address);
-
+    await contracts.governance.setStabilityFeeToken(contracts.mahaToken.address, contracts.mahaMockUniswapOracle.address)
     // set TroveManager addr in SortedTroves
     await contracts.sortedTroves.setParams(
       maxBytes32,
