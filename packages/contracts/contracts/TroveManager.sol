@@ -13,7 +13,6 @@ import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/console.sol";
 import "./Interfaces/IGovernance.sol";
-import "./Interfaces/IBurnableERC20.sol";
 import "./Interfaces/IGasPool.sol";
 import "./Interfaces/ILUSDToken.sol";
 import "./Interfaces/IController.sol";
@@ -26,17 +25,11 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     address public borrowerOperationsAddress;
 
     IStabilityPool public override stabilityPool;
-
     IGasPool gasPool;
-
     ICollSurplusPool collSurplusPool;
-
     ILUSDToken public override lusdToken;
-
     ILQTYToken public override lqtyToken;
-
     ILQTYStaking public override lqtyStaking;
-
     IController public coreController;
 
     // A doubly linked list of Troves, sorted by their sorted by their collateral ratios
@@ -208,7 +201,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
     // --- Events ---
 
-    event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
     event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
     event LUSDTokenAddressChanged(address _newLUSDTokenAddress);
     event ActivePoolAddressChanged(address _activePoolAddress);
@@ -222,22 +214,9 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     event GovernanceAddressChanged(address _governanceAddress);
     event CoreControllerChanged(address _coreControllerAddress);
 
-    event TroveOwnerDetailsUpdated(
-        address owner,
-        address newOwner,
-        uint256 timestamp
-    );
-    event RewardSnapshotDetailsUpdated(
-        address owner,
-        address newOwner,
-        uint256 timestamp
-    );
-    event TroveOwnersUpdated(
-        address owner, 
-        address newOwner, 
-        uint256 idx, 
-        uint256 timestamp
-    );
+    event TroveOwnerDetailsUpdated(address owner, address newOwner, uint256 timestamp);
+    event RewardSnapshotDetailsUpdated(address owner, address newOwner, uint256 timestamp);
+    event TroveOwnersUpdated(address owner, address newOwner, uint256 idx, uint256 timestamp);
     event Liquidation(
         uint256 _liquidatedDebt,
         uint256 _liquidatedColl,
@@ -542,61 +521,29 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
     // moves a trove from current holder to another address
     function moveTrove(address dest) external override {
-        _requireTroveIsActive(msg.sender);  // check if the trove exists for the current user.
-        _requireTroveIsNotActive(dest);  // check if a trove does not exist for the dest user.
-
+        _requireTroveIsActive(msg.sender); // check if the trove exists for the current user.
+        _requireTroveIsNotActive(dest); // check if a trove does not exist for the dest user.
         uint256 TroveOwnersArrayLength = TroveOwners.length;
-        _moveTroveOwner(msg.sender, dest, TroveOwnersArrayLength);
-        
-        _moveTrove(msg.sender, dest); 
-        _moveRewardSnapshot(msg.sender, dest);
-        return _moveSortedTroveOwner(msg.sender, dest);
-    }
 
-    function _moveTrove(address owner, address newOwner) internal {
-        // 1. Copy the details of position in the mapping in the name of newOwner.
-        Troves[newOwner] = Troves[owner];
-
-        // 2. Ensure that all the details are copied precisely.
-        require(Troves[owner].debt == Troves[newOwner].debt, "TroveManager: Trove migration not successful");
-        require(Troves[owner].coll == Troves[newOwner].coll, "TroveManager: Trove migration not successful");
-        require(Troves[owner].stake == Troves[newOwner].stake, "TroveManager: Trove migration not successful");
-        require(Troves[owner].status == Troves[newOwner].status, "TroveManager: Trove migration not successful");
-        require(Troves[owner].arrayIndex == Troves[newOwner].arrayIndex, "TroveManager: Trove migration not successful");
-
-        // 3. Delete the old position mapped in the name of owner.
-        delete Troves[owner];
-        emit TroveOwnerDetailsUpdated(owner, newOwner, block.timestamp);
-    }
-
-    function _moveTroveOwner(address _owner, address newOwner, uint256 TroveOwnersArrayLength) internal {
-        _requireTroveIsActive(_owner); 
-        _requireTroveIsNotActive(newOwner);
-
-        uint128 index = Troves[_owner].arrayIndex;
+        // move owner
+        uint128 index = Troves[msg.sender].arrayIndex;
         uint256 length = TroveOwnersArrayLength;
         uint256 idxLast = length.sub(1);
         assert(index <= idxLast);
+        TroveOwners[index] = dest;
+        emit TroveOwnersUpdated(msg.sender, dest, index, block.timestamp);
 
-        TroveOwners[index] = newOwner;
-        emit TroveOwnersUpdated(_owner, newOwner, index, block.timestamp);
-    }
+        // move trove
+        Troves[dest] = Troves[msg.sender];
+        delete Troves[msg.sender];
+        emit TroveOwnerDetailsUpdated(msg.sender, dest, block.timestamp);
 
-    function _moveRewardSnapshot(address _owner, address newOwner) internal {
-        // 1. Copy the details of snapshot in the mapping in the name of newOwner.
-        rewardSnapshots[newOwner] = rewardSnapshots[_owner];
+        // move snapshot
+        rewardSnapshots[dest] = rewardSnapshots[msg.sender];
+        delete rewardSnapshots[msg.sender];
+        emit RewardSnapshotDetailsUpdated(msg.sender, dest, block.timestamp);
 
-        // 2. Ensure that all the details are copied precisely.
-        require(rewardSnapshots[newOwner].ETH == rewardSnapshots[_owner].ETH, "TroveManager: Reward migration not successfull");
-        require(rewardSnapshots[newOwner].LUSDDebt == rewardSnapshots[_owner].LUSDDebt, "TroveManager: Reward migration not successfull");
-
-        // 3. Delete the old position mapped in the name of owner.
-        delete rewardSnapshots[_owner];
-        emit RewardSnapshotDetailsUpdated(_owner, newOwner, block.timestamp);
-    }
-
-    function _moveSortedTroveOwner(address _owner, address newOwner) internal {
-        return sortedTroves.moveNodeOwner(_owner, newOwner);
+        return sortedTroves.moveNodeOwner(msg.sender, dest);
     }
 
     /* In a full liquidation, returns the values for a trove's coll and debt to be offset, and coll and debt to be
@@ -1369,31 +1316,14 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         contractsCache.activePool.decreaseLUSDDebt(totals.totalLUSDToRedeem);
         contractsCache.activePool.sendETH(msg.sender, totals.ETHToSendToRedeemer);
 
-        _chargeStabilityFee(_LUSDamount);
+        governance.chargeStabilityFee(_LUSDamount);
     }
 
     // --- Helper functions ---
 
-    function _chargeStabilityFee(uint256 LUSDAmount) internal {
-        address stabilityFeeToken = address(governance.getStabilityFeeToken());
-
-        uint256 stabilityFeeInLUSD = LUSDAmount.mul(governance.getStabilityFee()).div(_100pct);
-        uint256 stabilityTokenPriceInLUSD = governance.getStabilityTokenPairOracle().consult(
-            stabilityFeeToken,
-            1e18
-        );
-        uint256 stabilityFee = stabilityFeeInLUSD.mul(1e18).div(stabilityTokenPriceInLUSD);
-
-        if (stabilityFee > 0) {
-            IBurnableERC20(stabilityFeeToken).burnFrom(msg.sender, stabilityFee);
-            emit StabilityFeeCharged(LUSDAmount, stabilityFee, block.timestamp);
-        }
-    }
-
     // Return the nominal collateral ratio (ICR) of a given Trove, without the price. Takes a trove's pending coll and debt rewards from redistributions into account.
     function getNominalICR(address _borrower) public view override returns (uint256) {
         (uint256 currentETH, uint256 currentLUSDDebt) = _getCurrentTroveAmounts(_borrower);
-
         uint256 NICR = LiquityMath._computeNominalCR(currentETH, currentLUSDDebt);
         return NICR;
     }
@@ -1896,10 +1826,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     }
 
     function _requireTroveIsNotActive(address _borrower) internal view {
-        require(
-            Troves[_borrower].status != Status.active,
-            "TroveManager: Trove is open"
-        );
+        require(Troves[_borrower].status != Status.active, "TroveManager: Trove is open");
     }
 
     function _requireLUSDBalanceCoversRedemption(

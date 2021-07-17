@@ -12,6 +12,8 @@ import "../Interfaces/ILUSDToken.sol";
 interface ITroveManager is ILiquityBase {
     // --- Events ---
 
+    event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
+    event CoreControllerChanged(address _coreControllerAddress);
     event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
     event LUSDTokenAddressChanged(address _newLUSDTokenAddress);
     event ActivePoolAddressChanged(address _activePoolAddress);

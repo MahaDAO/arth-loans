@@ -1,0 +1,18 @@
+{
+  "governance": {
+    "address": "0xc671BBd588eF9e659ef949e8371CDe91fbaF8D1d",
+    "txHash": "0xd4c22c7fc542c39e9fe3bd851d9d4267df0096d52a66c6ddd750ef9de77f284f"
+  },
+  "gmuOracle": {
+    "address": "0xe0169CB8C92Fa15E7D856485AC9eB39b66dA2Ba7",
+    "txHash": "0x6ac3d2b7e85158b7660b343d39c13551c5c26b14d046b33cc002308b59d67301"
+  },
+  "priceFeed": {
+    "address": "0x598b8AED60E8EeC6669457B8acEc0558687BcA90",
+    "txHash": "0x0d694a3e97fbe9dec33cb3975451171e4a6e20243ceb8d25c9c229a0d5dd2236"
+  },
+  "sortedTroves": {
+    "address": "0x9a6729Bf61025F7B00be0f9bF347B90ba54bc6c4",
+    "txHash": "0xb5a4165cbd4fed94d028ba4887879cde4ad2ff38b2c873a3d3db9be5eb0688d8"
+  }
+}

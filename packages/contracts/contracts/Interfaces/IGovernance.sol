@@ -18,4 +18,6 @@ interface IGovernance {
     function getStabilityFeeToken() external view returns (IERC20);
 
     function getStabilityTokenPairOracle() external view returns (IUniswapPairOracle);
+
+    function chargeStabilityFee(uint256 LUSDAmount) external;
 }
