@@ -4,6 +4,7 @@ const TroveManagerTester = artifacts.require("./TroveManagerTester.sol")
 const LUSDTokenTester = artifacts.require("./LUSDTokenTester.sol")
 const Governance = artifacts.require("Governance")
 const Controller = artifacts.require("Controller")
+const ARTHController = artifacts.require("ARTHController")
 
 const BigNumber = require('ethers').BigNumber
 const th = testHelpers.TestHelper
@@ -58,6 +59,13 @@ contract('TroveManager', async accounts => {
   beforeEach(async () => {
     contracts = await deploymentHelper.deployLiquityCore(owner, owner)
     contracts.troveManager = await TroveManagerTester.new()
+    contracts.lusdToken = await LUSDTokenTester.new()
+    contracts.arthController = await ARTHController.new(
+        contracts.lusdToken.address, 
+        contracts.lusdToken.address,
+        owner,
+        owner
+    )
     contracts.governance = await Governance.new(contracts.troveManager.address)
     contracts.controller = await Controller.new(
         contracts.troveManager.address,
