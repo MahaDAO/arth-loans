@@ -517,7 +517,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     }
 
     // moves a trove from current holder to another address
-    function moveTrove(address dest) external override {
+    function moveTrove(address dest) external virtual override {
         _requireTroveIsActive(msg.sender); // check if the trove exists for the current user.
         // check if a trove does not exist for the dest user.
         require(Troves[dest].status != Status.active, "TroveManager: Trove is open");
