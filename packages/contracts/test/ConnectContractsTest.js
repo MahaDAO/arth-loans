@@ -18,11 +18,17 @@ contract('Deployment script - Sets correct contract addresses dependencies after
   let lqtyToken
   let communityIssuance
   let lockupContractFactory
+  let governance
+  let controller
+  let gasPool
 
   before(async () => {
-    const coreContracts = await deploymentHelper.deployLiquityCore()
+    const coreContracts = await deploymentHelper.deployLiquityCore(owner, owner)
     const LQTYContracts = await deploymentHelper.deployLQTYContracts(bountyAddress, lpRewardsAddress, multisig)
 
+    gasPool = coreContracts.gasPool
+    controller = coreContracts.controller
+    governance = coreContracts.governance
     priceFeed = coreContracts.priceFeedTestnet
     lusdToken = coreContracts.lusdToken
     sortedTroves = coreContracts.sortedTroves
@@ -43,10 +49,34 @@ contract('Deployment script - Sets correct contract addresses dependencies after
     await deploymentHelper.connectLQTYContractsToCore(LQTYContracts, coreContracts)
   })
 
-  it('Sets the correct PriceFeed address in TroveManager', async () => {
+  it('Sets the correct Governance address in TroveManager', async () => {
+    const governanceAddress = governance.address
+
+    const recordedGovernanceAddress = await troveManager.governance()
+
+    assert.equal(governanceAddress, recordedGovernanceAddress)
+  })
+
+  it('Sets the correct Controller address in TroveManager', async () => {
+    const address = controller.address
+
+    const recordedAddress = await troveManager.coreController()
+
+    assert.equal(address, recordedAddress)
+  })
+
+  it('Sets the correct troveManager address in governance', async () => {
+    const address = troveManager.address
+
+    const recordedAddress = await controller.troveManagerAddress()
+    assert.equal(address, recordedAddress)
+  })
+
+
+  it('Sets the correct PriceFeed address in Governance', async () => {
     const priceFeedAddress = priceFeed.address
 
-    const recordedPriceFeedAddress = await troveManager.priceFeed()
+    const recordedPriceFeedAddress = await governance.getPriceFeed()
 
     assert.equal(priceFeedAddress, recordedPriceFeedAddress)
   })
@@ -160,12 +190,57 @@ contract('Deployment script - Sets correct contract addresses dependencies after
     assert.equal(borrowerOperationsAddress, recordedBorrowerOperationsAddress)
   })
 
+  it('Sets the correct governance address in StabilityPool', async () => {
+    const address = governance.address
+
+    const recordedAddress = await stabilityPool.governance()
+
+    assert.equal(address, recordedAddress)
+  })
+
+  it('Sets the correct controller address in StabilityPool', async () => {
+    const address = controller.address
+
+    const recordedAddress = await stabilityPool.coreController()
+
+    assert.equal(address, recordedAddress)
+  })
+
   it('Sets the correct LUSDToken address in StabilityPool', async () => {
     const lusdTokenAddress = lusdToken.address
 
     const recordedClvTokenAddress = await stabilityPool.lusdToken()
 
     assert.equal(lusdTokenAddress, recordedClvTokenAddress)
+  })
+
+  it('Sets the correct TroveManager address in StabilityPool', async () => {
+    const troveManagerAddress = troveManager.address
+
+    const recordedTroveManagerAddress = await stabilityPool.troveManager()
+    assert.equal(troveManagerAddress, recordedTroveManagerAddress)
+  })
+
+  // Gas Pool
+  it('Sets the correct controller address in GasPool', async () => {
+    const address = controller.address
+
+    const recordedAddress = await gasPool.coreController()
+    assert.equal(address, recordedAddress)
+  })
+
+  it('Sets the correct trovemanager address in GasPool', async () => {
+    const address = troveManager.address
+
+    const recordedAddress = await gasPool.troveManager()
+    assert.equal(address, recordedAddress)
+  })
+
+  it('Sets the correct borrower operations address in GasPool', async () => {
+    const address = borrowerOperations.address
+
+    const recordedAddress = await gasPool.borrowerOperationsAddress()
+    assert.equal(address, recordedAddress)
   })
 
   it('Sets the correct TroveManager address in StabilityPool', async () => {
@@ -216,11 +291,18 @@ contract('Deployment script - Sets correct contract addresses dependencies after
   })
 
   // setPriceFeed in BO
-  it('Sets the correct PriceFeed address in BorrowerOperations', async () => {
-    const priceFeedAddress = priceFeed.address
+  it('Sets the correct governance address in BorrowerOperations', async () => {
+    const address = governance.address
 
-    const recordedPriceFeedAddress = await borrowerOperations.priceFeed()
-    assert.equal(priceFeedAddress, recordedPriceFeedAddress)
+    const recordedAddress = await borrowerOperations.governance()
+    assert.equal(address, recordedAddress)
+  })
+
+  it('Sets the correct controller address in BorrowerOperations', async () => {
+    const address = controller.address
+
+    const recordedAddress = await borrowerOperations.coreController()
+    assert.equal(address, recordedAddress)
   })
 
   // setSortedTroves in BO
@@ -255,6 +337,48 @@ contract('Deployment script - Sets correct contract addresses dependencies after
     assert.equal(lqtyStakingAddress, recordedLQTYStakingAddress)
   })
 
+  // LQTY Staking in BO
+  it('Sets the correct troveManager address in controller', async () => {
+    const address = troveManager.address
+
+    const recordedAddress = await controller.troveManagerAddress()
+    assert.equal(address, recordedAddress)
+  })
+
+  it('Sets the correct governance address in controller', async () => {
+    const address = governance.address
+
+    const recordedAddress = await controller.governance()
+    assert.equal(address, recordedAddress)
+  })
+
+  it('Sets the correct LUSD address in controller', async () => {
+    const address = lusdToken.address
+
+    const recordedAddress = await controller.lusdToken()
+    assert.equal(address, recordedAddress)
+  })
+
+  it('Sets the correct stability pool address in controller', async () => {
+    const address = stabilityPool.address
+
+    const recordedAddress = await controller.stabilityPoolAddress()
+    assert.equal(address, recordedAddress)
+  })
+
+  it('Sets the correct borrowerOperations address in controller', async () => {
+    const address = borrowerOperations.address
+
+    const recordedAddress = await controller.borrowerOperationsAddress()
+    assert.equal(address, recordedAddress)
+  })
+
+  it('Sets the correct gas pool address in controller', async () => {
+    const address = gasPool.address
+
+    const recordedAddress = await controller.gasPoolAddress()
+    assert.equal(address, recordedAddress)
+  })
 
   // --- LQTY Staking ---
 
