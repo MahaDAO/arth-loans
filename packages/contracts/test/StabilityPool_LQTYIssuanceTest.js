@@ -7,6 +7,8 @@ const dec = th.dec
 const toBN = th.toBN
 const getDifference = th.getDifference
 
+const Controller = artifacts.require("Controller")
+const Governance = artifacts.require("Governance")
 const TroveManagerTester = artifacts.require("TroveManagerTester")
 const LUSDToken = artifacts.require("LUSDToken")
 
@@ -33,7 +35,7 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
   let lqtyToken
   let communityIssuanceTester
   let weth
-
+  let controller 
   let communityLQTYSupply
   let issuance_M1
   let issuance_M2
@@ -50,13 +52,17 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
   describe("LQTY Rewards", async () => {
 
     beforeEach(async () => {
-      contracts = await deploymentHelper.deployLiquityCore()
+      contracts = await deploymentHelper.deployLiquityCore(owner, owner)
       contracts.troveManager = await TroveManagerTester.new()
-      contracts.lusdToken = await LUSDToken.new(
+      contracts.governance = await Governance.new(contracts.troveManager.address)
+      contracts.controller = await Controller.new(
         contracts.troveManager.address,
         contracts.stabilityPool.address,
-        contracts.borrowerOperations.address
-      )
+        contracts.borrowerOperations.address,
+        contracts.governance.address,
+        contracts.lusdToken.address,
+        contracts.gasPool.address 
+    )
       const LQTYContracts = await deploymentHelper.deployLQTYTesterContractsHardhat(bountyAddress, lpRewardsAddress, multisig)
 
       priceFeed = contracts.priceFeedTestnet
@@ -67,6 +73,7 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       stabilityPool = contracts.stabilityPool
       borrowerOperations = contracts.borrowerOperations
       weth = contracts.weth
+      controller = contracts.controller
       lqtyToken = LQTYContracts.lqtyToken
       communityIssuanceTester = LQTYContracts.communityIssuance
 
@@ -97,6 +104,16 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       issuance_M4 = toBN('46678287282156100').mul(communityLQTYSupply).div(toBN(dec(1, 18)))
       issuance_M5 = toBN('44093311972020200').mul(communityLQTYSupply).div(toBN(dec(1, 18)))
       issuance_M6 = toBN('41651488815552900').mul(communityLQTYSupply).div(toBN(dec(1, 18)))
+
+      for (const account of [
+        owner,
+        whale,
+        A, B, C, D, E, F, G, H,
+        defaulter_1, defaulter_2, defaulter_3, defaulter_4, defaulter_5, defaulter_6,
+        frontEnd_1, frontEnd_2, frontEnd_3
+      ]) {
+          await lusdToken.approve(controller.address, dec(10000000, 18), {from: account})
+      }
     })
 
     it("liquidation < 1 minute after a deposit does not change totalLQTYIssued", async () => {

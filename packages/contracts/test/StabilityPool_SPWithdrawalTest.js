@@ -1,6 +1,8 @@
 const deploymentHelper = require("../utils/deploymentHelpers.js")
 const testHelpers = require("../utils/testHelpers.js")
 const TroveManagerTester = artifacts.require("./TroveManagerTester.sol")
+const Controller = artifacts.require("Controller")
+const Governance = artifacts.require("Governance")
 
 const { dec, toBN } = testHelpers.TestHelper
 const th = testHelpers.TestHelper
@@ -58,10 +60,19 @@ contract('StabilityPool - Withdrawal of stability deposit - Reward calculations'
     })
 
     beforeEach(async () => {
-      contracts = await deploymentHelper.deployLiquityCore()
+      contracts = await deploymentHelper.deployLiquityCore(owner, owner)
       const LQTYContracts = await deploymentHelper.deployLQTYContracts(bountyAddress, lpRewardsAddress, multisig)
       contracts.troveManager = await TroveManagerTester.new()
-      contracts = await deploymentHelper.deployLUSDToken(contracts)
+      contracts.governance = await Governance.new(contracts.troveManager.address)
+      contracts.controller = await Controller.new(
+        contracts.troveManager.address,
+        contracts.stabilityPool.address,
+        contracts.borrowerOperations.address,
+        contracts.governance.address,
+        contracts.lusdToken.address,
+        contracts.gasPool.address 
+    )
+      // contracts = await deploymentHelper.deployLUSDToken(contracts)
 
       priceFeed = contracts.priceFeedTestnet
       lusdToken = contracts.lusdToken
@@ -76,6 +87,33 @@ contract('StabilityPool - Withdrawal of stability deposit - Reward calculations'
       await deploymentHelper.connectLQTYContracts(LQTYContracts)
       await deploymentHelper.connectCoreContracts(contracts, LQTYContracts)
       await deploymentHelper.connectLQTYContractsToCore(LQTYContracts, contracts)
+
+      for (const account of [owner,
+        defaulter_1,
+        defaulter_2,
+        defaulter_3,
+        defaulter_4,
+        defaulter_5,
+        defaulter_6,
+        whale,
+        // whale_2,
+        alice,
+        bob,
+        carol,
+        dennis,
+        erin,
+        flyn,
+        graham,
+        harriet,
+        A,
+        B,
+        C,
+        D,
+        E,
+        F
+      ]) {
+        await lusdToken.approve(contracts.controller.address, dec(1, 38), {from: account})
+      }
     })
 
     // --- Compounding tests ---
