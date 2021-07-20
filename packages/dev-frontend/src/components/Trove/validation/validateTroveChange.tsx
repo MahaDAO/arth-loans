@@ -10,7 +10,7 @@ import {
   LiquityStoreState,
   TroveClosureParams,
   TroveCreationParams
-} from "@liquity/lib-base";
+} from "@arthloans/lib-base";
 
 import { COIN } from "../../../strings";
 
@@ -105,9 +105,9 @@ export const validateTroveChange = (
   borrowingRate: Decimal,
   selectedState: TroveChangeValidationSelectedState
 ): [
-  validChange: Exclude<TroveChange<Decimal>, { type: "invalidCreation" }> | undefined,
-  description: JSX.Element | undefined
-] => {
+    validChange: Exclude<TroveChange<Decimal>, { type: "invalidCreation" }> | undefined,
+    description: JSX.Element | undefined
+  ] => {
   const { total, price } = selectedState;
   const change = originalTrove.whatChanged(adjustedTrove, borrowingRate);
 
@@ -150,8 +150,8 @@ export const validateTroveChange = (
     change.type === "creation"
       ? validateTroveCreation(change.params, context)
       : change.type === "closure"
-      ? validateTroveClosure(change.params, context)
-      : validateTroveAdjustment(change.params, context);
+        ? validateTroveClosure(change.params, context)
+        : validateTroveAdjustment(change.params, context);
 
   if (errorDescription) {
     return [undefined, errorDescription];

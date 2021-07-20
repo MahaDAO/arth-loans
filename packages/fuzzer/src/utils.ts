@@ -11,9 +11,9 @@ import {
   TroveWithPendingRedistribution,
   ReadableLiquity,
   LUSD_LIQUIDATION_RESERVE
-} from "@liquity/lib-base";
-import { EthersLiquity, ReadableEthersLiquity } from "@liquity/lib-ethers";
-import { SubgraphLiquity } from "@liquity/lib-subgraph";
+} from "@arthloans/lib-base";
+import { EthersLiquity, ReadableEthersLiquity } from "@arthloans/lib-ethers";
+import { SubgraphLiquity } from "@arthloans/lib-subgraph";
 
 export const objToString = (o: Record<string, unknown>) =>
   "{ " +

@@ -4,7 +4,7 @@ import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
 import { Contract, CallOverrides, EventFilter } from "@ethersproject/contracts";
 import { AlchemyProvider } from "@ethersproject/providers";
 
-import { Decimal } from "@liquity/lib-base";
+import { Decimal } from "@arthloans/lib-base";
 
 const outputFile = "eth-usd.csv";
 
@@ -63,15 +63,14 @@ const formatDateTime = (timestamp: number) => {
   const aggregator = new Contract(aggregatorAddress, aggregatorAbi, provider) as Aggregator;
 
   const getRound = (roundId: BigNumberish) =>
-    Promise.all([
-      aggregator.getTimestamp(roundId),
-      aggregator.getAnswer(roundId)
-    ]).then(([timestamp, answer]) => [
-      `${roundId}`,
-      `${timestamp}`,
-      formatDateTime(timestamp.toNumber()),
-      `${Decimal.fromBigNumberString(answer.mul(answerMultiplier).toHexString())}`
-    ]);
+    Promise.all([aggregator.getTimestamp(roundId), aggregator.getAnswer(roundId)]).then(
+      ([timestamp, answer]) => [
+        `${roundId}`,
+        `${timestamp}`,
+        formatDateTime(timestamp.toNumber()),
+        `${Decimal.fromBigNumberString(answer.mul(answerMultiplier).toHexString())}`
+      ]
+    );
 
   const roundsPerPass = 10;
   // const latestRound = await aggregator.latestRound();

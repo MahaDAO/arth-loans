@@ -25,8 +25,8 @@ import TransparentInfoDiv from '../InfoDiv'
 import { useMediaQuery } from 'react-responsive';
 import CustomSuccessModal from '../CustomSuccessModal';
 import { TroveView } from '../Trove/context/types';
-import { LiquityStoreState, Percent } from '@liquity/lib-base';
-import { useLiquitySelector } from '@liquity/lib-react';
+import { LiquityStoreState, Percent } from '@arthloans/lib-base';
+import { useLiquitySelector } from '@arthloans/lib-react';
 
 interface LoanProps {
     type: 'loan' | 'redeem'
@@ -192,7 +192,7 @@ const LoanGrid = (props: LoanProps) => {
                             <div style={{ flex: 1 }}>
                                 <TextWithIcon>
                                     Liquidation Reserve
-                                        <CustomToolTip toolTipText={'lol boi'} />
+                                    <CustomToolTip toolTipText={'lol boi'} />
                                 </TextWithIcon>
                             </div>
                             <OneLineInputwomargin>
@@ -211,7 +211,7 @@ const LoanGrid = (props: LoanProps) => {
                             <div style={{ flex: 1 }}>
                                 <TextWithIcon>
                                     Borrowing Fee
-                                        <CustomToolTip toolTipText={'lol boi'} />
+                                    <CustomToolTip toolTipText={'lol boi'} />
                                 </TextWithIcon>
                             </div>
                             <OneLineInputwomargin>
@@ -230,7 +230,7 @@ const LoanGrid = (props: LoanProps) => {
                             <div style={{ flex: 1 }}>
                                 <TextWithIcon>
                                     Colleteral Ratio
-                                        <CustomToolTip toolTipText={'lol boi'} />
+                                    <CustomToolTip toolTipText={'lol boi'} />
                                 </TextWithIcon>
                             </div>
                             <OneLineInputwomargin>

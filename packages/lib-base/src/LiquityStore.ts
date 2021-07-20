@@ -190,7 +190,10 @@ const showFrontendStatus = (x: FrontendStatus) =>
     ? '{ status: "unregistered" }'
     : `{ status: "registered", kickbackRate: ${x.kickbackRate} }`;
 
-const wrap = <A extends unknown[], R>(f: (...args: A) => R) => (...args: A) => f(...args);
+const wrap =
+  <A extends unknown[], R>(f: (...args: A) => R) =>
+  (...args: A) =>
+    f(...args);
 
 const difference = <T>(a: T, b: T) =>
   Object.fromEntries(
@@ -204,7 +207,7 @@ const difference = <T>(a: T, b: T) =>
  * The type parameter `T` may be used to type extra state added to {@link LiquityStoreState} by the
  * subclass.
  *
- * Implemented by {@link @liquity/lib-ethers#BlockPolledLiquityStore}.
+ * Implemented by {@link @arthloans/lib-ethers#BlockPolledLiquityStore}.
  *
  * @public
  */

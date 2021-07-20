@@ -3,7 +3,7 @@ import {
   LiquityStoreState,
   StabilityDeposit,
   StabilityDepositChange
-} from "@liquity/lib-base";
+} from "@arthloans/lib-base";
 
 import { COIN } from "../../../strings";
 import { Amount } from "../../ActionDescription";
@@ -35,9 +35,9 @@ export const validateStabilityDepositChange = (
     haveUndercollateralizedTroves
   }: StabilityDepositChangeValidationContext
 ): [
-  validChange: StabilityDepositChange<Decimal> | undefined,
-  description: JSX.Element | undefined
-] => {
+    validChange: StabilityDepositChange<Decimal> | undefined,
+    description: JSX.Element | undefined
+  ] => {
   const change = originalDeposit.whatChanged(editedLUSD);
 
   if (haveOwnFrontend) {

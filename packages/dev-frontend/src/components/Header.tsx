@@ -1,6 +1,6 @@
 import React from "react";
-import { LiquityStoreState } from "@liquity/lib-base";
-import { useLiquitySelector } from "@liquity/lib-react";
+import { LiquityStoreState } from "@arthloans/lib-base";
+import { useLiquitySelector } from "@arthloans/lib-react";
 import { Container, Flex } from "theme-ui";
 import { AddressZero } from "@ethersproject/constants";
 import { useLiquity } from "../hooks/LiquityContext";
@@ -31,7 +31,7 @@ export const Header: React.FC = ({ children }) => {
       </Flex>
       <>
         {children}
-        
+
       </>
     </TopBarContainer>
   );

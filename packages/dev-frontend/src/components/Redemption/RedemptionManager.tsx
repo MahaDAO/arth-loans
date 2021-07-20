@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Button, Box, Flex, Card, Heading } from "theme-ui";
 
-import { Decimal, Percent, LiquityStoreState, MINIMUM_COLLATERAL_RATIO } from "@liquity/lib-base";
-import { useLiquitySelector } from "@liquity/lib-react";
+import { Decimal, Percent, LiquityStoreState, MINIMUM_COLLATERAL_RATIO } from "@arthloans/lib-base";
+import { useLiquitySelector } from "@arthloans/lib-react";
 
 import { COIN } from "../../strings";
 
@@ -58,14 +58,14 @@ export const RedemptionManager: React.FC = () => {
 
   const [canRedeem, description] = total.collateralRatioIsBelowMinimum(price)
     ? [
-        false,
-        <ErrorDescription>
-          You can't redeem ARTH when the total collateral ratio is less than{" "}
-          <Amount>{mcrPercent}</Amount>. Please try again later.
-        </ErrorDescription>
-      ]
+      false,
+      <ErrorDescription>
+        You can't redeem ARTH when the total collateral ratio is less than{" "}
+        <Amount>{mcrPercent}</Amount>. Please try again later.
+      </ErrorDescription>
+    ]
     : lusdAmount.gt(lusdBalance)
-    ? [
+      ? [
         false,
         <ErrorDescription>
           The amount you're trying to redeem exceeds your balance by{" "}
@@ -75,7 +75,7 @@ export const RedemptionManager: React.FC = () => {
           .
         </ErrorDescription>
       ]
-    : [
+      : [
         true,
         <ActionDescription>
           You will receive <Amount>{ethAmount.sub(ethFee).prettify(4)} ETH</Amount> in exchange for{" "}

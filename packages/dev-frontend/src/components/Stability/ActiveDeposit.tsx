@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect } from "react";
 import { Card, Heading, Box, Flex, Button } from "theme-ui";
 
-import { LiquityStoreState } from "@liquity/lib-base";
-import { useLiquitySelector } from "@liquity/lib-react";
+import { LiquityStoreState } from "@arthloans/lib-base";
+import { useLiquitySelector } from "@arthloans/lib-react";
 
 import { COIN, GT } from "../../strings";
 import { Icon } from "../Icon";

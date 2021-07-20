@@ -3,7 +3,7 @@ import { AddressZero } from "@ethersproject/constants";
 import { Log, TransactionReceipt } from "@ethersproject/abstract-provider";
 import { LogDescription, Interface } from "@ethersproject/abi";
 
-import { Decimal } from "@liquity/lib-base";
+import { Decimal } from "@arthloans/lib-base";
 
 import { _LiquityContracts, _TypedLiquityContract } from "./contracts";
 
@@ -100,7 +100,7 @@ const logDescriptionToString = (logDescription: LogDescription, nameLookup: Name
 };
 
 export const logsToString = (receipt: TransactionReceipt, contracts: _LiquityContracts): string => {
-  const contractLookup = (contracts as unknown) as ContractLookup;
+  const contractLookup = contracts as unknown as ContractLookup;
   const interfaceLookup = interfaceLookupFrom(contractLookup);
   const contractNameLookup = nameLookupFrom(contractLookup);
 

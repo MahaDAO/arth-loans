@@ -21,7 +21,7 @@ import {
   MINIMUM_BORROWING_RATE,
   LUSD_MINIMUM_DEBT,
   LUSD_MINIMUM_NET_DEBT
-} from "@liquity/lib-base";
+} from "@arthloans/lib-base";
 
 import { HintHelpers } from "../types";
 
@@ -97,13 +97,14 @@ describe("EthersLiquity", () => {
 
   const openTroves = (users: Signer[], params: TroveCreationParams<Decimalish>[]) =>
     params
-      .map((params, i) => () =>
-        Promise.all([
-          connectToDeployment(deployment, users[i]),
-          sendTo(users[i], params.depositCollateral).then(tx => tx.wait())
-        ]).then(async ([liquity]) => {
-          await liquity.openTrove(params, undefined, { gasPrice: 0 });
-        })
+      .map(
+        (params, i) => () =>
+          Promise.all([
+            connectToDeployment(deployment, users[i]),
+            sendTo(users[i], params.depositCollateral).then(tx => tx.wait())
+          ]).then(async ([liquity]) => {
+            await liquity.openTrove(params, undefined, { gasPrice: 0 });
+          })
       )
       .reduce((a, b) => a.then(b), Promise.resolve());
 
@@ -188,7 +189,7 @@ describe("EthersLiquity", () => {
         findInsertPosition: () => Promise.resolve(["fake insert position"])
       });
 
-      const fakeLiquity = new PopulatableEthersLiquity(({
+      const fakeLiquity = new PopulatableEthersLiquity({
         getNumberOfTroves: () => Promise.resolve(1000000),
         getFees: () => Promise.resolve(new Fees(0, 0.99, 1, new Date(), new Date(), false)),
 
@@ -200,7 +201,7 @@ describe("EthersLiquity", () => {
             sortedTroves
           }
         }
-      } as unknown) as ReadableEthersLiquity);
+      } as unknown as ReadableEthersLiquity);
 
       const nominalCollateralRatio = Decimal.from(0.05);
 

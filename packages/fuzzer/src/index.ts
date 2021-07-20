@@ -12,10 +12,10 @@ import {
   LUSD_LIQUIDATION_RESERVE,
   Trove,
   TroveWithPendingRedistribution
-} from "@liquity/lib-base";
+} from "@arthloans/lib-base";
 
-import { EthersLiquity as Liquity } from "@liquity/lib-ethers";
-import { SubgraphLiquity } from "@liquity/lib-subgraph";
+import { EthersLiquity as Liquity } from "@arthloans/lib-ethers";
+import { SubgraphLiquity } from "@arthloans/lib-subgraph";
 
 import {
   checkPoolBalances,
@@ -117,12 +117,8 @@ yargs
     async ({ rounds: numberOfRounds, users: numberOfUsers, subgraph: shouldCheckSubgraph }) => {
       const [frontend, ...randomUsers] = createRandomWallets(numberOfUsers + 1, provider);
 
-      const [
-        deployerLiquity,
-        funderLiquity,
-        frontendLiquity,
-        ...randomLiquities
-      ] = await connectUsers([deployer, funder, frontend, ...randomUsers]);
+      const [deployerLiquity, funderLiquity, frontendLiquity, ...randomLiquities] =
+        await connectUsers([deployer, funder, frontend, ...randomUsers]);
 
       const fixture = await Fixture.setup(
         deployerLiquity,

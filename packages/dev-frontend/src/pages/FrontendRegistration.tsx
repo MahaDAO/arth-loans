@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, Heading, Box, Flex, Input, Label, Paragraph, Button, Spinner } from "theme-ui";
 
-import { Decimal } from "@liquity/lib-base";
+import { Decimal } from "@arthloans/lib-base";
 
 import { shortenAddress } from "../utils/shortenAddress";
 import { useLiquity } from "../hooks/LiquityContext";
@@ -63,7 +63,7 @@ export const FrontendRegistration: React.FC = () => {
 
                   setKickbackRate(newKickbackRate);
                   setCut(newCut);
-                } catch {}
+                } catch { }
               }}
               onBlur={() => {
                 setKickbackRateString(kickbackRate.mul(100).toString());

@@ -1,6 +1,6 @@
 import { Button } from "theme-ui";
 
-import { Decimal, TroveChange } from "@liquity/lib-base";
+import { Decimal, TroveChange } from "@arthloans/lib-base";
 
 import { useLiquity } from "../../hooks/LiquityContext";
 import { useTransactionFunction } from "../Transaction";
@@ -24,8 +24,8 @@ export const TroveAction: React.FC<TroveActionProps> = ({
     change.type === "creation"
       ? liquity.send.openTrove.bind(liquity.send, change.params, maxBorrowingRate)
       : change.type === "closure"
-      ? liquity.send.closeTrove.bind(liquity.send)
-      : liquity.send.adjustTrove.bind(liquity.send, change.params, maxBorrowingRate)
+        ? liquity.send.closeTrove.bind(liquity.send)
+        : liquity.send.adjustTrove.bind(liquity.send, change.params, maxBorrowingRate)
   );
 
   return <Button onClick={sendTransaction}>{children}</Button>;

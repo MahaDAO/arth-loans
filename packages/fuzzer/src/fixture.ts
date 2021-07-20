@@ -8,9 +8,9 @@ import {
   TransactableLiquity,
   Trove,
   TroveAdjustmentParams
-} from "@liquity/lib-base";
+} from "@arthloans/lib-base";
 
-import { EthersLiquity as Liquity } from "@liquity/lib-ethers";
+import { EthersLiquity as Liquity } from "@arthloans/lib-ethers";
 
 import {
   createRandomTrove,

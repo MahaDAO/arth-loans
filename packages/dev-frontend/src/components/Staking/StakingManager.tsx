@@ -7,9 +7,9 @@ import {
   LiquityStoreState,
   LQTYStake,
   LQTYStakeChange
-} from "@liquity/lib-base";
+} from "@arthloans/lib-base";
 
-import { LiquityStoreUpdate, useLiquityReducer, useLiquitySelector } from "@liquity/lib-react";
+import { LiquityStoreUpdate, useLiquityReducer, useLiquitySelector } from "@arthloans/lib-react";
 
 import { GT, COIN } from "../../strings";
 
@@ -125,7 +125,7 @@ export const StakingManager: React.FC = () => {
   const [validChange, description] = !change
     ? [undefined, undefined]
     : change.stakeLQTY?.gt(lqtyBalance)
-    ? [
+      ? [
         undefined,
         <ErrorDescription>
           The amount you're trying to stake exceeds your balance by{" "}
@@ -135,7 +135,7 @@ export const StakingManager: React.FC = () => {
           .
         </ErrorDescription>
       ]
-    : [change, <StakingManagerActionDescription originalStake={originalStake} change={change} />];
+      : [change, <StakingManagerActionDescription originalStake={originalStake} change={change} />];
 
   const makingNewStake = originalStake.isEmpty;
 

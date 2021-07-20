@@ -25,8 +25,8 @@ import prettyNumber from '../../components/PrettyNumber';
 import { useMediaQuery } from 'react-responsive';
 import { StabilityView } from '../../components/Stability/context/types';
 import { useStabilityView } from '../../components/Stability/context/StabilityViewContext';
-import { LiquityStoreUpdate, useLiquityReducer, useLiquitySelector } from '@liquity/lib-react';
-import { Decimal, Decimalish, LiquityStoreState } from '@liquity/lib-base';
+import { LiquityStoreUpdate, useLiquityReducer, useLiquitySelector } from '@arthloans/lib-react';
+import { Decimal, Decimalish, LiquityStoreState } from '@arthloans/lib-base';
 import {
     selectForStabilityDepositChangeValidation,
     validateStabilityDepositChange
@@ -377,7 +377,7 @@ const StabilityPool = (props: Props) => {
                                 <div style={{ flex: 1 }}>
                                     <TextWithIcon>
                                         Reward
-                                    <CustomToolTip toolTipText={'lol boi'} />
+                                        <CustomToolTip toolTipText={'lol boi'} />
                                     </TextWithIcon>
                                 </div>
                                 <OneLineInputwomargin>
@@ -396,7 +396,7 @@ const StabilityPool = (props: Props) => {
                                 <div style={{ flex: 1 }}>
                                     <TextWithIcon>
                                         Pool Share
-                                    <CustomToolTip toolTipText={'lol boi'} />
+                                        <CustomToolTip toolTipText={'lol boi'} />
                                     </TextWithIcon>
                                 </div>
                                 <OneLineInputwomargin>
@@ -415,7 +415,7 @@ const StabilityPool = (props: Props) => {
                                 <div style={{ flex: 1 }}>
                                     <TextWithIcon>
                                         MAHA Apy
-                                    <CustomToolTip toolTipText={'lol boi'} />
+                                        <CustomToolTip toolTipText={'lol boi'} />
                                     </TextWithIcon>
                                 </div>
                                 <OneLineInputwomargin>
@@ -425,7 +425,7 @@ const StabilityPool = (props: Props) => {
                                             //     .toLocaleString('en-US', { maximumFractionDigits: 6 })
                                             Number('60.76')
                                         }%
-                                </BeforeChip>
+                                    </BeforeChip>
                                     {/* <TagChips>ARTH</TagChips> */}
                                 </OneLineInputwomargin>
                             </OneLineInputwomargin>
@@ -449,7 +449,7 @@ const StabilityPool = (props: Props) => {
                                         alignItems: 'center',
                                     }}
                                 >
-                                    { staked && !modifyMode ?
+                                    {staked && !modifyMode ?
                                         <>
                                             <div style={{
                                                 display: 'flex',

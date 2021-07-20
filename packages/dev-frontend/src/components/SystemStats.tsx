@@ -1,8 +1,8 @@
 import React from "react";
 import { Card, Heading, Link, Box, Text } from "theme-ui";
 import { AddressZero } from "@ethersproject/constants";
-import { Decimal, Percent, LiquityStoreState } from "@liquity/lib-base";
-import { useLiquitySelector } from "@liquity/lib-react";
+import { Decimal, Percent, LiquityStoreState } from "@arthloans/lib-base";
+import { useLiquitySelector } from "@arthloans/lib-react";
 import CustomToolTip from '../components/CustomToolTip'
 import { useLiquity } from "../hooks/LiquityContext";
 import { COIN, GT } from "../strings";
