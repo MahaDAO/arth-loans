@@ -8,6 +8,6 @@
 
 |  Package | Description |
 |  --- | --- |
-|  [@liquity/lib-base](./lib-base.md) |  |
-|  [@liquity/lib-ethers](./lib-ethers.md) |  |
+|  [@arthloans/lib-base](./lib-base.md) |  |
+|  [@arthloans/lib-ethers](./lib-ethers.md) |  |
 

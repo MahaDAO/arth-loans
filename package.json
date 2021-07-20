@@ -1,5 +1,5 @@
 {
-  "name": "liquity",
+  "name": "arthloans-contracts",
   "private": true,
   "workspaces": {
     "packages": [
