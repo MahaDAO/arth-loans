@@ -44,6 +44,19 @@
       {
         "indexed": false,
         "internalType": "address",
+        "name": "_newCoreControllerAddress",
+        "type": "address"
+      }
+    ],
+    "name": "CoreControllerAddressChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
         "name": "_newDefaultPoolAddress",
         "type": "address"
       }
@@ -256,6 +269,19 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "address",
+        "name": "_governanceAddress",
+        "type": "address"
+      }
+    ],
+    "name": "GovernanceAddressChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "_depositor",
@@ -333,19 +359,6 @@
       }
     ],
     "name": "P_Updated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "_newPriceFeedAddress",
-        "type": "address"
-      }
-    ],
-    "name": "PriceFeedAddressChanged",
     "type": "event"
   },
   {
@@ -498,6 +511,19 @@
   },
   {
     "inputs": [],
+    "name": "ETH",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "LUSD_GAS_COMPENSATION",
     "outputs": [
       {
@@ -632,6 +658,19 @@
     "outputs": [
       {
         "internalType": "contract ICommunityIssuance",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "coreController",
+    "outputs": [
+      {
+        "internalType": "contract IController",
         "name": "",
         "type": "address"
       }
@@ -1007,12 +1046,38 @@
   },
   {
     "inputs": [],
+    "name": "getPriceFeed",
+    "outputs": [
+      {
+        "internalType": "contract IPriceFeed",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getTotalLUSDDeposits",
     "outputs": [
       {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "governance",
+    "outputs": [
+      {
+        "internalType": "contract IGovernance",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -1115,19 +1180,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "priceFeed",
-    "outputs": [
-      {
-        "internalType": "contract IPriceFeed",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -1141,6 +1193,19 @@
       }
     ],
     "name": "provideToSP",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "receiveETH",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1187,12 +1252,22 @@
       },
       {
         "internalType": "address",
-        "name": "_priceFeedAddress",
+        "name": "_communityIssuanceAddress",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "_communityIssuanceAddress",
+        "name": "_wethAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_governanceAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_coreControllerAddress",
         "type": "address"
       }
     ],
@@ -1216,10 +1291,49 @@
   },
   {
     "inputs": [],
+    "name": "totalLUSDDeposits",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "troveManager",
     "outputs": [
       {
         "internalType": "contract ITroveManager",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "weth",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
         "name": "",
         "type": "address"
       }
@@ -1257,9 +1371,5 @@
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
-  },
-  {
-    "stateMutability": "payable",
-    "type": "receive"
   }
 ]
