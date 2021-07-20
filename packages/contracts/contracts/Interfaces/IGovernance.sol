@@ -11,6 +11,8 @@ interface IGovernance {
 
     function getLiquidatedCollPercentToSP() external view returns (uint256);
 
+    function getLiquidationCollReceiverFund() external view returns (address);
+
     function getAllowMinting() external view returns (bool);
 
     function getPriceFeed() external view returns (IPriceFeed);

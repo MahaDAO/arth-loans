@@ -23,6 +23,7 @@ contract Governance is Ownable, IGovernance {
     uint256 public constant _100pct = 1000000000000000000; // 1e18 == 100%
 
     address public immutable troveManagerAddress;
+    address public liquidationCollReceiverFund;
 
     // Maximum amount of debt that this deployment can have (used to limit exposure to volatile assets)
     // set this according to how much ever debt we'd like to accumulate; default is infinity
@@ -48,6 +49,7 @@ contract Governance is Ownable, IGovernance {
     event StabilityTokenPairOracleChanged(address oldAddress, address newAddress, uint256 timestamp);
     event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
     event LiquidatedCollPercentToSPChanged(uint256 oldValue, uint256 newValue, uint256 timestamp);
+    event LiquidatedCollRecieverFundChanged(address oldAddress, address newAddress, uint256 timestamp);
 
     constructor(address _troveManagerAddress) public {
         troveManagerAddress = _troveManagerAddress;
@@ -57,6 +59,12 @@ contract Governance is Ownable, IGovernance {
         uint256 oldValue = liquidatedCollPercentToSP;
         liquidatedCollPercentToSP = _value;
         emit LiquidatedCollPercentToSPChanged(oldValue, _value, block.timestamp);
+    }
+
+    function setLiquidationCollReceiverFund(address _fund) external onlyOwner {
+        address oldAddress = liquidationCollReceiverFund;
+        liquidationCollReceiverFund = _fund;
+        emit LiquidatedCollRecieverFundChanged(oldAddress, _fund, block.timestamp);
     }
 
     function setMaxDebtCeiling(uint256 _value) external onlyOwner {
@@ -95,6 +103,10 @@ contract Governance is Ownable, IGovernance {
 
     function getLiquidatedCollPercentToSP() external view override returns (uint256) {
         return liquidatedCollPercentToSP;
+    }
+
+    function getLiquidationCollReceiverFund() external view override returns (address) {
+        return liquidationCollReceiverFund;
     }
 
     function getMaxDebtCeiling() external view override returns (uint256) {
