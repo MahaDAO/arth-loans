@@ -17,6 +17,7 @@ import "./Dependencies/console.sol";
 import "./Interfaces/IGovernance.sol";
 import "./Interfaces/IController.sol";
 import "./Interfaces/ILUSDToken.sol";
+import "./Dependencies/ISimpleERCFund.sol";
 
 /*
  * The Stability Pool holds LUSD tokens deposited by Stability Pool depositors.
@@ -682,8 +683,22 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         coreController.burn(address(this), _debtToOffset);
 
         activePoolCached.sendETH(address(this), _collToAdd);
-        // TODO: trigger the funds deposit function either here or in active pool.
-        activePoolCached.sendETH(governance.getLiquidationCollReceiverFund(), _collToFund);
+        _sendCollToFund(_collToFund);  // Takes ETH from active pool, approves fund and deposits in fund.
+    }
+
+    function _sendCollToFund(uint256 _collToFund) internal {
+        IActivePool activePoolCached = activePool;
+        ISimpleERCFund fund = ISimpleERCFund(governance.getLiquidationCollReceiverFund());
+
+        // 1. Take funds from active pool.
+        activePoolCached.sendETH(address(this), _collToFund);
+        
+        // 2. Approve the fund for deposit.
+        weth.approve(address(fund), _collToFund);
+
+        // 3. Decrease the taken ETH(coll) from active pool and deposit into fund.
+        ETH = ETH.sub(_collToFund);
+        fund.deposit(address(weth), _collToFund, "Liquidation collateral distributed");
     }
 
     function _decreaseLUSD(uint256 _amount) internal {
