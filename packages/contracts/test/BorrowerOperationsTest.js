@@ -6,6 +6,8 @@ const NonPayable = artifacts.require('NonPayable.sol')
 const TroveManagerTester = artifacts.require("TroveManagerTester")
 const LUSDTokenTester = artifacts.require("./LUSDTokenTester")
 const WETH = artifacts.require("./WETH")
+const Controller = artifacts.require("Controller")
+const Governance = artifacts.require("Governance")
 
 const th = testHelpers.TestHelper
 
@@ -50,6 +52,7 @@ contract('BorrowerOperations', async accounts => {
   let lqtyToken
   let weth
   let contracts
+  let controller
 
   const getOpenTroveLUSDAmount = async (totalDebt) => th.getOpenTroveLUSDAmount(contracts, totalDebt)
   const getNetBorrowingAmount = async (debtWithFee) => th.getNetBorrowingAmount(contracts, debtWithFee)
@@ -66,11 +69,20 @@ contract('BorrowerOperations', async accounts => {
 
   const testCorpus = ({ withProxy = false }) => {
     beforeEach(async () => {
-      contracts = await deploymentHelper.deployLiquityCore()
+      contracts = await deploymentHelper.deployLiquityCore(owner, owner)
       contracts.borrowerOperations = await BorrowerOperationsTester.new()
       contracts.troveManager = await TroveManagerTester.new()
+      contracts.governance = await Governance.new(contracts.troveManager.address)
       contracts.weth = await WETH.new()
-      contracts = await deploymentHelper.deployLUSDTokenTester(contracts)
+      contracts.controller = await Controller.new(
+        contracts.troveManager.address,
+        contracts.stabilityPool.address,
+        contracts.borrowerOperations.address,
+        contracts.governance.address,
+        contracts.lusdToken.address,
+        contracts.gasPool.address
+    )
+      // contracts = await deploymentHelper.deployLUSDTokenTester(contracts)
       const LQTYContracts = await deploymentHelper.deployLQTYTesterContractsHardhat(bountyAddress, lpRewardsAddress, multisig)
 
       await deploymentHelper.connectLQTYContracts(LQTYContracts)
@@ -92,6 +104,7 @@ contract('BorrowerOperations', async accounts => {
       borrowerOperations = contracts.borrowerOperations
       hintHelpers = contracts.hintHelpers
       weth = contracts.weth
+      controller = contracts.controller
 
       lqtyStaking = LQTYContracts.lqtyStaking
       lqtyToken = LQTYContracts.lqtyToken
@@ -101,6 +114,15 @@ contract('BorrowerOperations', async accounts => {
       LUSD_GAS_COMPENSATION = await borrowerOperations.LUSD_GAS_COMPENSATION()
       MIN_NET_DEBT = await borrowerOperations.MIN_NET_DEBT()
       BORROWING_FEE_FLOOR = await borrowerOperations.BORROWING_FEE_FLOOR()
+
+      for (const account of [
+        owner, alice, bob, carol, dennis, whale,
+        A, B, C, D, E, F, G, H,
+        // defaulter_1, defaulter_2,
+        frontEnd_1, frontEnd_2, frontEnd_3
+      ]) {
+        await lusdToken.approve(controller.address, dec(1000000000000, 18), {from: account}) 
+      }
     })
 
     it("addColl(): reverts when top-up would leave trove with ICR < MCR", async () => {
@@ -2754,8 +2776,8 @@ contract('BorrowerOperations', async accounts => {
     it("closeTrove(): reverts when trove is the only one in the system", async () => {
       await openTrove({ extraLUSDAmount: toBN(dec(100000, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: alice } })
 
-      // Artificially mint to Alice so she has enough to close her trove
-      await lusdToken.unprotectedMint(alice, dec(100000, 18))
+      // Transfer some tokens to Alice so she has enough to close her trove
+      await lusdToken.transfer(alice, dec(100000, 18), {from: owner})
 
       // Check she has more LUSD than her trove debt
       const aliceBal = await lusdToken.balanceOf(alice)

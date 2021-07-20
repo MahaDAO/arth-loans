@@ -9,6 +9,8 @@ const timeValues = testHelpers.TimeValues
 const TroveManagerTester = artifacts.require("TroveManagerTester")
 const LUSDToken = artifacts.require("LUSDToken")
 const NonPayable = artifacts.require('NonPayable.sol')
+const Controller = artifacts.require("Controller")
+const Governance = artifacts.require("Governance")
 
 const ZERO = toBN('0')
 const ZERO_ADDRESS = th.ZERO_ADDRESS
@@ -56,13 +58,17 @@ contract('StabilityPool', async accounts => {
     })
 
     beforeEach(async () => {
-      contracts = await deploymentHelper.deployLiquityCore()
+      contracts = await deploymentHelper.deployLiquityCore(owner, owner)
       contracts.troveManager = await TroveManagerTester.new()
-      contracts.lusdToken = await LUSDToken.new(
+      contracts.governance = await Governance.new(contracts.troveManager.address)
+      contracts.controller = await Controller.new(
         contracts.troveManager.address,
         contracts.stabilityPool.address,
-        contracts.borrowerOperations.address
-      )
+        contracts.borrowerOperations.address,
+        contracts.governance.address,
+        contracts.lusdToken.address,
+        contracts.gasPool.address 
+    )
       const LQTYContracts = await deploymentHelper.deployLQTYContracts(bountyAddress, lpRewardsAddress, multisig)
 
       priceFeed = contracts.priceFeedTestnet
@@ -84,6 +90,16 @@ contract('StabilityPool', async accounts => {
 
       // Register 3 front ends
       await th.registerFrontEnds(frontEnds, stabilityPool)
+
+      for (const account of [owner,
+        defaulter_1, defaulter_2, defaulter_3,
+        whale,
+        alice, bob, carol, dennis, erin, flyn,
+        A, B, C, D, E, F,
+        frontEnd_1, frontEnd_2, frontEnd_3,
+      ]) {
+          await lusdToken.approve(contracts.controller.address, dec(1, 39), {from: account})
+      }
     })
 
     // --- provideToSP() ---

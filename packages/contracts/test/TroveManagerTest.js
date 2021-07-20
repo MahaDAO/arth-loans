@@ -2,7 +2,11 @@ const deploymentHelper = require("../utils/deploymentHelpers.js")
 const testHelpers = require("../utils/testHelpers.js")
 const TroveManagerTester = artifacts.require("./TroveManagerTester.sol")
 const LUSDTokenTester = artifacts.require("./LUSDTokenTester.sol")
+const Governance = artifacts.require("Governance")
+const Controller = artifacts.require("Controller")
+const ARTHController = artifacts.require("ARTHController")
 
+const BigNumber = require('ethers').BigNumber
 const th = testHelpers.TestHelper
 const dec = th.dec
 const toBN = th.toBN
@@ -43,6 +47,7 @@ contract('TroveManager', async accounts => {
   let hintHelpers
   let weth
   let contracts
+  let controller
 
   const getOpenTroveTotalDebt = async (lusdAmount) => th.getOpenTroveTotalDebt(contracts, lusdAmount)
   const getOpenTroveLUSDAmount = async (totalDebt) => th.getOpenTroveLUSDAmount(contracts, totalDebt)
@@ -52,13 +57,25 @@ contract('TroveManager', async accounts => {
   const withdrawLUSD = async (params) => th.withdrawLUSD(contracts, params)
 
   beforeEach(async () => {
-    contracts = await deploymentHelper.deployLiquityCore()
+    contracts = await deploymentHelper.deployLiquityCore(owner, owner)
     contracts.troveManager = await TroveManagerTester.new()
-    contracts.lusdToken = await LUSDTokenTester.new(
-      contracts.troveManager.address,
-      contracts.stabilityPool.address,
-      contracts.borrowerOperations.address
+    contracts.lusdToken = await LUSDTokenTester.new()
+    contracts.arthController = await ARTHController.new(
+        contracts.lusdToken.address, 
+        contracts.lusdToken.address,
+        owner,
+        owner
     )
+    contracts.governance = await Governance.new(contracts.troveManager.address)
+    contracts.controller = await Controller.new(
+        contracts.troveManager.address,
+        contracts.stabilityPool.address,
+        contracts.borrowerOperations.address,
+        contracts.governance.address,
+        contracts.lusdToken.address,
+        contracts.gasPool.address 
+    )
+
     const LQTYContracts = await deploymentHelper.deployLQTYContracts(bountyAddress, lpRewardsAddress, multisig)
 
     priceFeed = contracts.priceFeedTestnet
@@ -76,10 +93,22 @@ contract('TroveManager', async accounts => {
     lqtyToken = LQTYContracts.lqtyToken
     communityIssuance = LQTYContracts.communityIssuance
     lockupContractFactory = LQTYContracts.lockupContractFactory
-
+    controller = contracts.controller
+    
     await deploymentHelper.connectCoreContracts(contracts, LQTYContracts)
     await deploymentHelper.connectLQTYContracts(LQTYContracts)
     await deploymentHelper.connectLQTYContractsToCore(LQTYContracts, contracts)
+
+    for (const account of [
+        owner,
+        alice, bob, carol, dennis, erin, flyn, graham, harriet, ida,
+        defaulter_1, defaulter_2, defaulter_3, defaulter_4, whale,
+        A, B, C, D, E]
+    ) {
+        await contracts.mahaToken.mint(account, dec(1, 39), {from: account})
+        await contracts.mahaToken.approve(contracts.governance.address, dec(1, 39), {from: account})
+        await lusdToken.approve(controller.address, dec(10000000, 24), {from: account})
+    }
   })
 
   it('liquidate(): closes a Trove that has ICR < MCR', async () => {
@@ -2358,6 +2387,7 @@ contract('TroveManager', async accounts => {
 
     // Dennis redeems 20 LUSD
     // Don't pay for gas, as it makes it easier to calculate the received Ether
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(dennis)).toString())
     const redemptionTx = await troveManager.redeemCollateral(
       redemptionAmount,
       firstRedemptionHint,
@@ -2370,6 +2400,9 @@ contract('TroveManager', async accounts => {
         gasPrice: 0
       }
     )
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(dennis)).toString())
+    const redemptionAmountBN = BigNumber.from(redemptionAmount.toString())
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
 
     const ETHFee = th.getEmittedRedemptionValues(redemptionTx)[3]
 
@@ -2438,6 +2471,7 @@ contract('TroveManager', async accounts => {
 
     // Dennis redeems 20 LUSD
     // Don't pay for gas, as it makes it easier to calculate the received Ether
+    const mahaTokenBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(dennis)).toString())
     const redemptionTx = await troveManager.redeemCollateral(
       redemptionAmount,
       ZERO_ADDRESS, // invalid first hint
@@ -2450,6 +2484,9 @@ contract('TroveManager', async accounts => {
         gasPrice: 0
       }
     )
+    const mahaTokenBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(dennis)).toString())
+    const redemptionAmountBN = BigNumber.from(redemptionAmount.toString())
+    assert.equal(mahaTokenBalanceAfter.toString(), mahaTokenBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
 
     const ETHFee = th.getEmittedRedemptionValues(redemptionTx)[3]
 
@@ -2518,6 +2555,7 @@ contract('TroveManager', async accounts => {
 
     // Dennis redeems 20 LUSD
     // Don't pay for gas, as it makes it easier to calculate the received Ether
+    const mahaTokenBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(dennis)).toString())
     const redemptionTx = await troveManager.redeemCollateral(
       redemptionAmount,
       erin, // invalid first hint, it doesn’t have a trove
@@ -2530,7 +2568,9 @@ contract('TroveManager', async accounts => {
         gasPrice: 0
       }
     )
-
+    const mahaTokenBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(dennis)).toString())
+    const redemptionAmountBN = BigNumber.from(redemptionAmount.toString())
+    assert.equal(mahaTokenBalanceAfter.toString(), mahaTokenBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
     const ETHFee = th.getEmittedRedemptionValues(redemptionTx)[3]
 
     const alice_Trove_After = await troveManager.Troves(alice)
@@ -2604,6 +2644,7 @@ contract('TroveManager', async accounts => {
 
     // Dennis redeems 20 LUSD
     // Don't pay for gas, as it makes it easier to calculate the received Ether
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(dennis)).toString())
     const redemptionTx = await troveManager.redeemCollateral(
       redemptionAmount,
       erin, // invalid trove, below MCR
@@ -2616,6 +2657,9 @@ contract('TroveManager', async accounts => {
         gasPrice: 0
       }
     )
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(dennis)).toString())
+    const redemptionAmountBN = BigNumber.from(redemptionAmount.toString())
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
 
     const ETHFee = th.getEmittedRedemptionValues(redemptionTx)[3]
 
@@ -2667,8 +2711,11 @@ contract('TroveManager', async accounts => {
     await th.fastForwardTime(timeValues.SECONDS_IN_ONE_WEEK * 2, web3.currentProvider)
 
     // Flyn redeems collateral
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(flyn)).toString())
     await troveManager.redeemCollateral(redemptionAmount, alice, alice, alice, 0, 0, th._100pct, { from: flyn })
-
+    const redemptionAmountBN = BigNumber.from(redemptionAmount.toString())
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(flyn)).toString())
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
     // Check Flyn's redemption has reduced his balance from 100 to (100-60) = 40 LUSD
     const flynBalance = await lusdToken.balanceOf(flyn)
     th.assertIsApproximatelyEqual(flynBalance, F_lusdAmount.sub(redemptionAmount))
@@ -2724,7 +2771,11 @@ contract('TroveManager', async accounts => {
     await th.fastForwardTime(timeValues.SECONDS_IN_ONE_WEEK * 2, web3.currentProvider)
 
     // Flyn redeems collateral with only two iterations
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(flyn)).toString())
     await troveManager.redeemCollateral(attemptedRedemptionAmount, alice, alice, alice, 0, 2, th._100pct, { from: flyn })
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(flyn)).toString())
+    const redemptionAmountBN = BigNumber.from(attemptedRedemptionAmount.toString())
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
 
     // Check Flyn's redemption has reduced his balance from 100 to (100-40) = 60 LUSD
     const flynBalance = (await lusdToken.balanceOf(flyn)).toString()
@@ -2871,6 +2922,7 @@ contract('TroveManager', async accounts => {
       await th.fastForwardTime(timeValues.SECONDS_IN_ONE_WEEK * 2, web3.currentProvider)
 
       // Alice redeems 1 LUSD from Carol's Trove
+      const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(alice)).toString())
       await troveManager.redeemCollateral(
         frontRunRedepmtion,
         firstRedemptionHint,
@@ -2880,9 +2932,13 @@ contract('TroveManager', async accounts => {
         0, th._100pct,
         { from: alice }
       )
+      const redemptionAmountBN = BigNumber.from(frontRunRedepmtion.toString())
+      const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(alice)).toString())
+      assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
     }
 
     // Dennis tries to redeem 20 LUSD
+    const maahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(dennis)).toString())
     const redemptionTx = await troveManager.redeemCollateral(
       redemptionAmount,
       firstRedemptionHint,
@@ -2895,6 +2951,9 @@ contract('TroveManager', async accounts => {
         gasPrice: 0
       }
     )
+    const redemptionBN = BigNumber.from(redemptionAmount.toString())
+    const maahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(dennis)).toString())
+    assert.equal(maahaBalanceAfter.toString(), maahaBalanceBefore.sub(redemptionBN.div(100)).toString())
 
     const ETHFee = th.getEmittedRedemptionValues(redemptionTx)[3]
 
@@ -2943,6 +3002,7 @@ contract('TroveManager', async accounts => {
     // skip bootstrapping phase
     await th.fastForwardTime(timeValues.SECONDS_IN_ONE_WEEK * 2, web3.currentProvider)
 
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(carol)).toString())
     const redemptionTx = await troveManager.redeemCollateral(
       amount,
       alice,
@@ -2956,6 +3016,9 @@ contract('TroveManager', async accounts => {
         gasPrice: 0
       }
     )
+    const redemptionBN = BigNumber.from(amount.toString())
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(carol)).toString())
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionBN.mul(1).div(100)).toString())
 
     const ETHFee = th.getEmittedRedemptionValues(redemptionTx)[3]
 
@@ -2987,7 +3050,8 @@ contract('TroveManager', async accounts => {
 
     // skip bootstrapping phase
     await th.fastForwardTime(timeValues.SECONDS_IN_ONE_WEEK * 2, web3.currentProvider)
-
+    
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(carol)).toString())
     await troveManager.redeemCollateral(
       A_debt,
       alice,
@@ -2998,6 +3062,9 @@ contract('TroveManager', async accounts => {
       th._100pct,
       { from: carol }
     );
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(carol)).toString())
+    const redemptionAmountBN = BigNumber.from(A_debt.toString())
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
 
     // Alice's Trove was cleared of debt
     const { debt: alice_Debt_After } = await troveManager.Troves(alice)
@@ -3035,7 +3102,8 @@ contract('TroveManager', async accounts => {
 
     // skip bootstrapping phase
     await th.fastForwardTime(timeValues.SECONDS_IN_ONE_WEEK * 2, web3.currentProvider)
-
+    
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(dennis)).toString())
     const tx = await troveManager.redeemCollateral(
       redemptionAmount,
       carol, // try to trick redeemCollateral by passing a hint that doesn't exactly point to the
@@ -3047,7 +3115,10 @@ contract('TroveManager', async accounts => {
       th._100pct,
       { from: dennis }
     )
-    
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(dennis)).toString())
+    const redemptionAmountBN = BigNumber.from(redemptionAmount.toString())
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
+
     const { debt: alice_Debt_After } = await troveManager.Troves(alice)
     assert.equal(alice_Debt_After, '0')
 
@@ -3271,7 +3342,11 @@ contract('TroveManager', async accounts => {
     await th.fastForwardTime(timeValues.SECONDS_IN_ONE_WEEK * 2, web3.currentProvider)
 
     // Erin redeems LUSD
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(erin)).toString())
     await th.redeemCollateral(erin, contracts, redemptionAmount, th._100pct)
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(erin)).toString())
+    const redemptionAmountBN = BigNumber.from(redemptionAmount.toString())
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
 
     price = await priceFeed.getPrice()
     const bob_ICR_after = await troveManager.getCurrentICR(bob, price)
@@ -3343,7 +3418,8 @@ contract('TroveManager', async accounts => {
       erin,
       erin
     )
-
+    
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(erin)).toString())
     await troveManager.redeemCollateral(
       dec(400, 18),
       firstRedemptionHint,
@@ -3352,23 +3428,26 @@ contract('TroveManager', async accounts => {
       partialRedemptionHintNICR,
       0, th._100pct,
       { from: erin })
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(erin)).toString())
+    const redemptionAmountBN = BigNumber.from(10).pow(18).mul(400)
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
 
-    // Check activePool debt reduced by  400 LUSD
+    // Check activePool debt reduced by `400` LUSD.
     const activePool_debt_after = await activePool.getLUSDDebt()
     assert.equal(activePool_debt_before.sub(activePool_debt_after), dec(400, 18))
 
     /* Check ActivePool coll reduced by $400 worth of Ether: at ETH:USD price of $200, this should be 2 ETH.
-
-    therefore remaining ActivePool ETH should be 198 */
+    
+    therefore remaining ActivePool ETH should be 198. */
     const activePool_coll_after = await activePool.getETH()
     // console.log(`activePool_coll_after: ${activePool_coll_after}`)
     assert.equal(activePool_coll_after.toString(), activePool_coll_before.sub(toBN(dec(2, 18))))
 
-    // Check Erin's balance after
+    // Check Erin's balance after.
     const erin_balance_after = (await lusdToken.balanceOf(erin)).toString()
     assert.equal(erin_balance_after, '0')
   })
-
+  
   it("redeemCollateral(): reverts when requested redemption amount exceeds caller's LUSD token balance", async () => {
     const { collateral: W_coll, totalDebt: W_totalDebt } = await openTrove({ ICR: toBN(dec(20, 18)), extraParams: { from: whale } })
 
@@ -3415,7 +3494,8 @@ contract('TroveManager', async accounts => {
         erin,
         erin
       )
-
+     
+      const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(erin)).toString())
       const redemptionTx = await troveManager.redeemCollateral(
         dec(1000, 18),
         firstRedemptionHint,
@@ -3424,6 +3504,9 @@ contract('TroveManager', async accounts => {
         partialRedemptionHintNICR,
         0, th._100pct,
         { from: erin })
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(erin)).toString())
+    const redemptionAmountBN = BigNumber.from(1000).pow(18)
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
 
       assert.isFalse(redemptionTx.receipt.status)
     } catch (error) {
@@ -3443,7 +3526,7 @@ contract('TroveManager', async accounts => {
         erin,
         erin
       )
-
+    
       const redemptionTx = await troveManager.redeemCollateral(
         '401000000000000000000', firstRedemptionHint,
         upperPartialRedemptionHint_2,
@@ -3557,6 +3640,7 @@ contract('TroveManager', async accounts => {
     // skip bootstrapping phase
     await th.fastForwardTime(timeValues.SECONDS_IN_ONE_WEEK * 2, web3.currentProvider)
 
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(erin)).toString())
     const redemption_1 = await troveManager.redeemCollateral(
       _120_LUSD,
       firstRedemptionHint,
@@ -3565,6 +3649,9 @@ contract('TroveManager', async accounts => {
       partialRedemptionHintNICR,
       0, th._100pct,
       { from: erin })
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(erin)).toString())
+    const redemptionAmountBN = BigNumber.from(_120_LUSD.toString())
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
 
     assert.isTrue(redemption_1.receipt.status);
 
@@ -3587,6 +3674,7 @@ contract('TroveManager', async accounts => {
       flyn
     )
 
+    const mahaBalanceBeforeFlyn = BigNumber.from((await contracts.mahaToken.balanceOf(flyn)).toString())
     const redemption_2 = await troveManager.redeemCollateral(
       _373_LUSD,
       firstRedemptionHint,
@@ -3595,7 +3683,9 @@ contract('TroveManager', async accounts => {
       partialRedemptionHintNICR,
       0, th._100pct,
       { from: flyn })
-
+    const mahaBalanceAfterFlyn = BigNumber.from((await contracts.mahaToken.balanceOf(flyn)).toString())
+    const redemptionAmountBNFlyn = BigNumber.from(_373_LUSD.toString())
+    assert.equal(mahaBalanceAfterFlyn.toString(), mahaBalanceBeforeFlyn.sub(redemptionAmountBNFlyn.div(100)).toString())
     assert.isTrue(redemption_2.receipt.status);
 
     /* 373 LUSD redeemed.  Expect $373 worth of ETH removed. At ETH:USD price of $200, 
@@ -3615,7 +3705,8 @@ contract('TroveManager', async accounts => {
       graham,
       graham
     )
-
+    
+    const mahaBalanceBefore3 = BigNumber.from((await contracts.mahaToken.balanceOf(graham)).toString())
     const redemption_3 = await troveManager.redeemCollateral(
       _950_LUSD,
       firstRedemptionHint,
@@ -3624,6 +3715,9 @@ contract('TroveManager', async accounts => {
       partialRedemptionHintNICR,
       0, th._100pct,
       { from: graham })
+    const mahaBalanceAfter3 = BigNumber.from((await contracts.mahaToken.balanceOf(graham)).toString())
+    const redemptionAmountBN3 = BigNumber.from(_950_LUSD.toString())
+    assert.equal(mahaBalanceAfter3.toString(), mahaBalanceBefore3.sub(redemptionAmountBN3.div(100)).toString())
 
     assert.isTrue(redemption_3.receipt.status);
 
@@ -3730,8 +3824,11 @@ contract('TroveManager', async accounts => {
 
     const A_balanceBefore = await lusdToken.balanceOf(A)
 
+    const mahaBalanceBefor = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
     await th.redeemCollateral(A, contracts, dec(10, 18))
-
+    const mahaBalanceAftr = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
+    const redemptionAmountBN = BigNumber.from(10).pow(18).mul(10)
+    assert.equal(mahaBalanceAftr.toString(), mahaBalanceBefor.sub(redemptionAmountBN.div(100)).toString())
     // Check A's balance has decreased by 10 LUSD
     assert.equal(await lusdToken.balanceOf(A), A_balanceBefore.sub(toBN(dec(10, 18))).toString())
 
@@ -3758,7 +3855,12 @@ contract('TroveManager', async accounts => {
     const B_balanceBefore = await lusdToken.balanceOf(B)
 
     // A redeems 10 LUSD
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
     const redemptionTx_A = await th.redeemCollateralAndGetTxObject(A, contracts, dec(10, 18))
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
+    const redemptionAmountBN = BigNumber.from(10).pow(18).mul(10)
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
+
     const timeStamp_A = await th.getTimestampFromTx(redemptionTx_A, web3)
 
     // Check A's balance has decreased by 10 LUSD
@@ -3769,9 +3871,11 @@ contract('TroveManager', async accounts => {
     assert.isTrue(baseRate_1.gt(toBN('0')))
 
     // B redeems 10 LUSD
+    const mahaBalanceBeforeB = BigNumber.from((await contracts.mahaToken.balanceOf(B)).toString())
     const redemptionTx_B = await th.redeemCollateralAndGetTxObject(B, contracts, dec(10, 18))
     const timeStamp_B = await th.getTimestampFromTx(redemptionTx_B, web3)
-
+    const mahaBalanceAfterB = BigNumber.from((await contracts.mahaToken.balanceOf(B)).toString())
+    assert.equal(mahaBalanceAfterB.toString(), mahaBalanceBeforeB.sub(redemptionAmountBN.div(100)).toString())
     // Check B's balance has decreased by 10 LUSD
     assert.equal(await lusdToken.balanceOf(B), B_balanceBefore.sub(toBN(dec(10, 18))).toString())
 
@@ -3797,8 +3901,11 @@ contract('TroveManager', async accounts => {
     const A_balanceBefore = await lusdToken.balanceOf(A)
 
     // A redeems 10 LUSD
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
     await th.redeemCollateral(A, contracts, dec(10, 18))
-
+    const redemptionAmountA = BigNumber.from(10).pow(18).mul(10)
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountA.div(100)).toString())
     // Check A's balance has decreased by 10 LUSD
     assert.equal(A_balanceBefore.sub(await lusdToken.balanceOf(A)), dec(10, 18))
 
@@ -3812,7 +3919,11 @@ contract('TroveManager', async accounts => {
     th.fastForwardTime(45, web3.currentProvider)
 
     // Borrower A triggers a fee
+    const mahaBalanceBeforeA = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
     await th.redeemCollateral(A, contracts, dec(1, 18))
+    const remdeptionAmountBNA = BigNumber.from(10).pow(18)
+    const mahaBalanceAfterA = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
+    assert.equal(mahaBalanceAfterA.toString(), mahaBalanceBeforeA.sub(remdeptionAmountBNA.div(100)).toString())
 
     const lastFeeOpTime_2 = await troveManager.lastFeeOperationTime()
 
@@ -3828,7 +3939,10 @@ contract('TroveManager', async accounts => {
     assert.isTrue(toBN(timeNow).sub(lastFeeOpTime_1).gte(3600))
 
     // Borrower A triggers a fee
+    const mahaBalanceBeforeAFee = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
     await th.redeemCollateral(A, contracts, dec(1, 18))
+    const mahaBalanceAfterAFee = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
+    assert.equal(mahaBalanceAfterAFee.toString(), mahaBalanceBeforeAFee.sub(remdeptionAmountBNA.div(100)).toString())
 
     const lastFeeOpTime_3 = await troveManager.lastFeeOperationTime()
 
@@ -3859,7 +3973,11 @@ contract('TroveManager', async accounts => {
     const A_balanceBefore = await lusdToken.balanceOf(A)
 
     // A redeems 10 LUSD
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
     await th.redeemCollateral(A, contracts, dec(10, 18))
+    const redemptionAmountBN = BigNumber.from(10).pow(18).mul(10)
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
 
     // Check A's balance has decreased by 10 LUSD
     assert.equal(await lusdToken.balanceOf(A), A_balanceBefore.sub(toBN(dec(10, 18))).toString())
@@ -3895,7 +4013,11 @@ contract('TroveManager', async accounts => {
     const A_balanceBefore = await lusdToken.balanceOf(A)
 
     // A redeems 10 LUSD
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
     await th.redeemCollateral(A, contracts, dec(10, 18))
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
+    const redemptionAmountBN = BigNumber.from(10).pow(18).mul(10)
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
 
     // Check A's balance has decreased by 10 LUSD
     assert.equal(await lusdToken.balanceOf(A), A_balanceBefore.sub(toBN(dec(10, 18))).toString())
@@ -3928,7 +4050,11 @@ contract('TroveManager', async accounts => {
     const B_balanceBefore = await lusdToken.balanceOf(B)
 
     // A redeems 10 LUSD
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
     await th.redeemCollateral(A, contracts, dec(10, 18))
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
+    const redemptionAmountBN = BigNumber.from(10).pow(18).mul(10)
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
 
     // Check A's balance has decreased by 10 LUSD
     assert.equal(await lusdToken.balanceOf(A), A_balanceBefore.sub(toBN(dec(10, 18))).toString())
@@ -3940,7 +4066,11 @@ contract('TroveManager', async accounts => {
     const lqtyStakingBalance_Before = toBN(await weth.balanceOf(lqtyStaking.address))
 
     // B redeems 10 LUSD
+    const mahaBalanceBeforeB = BigNumber.from((await contracts.mahaToken.balanceOf(B)).toString())
     await th.redeemCollateral(B, contracts, dec(10, 18))
+    const mahaBalanceAfterB = BigNumber.from((await contracts.mahaToken.balanceOf(B)).toString())
+    const redemptionAmountBNB = BigNumber.from(10).pow(18).mul(10)
+    assert.equal(mahaBalanceAfterB.toString(), mahaBalanceBeforeB.sub(redemptionAmountBNB.div(100)).toString())
 
     // Check B's balance has decreased by 10 LUSD
     assert.equal(await lusdToken.balanceOf(B), B_balanceBefore.sub(toBN(dec(10, 18))).toString())
@@ -3970,7 +4100,11 @@ contract('TroveManager', async accounts => {
     const B_balanceBefore = await lusdToken.balanceOf(B)
 
     // A redeems 10 LUSD
+    const mahaBalanceBeforeA = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
     await th.redeemCollateral(A, contracts, dec(10, 18))
+    const mahaBalanceAfterA = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
+    const redemptionAmountABn = BigNumber.from(10).pow(18).mul(10)
+    assert.equal(mahaBalanceAfterA.toString(), mahaBalanceBeforeA.sub(redemptionAmountABn.div(100)).toString())
 
     // Check A's balance has decreased by 10 LUSD
     assert.equal(await lusdToken.balanceOf(A), A_balanceBefore.sub(toBN(dec(10, 18))).toString())
@@ -3983,7 +4117,10 @@ contract('TroveManager', async accounts => {
     const F_ETH_Before = await lqtyStaking.F_ETH()
 
     // B redeems 10 LUSD
+    const mahaBalanceBeforeB = BigNumber.from((await contracts.mahaToken.balanceOf(B)).toString())
     await th.redeemCollateral(B, contracts, dec(10, 18))
+    const mahaBalanceAfterB = BigNumber.from((await contracts.mahaToken.balanceOf(B)).toString())
+    assert.equal(mahaBalanceAfterB.toString(), mahaBalanceBeforeB.sub(redemptionAmountABn.div(100)).toString())
 
     // Check B's balance has decreased by 10 LUSD
     assert.equal(await lusdToken.balanceOf(B), B_balanceBefore.sub(toBN(dec(10, 18))).toString())
@@ -4022,7 +4159,11 @@ contract('TroveManager', async accounts => {
 
     // A redeems 9 LUSD
     const redemptionAmount = toBN(dec(9, 18))
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
     await th.redeemCollateral(A, contracts, redemptionAmount)
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(A)).toString())
+    const redemptionBN = BigNumber.from(redemptionAmount.toString())
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionBN.div(100)).toString())
 
     /*
     At ETH:USD price of 200:
@@ -4065,7 +4206,12 @@ contract('TroveManager', async accounts => {
     const C_balanceBefore = toBN(await weth.balanceOf(C))
 
     // whale redeems 360 LUSD.  Expect this to fully redeem A, B, C, and partially redeem D.
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(whale)).toString())
     await th.redeemCollateral(whale, contracts, redemptionAmount)
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(whale)).toString())
+    const redemptionAmountBN = BigNumber.from(redemptionAmount.toString())
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
+
 
     // Check A, B, C have been closed
     assert.isFalse(await sortedTroves.contains(A))
@@ -4105,7 +4251,11 @@ contract('TroveManager', async accounts => {
     assert.equal(baseRate, '0')
 
     // whale redeems LUSD.  Expect this to fully redeem A, B, C, and partially redeem D.
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(whale)).toString())
     await th.redeemCollateral(whale, contracts, redemptionAmount)
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(whale)).toString())
+    const redemptionAmountBN = BigNumber.from(redemptionAmount.toString())
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
 
     // Check A, B, C have been closed
     assert.isFalse(await sortedTroves.contains(A))
@@ -4172,7 +4322,11 @@ contract('TroveManager', async accounts => {
     await th.fastForwardTime(timeValues.SECONDS_IN_ONE_WEEK * 2, web3.currentProvider)
 
     // whale redeems LUSD.  Expect this to fully redeem A, B, C, and partially redeem 15 LUSD from D.
+    const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(whale)).toString())
     const redemptionTx = await th.redeemCollateralAndGetTxObject(whale, contracts, redemptionAmount, th._100pct, { gasPrice: 0 })
+    const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(whale)).toString())
+    const redemptionAmountBN = BigNumber.from(redemptionAmount.toString())
+    assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
 
     // Check A, B, C have been closed
     assert.isFalse(await sortedTroves.contains(A))
@@ -4297,6 +4451,7 @@ contract('TroveManager', async accounts => {
       } = await hintHelpers.getRedemptionHints(lusdAmount, price, 0)
 
       // Don't pay for gas, as it makes it easier to calculate the received Ether
+      const mahaBalanceBefore = BigNumber.from((await contracts.mahaToken.balanceOf(alice)).toString())
       const redemptionTx = await troveManager.redeemCollateral(
         lusdAmount,
         firstRedemptionHint,
@@ -4309,6 +4464,9 @@ contract('TroveManager', async accounts => {
           gasPrice: 0
         }
       )
+      const mahaBalanceAfter = BigNumber.from((await contracts.mahaToken.balanceOf(alice)).toString())
+      const redemptionAmountBN = BigNumber.from(lusdAmount.toString())
+      assert.equal(mahaBalanceAfter.toString(), mahaBalanceBefore.sub(redemptionAmountBN.div(100)).toString())
 
       await openTrove({ ICR: toBN(dec(150, 16)), extraParams: { from: bob } })
       await weth.deposit({ from: alice, value: lusdAmount.mul(mv._1e18BN).div(price) })
