@@ -10,6 +10,11 @@ const CollSurplusPool = artifacts.require("./CollSurplusPool.sol")
 const FunctionCaller = artifacts.require("./TestContracts/FunctionCaller.sol")
 const BorrowerOperations = artifacts.require("./BorrowerOperations.sol")
 const HintHelpers = artifacts.require("./HintHelpers.sol")
+const ARTHController = artifacts.require("ARTHController")
+const Controller = artifacts.require("Controller")
+const Governance = artifacts.require("Governance")
+const MahaToken = artifacts.require("MockMaha")
+const MockUniswapOracle = artifacts.require("MockUniswapOracle")
 
 const WETH = artifacts.require("./WETH.sol")
 const LQTYStaking = artifacts.require("./LQTYStaking.sol")
@@ -62,15 +67,15 @@ const maxBytes32 = '0x' + 'f'.repeat(64)
 
 class DeploymentHelper {
 
-  static async deployLiquityCore() {
+  static async deployLiquityCore(deployer, timelock) {
     const cmdLineArgs = process.argv
     const frameworkPath = cmdLineArgs[1]
     // console.log(`Framework used:  ${frameworkPath}`)
 
     if (frameworkPath.includes("hardhat")) {
-      return this.deployLiquityCoreHardhat()
+      return this.deployLiquityCoreHardhat(deployer, timelock)
     } else if (frameworkPath.includes("truffle")) {
-      return this.deployLiquityCoreTruffle()
+      return this.deployLiquityCoreTruffle(deployer, timelock)
     }
   }
 
@@ -86,7 +91,7 @@ class DeploymentHelper {
     }
   }
 
-  static async deployLiquityCoreHardhat() {
+  static async deployLiquityCoreHardhat(deployer, timelock) {
     const weth = await WETH.new()
     const priceFeedTestnet = await PriceFeedTestnet.new()
     const sortedTroves = await SortedTroves.new()
@@ -99,11 +104,30 @@ class DeploymentHelper {
     const functionCaller = await FunctionCaller.new()
     const borrowerOperations = await BorrowerOperations.new()
     const hintHelpers = await HintHelpers.new()
-    const lusdToken = await LUSDToken.new(
-      troveManager.address,
-      stabilityPool.address,
-      borrowerOperations.address
+    const lusdToken = await LUSDToken.new()
+    const governance = await Governance.new(troveManager.address)
+    const mahaToken = await MahaToken.new()
+    const mahaMockUniswapOracle = await MockUniswapOracle.new()
+    const arthController = await ARTHController.new(
+        lusdToken.address, 
+        lusdToken.address,
+        deployer,
+        timelock
     )
+    const controller = await Controller.new(
+        troveManager.address,
+        stabilityPool.address,
+        borrowerOperations.address,
+        governance.address,
+        lusdToken.address,
+        gasPool.address
+    )
+
+    MahaToken.setAsDeployed(mahaToken)
+    MockUniswapOracle.setAsDeployed(mahaMockUniswapOracle)
+    Governance.setAsDeployed(governance)
+    Controller.setAsDeployed(controller)
+    ARTHController.setAsDeployed(arthController)
     LUSDToken.setAsDeployed(lusdToken)
     DefaultPool.setAsDeployed(defaultPool)
     PriceFeedTestnet.setAsDeployed(priceFeedTestnet)
@@ -118,6 +142,9 @@ class DeploymentHelper {
     HintHelpers.setAsDeployed(hintHelpers)
 
     const coreContracts = {
+      governance,
+      arthController,
+      controller,
       priceFeedTestnet,
       lusdToken,
       sortedTroves,
@@ -130,7 +157,9 @@ class DeploymentHelper {
       functionCaller,
       borrowerOperations,
       hintHelpers,
-      weth
+      weth,
+      mahaToken,
+      mahaMockUniswapOracle
     }
     return coreContracts
   }
@@ -222,6 +251,7 @@ class DeploymentHelper {
 
   static async deployLiquityCoreTruffle() {
     const weth = await WETH.new()
+    const governance = await Governance.new()
     const priceFeedTestnet = await PriceFeedTestnet.new()
     const sortedTroves = await SortedTroves.new()
     const troveManager = await TroveManager.new()
@@ -233,13 +263,25 @@ class DeploymentHelper {
     const functionCaller = await FunctionCaller.new()
     const borrowerOperations = await BorrowerOperations.new()
     const hintHelpers = await HintHelpers.new()
-    const lusdToken = await LUSDToken.new(
-      troveManager.address,
-      stabilityPool.address,
-      borrowerOperations.address
+    const lusdToken = await LUSDToken.new()
+    const arthController = await ARTHController.new(
+        lusdToken.address, 
+        lusdToken.address,
+        deployer,
+        timelock
     )
+    const controller = await Controller.new(
+        troveManager.address,
+        stabilityPool.address,
+        borrowerOperations.address,
+        governance.address,
+        lusdToken.address
+    )
+
     const coreContracts = {
-      weth,
+      governance,
+      arthController,
+      controller,
       priceFeedTestnet,
       lusdToken,
       sortedTroves,
@@ -251,7 +293,8 @@ class DeploymentHelper {
       collSurplusPool,
       functionCaller,
       borrowerOperations,
-      hintHelpers
+      hintHelpers,
+      weth
     }
     return coreContracts
   }
@@ -333,6 +376,10 @@ class DeploymentHelper {
   // Connect contracts to their dependencies
   static async connectCoreContracts(contracts, LQTYContracts) {
 
+    await contracts.lusdToken.setArthController(contracts.arthController.address);
+    await contracts.arthController.addPool(contracts.controller.address);
+    await contracts.governance.setPriceFeed(contracts.priceFeedTestnet.address);
+    await contracts.governance.setStabilityFeeToken(contracts.mahaToken.address, contracts.mahaMockUniswapOracle.address)
     // set TroveManager addr in SortedTroves
     await contracts.sortedTroves.setParams(
       maxBytes32,
@@ -352,11 +399,12 @@ class DeploymentHelper {
       contracts.stabilityPool.address,
       contracts.gasPool.address,
       contracts.collSurplusPool.address,
-      contracts.priceFeedTestnet.address,
       contracts.lusdToken.address,
       contracts.sortedTroves.address,
       LQTYContracts.lqtyToken.address,
-      LQTYContracts.lqtyStaking.address
+      LQTYContracts.lqtyStaking.address,
+      contracts.governance.address,
+      contracts.controller.address
     )
 
     // set contracts in BorrowerOperations 
@@ -367,11 +415,12 @@ class DeploymentHelper {
       contracts.stabilityPool.address,
       contracts.gasPool.address,
       contracts.collSurplusPool.address,
-      contracts.priceFeedTestnet.address,
       contracts.sortedTroves.address,
       contracts.lusdToken.address,
       LQTYContracts.lqtyStaking.address,
-      contracts.weth.address
+      contracts.weth.address,
+      contracts.governance.address,
+      contracts.controller.address
     )
 
     // set contracts in the Pools
@@ -381,9 +430,10 @@ class DeploymentHelper {
       contracts.activePool.address,
       contracts.lusdToken.address,
       contracts.sortedTroves.address,
-      contracts.priceFeedTestnet.address,
       LQTYContracts.communityIssuance.address,
-      contracts.weth.address
+      contracts.weth.address,
+      contracts.governance.address,
+      contracts.controller.address
     )
 
     await contracts.activePool.setAddresses(
@@ -406,6 +456,13 @@ class DeploymentHelper {
       contracts.troveManager.address,
       contracts.activePool.address,
       contracts.weth.address
+    )
+
+    await contracts.gasPool.setAddresses(
+        contracts.troveManager.address,
+        contracts.lusdToken.address,
+        contracts.borrowerOperations.address,
+        contracts.controller.address
     )
 
     // set contracts in HintHelpers
