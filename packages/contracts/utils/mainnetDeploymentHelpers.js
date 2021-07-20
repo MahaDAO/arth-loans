@@ -81,10 +81,11 @@ class MainnetDeploymentHelper {
     const borrowerOperationsFactory = await this.getFactory("BorrowerOperations")
     const hintHelpersFactory = await this.getFactory("HintHelpers")
     const lusdTokenFactory = await this.getFactory("LUSDToken")
+    const mahaTokenFactory = await this.getFactory("MahaToken")  // TODO: do no redeploy in mainnet as it already exists.
+    const mahaARTHPairoracleFactory = await this.getFactory("MockUniswapOracle")  // TODO: replace with the proper oracle as it exists on mainnet.
     // const tellorCallerFactory = await this.getFactory("TellorCaller")
 
     // Deploy txs
-    const governance = await this.loadOrDeploy(governanceFactory, 'governance', deploymentState)
     const gmuOracle = await this.loadOrDeploy(gmuOracleFactory, 'gmuOracle', deploymentState, [BigNumber.from(2e6)])
     const priceFeed = await this.loadOrDeploy(priceFeedFactory, 'priceFeed', deploymentState)
     const sortedTroves = await this.loadOrDeploy(sortedTrovesFactory, 'sortedTroves', deploymentState)
@@ -96,25 +97,28 @@ class MainnetDeploymentHelper {
     const collSurplusPool = await this.loadOrDeploy(collSurplusPoolFactory, 'collSurplusPool', deploymentState)
     const borrowerOperations = await this.loadOrDeploy(borrowerOperationsFactory, 'borrowerOperations', deploymentState)
     const hintHelpers = await this.loadOrDeploy(hintHelpersFactory, 'hintHelpers', deploymentState)
+    const mahaToken = await this.loadOrDeploy(mahaTokenFactory, 'mahaToken', deploymentState)
+    const governance = await this.loadOrDeploy(governanceFactory, 'governance', deploymentState, [troveManager.address])
     // const tellorCaller = await this.loadOrDeploy(tellorCallerFactory, 'tellorCaller', deploymentState, [tellorMasterAddr])
     const lusdToken = await this.loadOrDeploy(
         lusdTokenFactory,
         'lusdToken',
         deploymentState,
     )
-
+    const mahaARTHPairOracle = await this.loadOrDeploy(mahaARTHPairoracleFactory, 'mahaARTHPairOracle', deploymentState)
     const controllerParams = [
         troveManager.address,
         stabilityPool.address,
         borrowerOperations.address,
         governance.address,
-        lusdToken.address
+        lusdToken.address,
+        gasPool.address
     ]
     const controller = await this.loadOrDeploy(coreControllerFactory, 'controller', deploymentState, controllerParams)
 
     const arthControllerParams = [
         lusdToken.address,
-        ZERO_ADDRESS,  // TODO: replace with MAHA.
+        mahaToken.address,
         this.configParams.liquityAddrs.DEPLOYER,
         this.configParams.liquityAddrs.TIMELOCK,
     ]
@@ -123,9 +127,11 @@ class MainnetDeploymentHelper {
     if (!this.configParams.ETHERSCAN_BASE_URL) {
       console.log('No Etherscan Url defined, skipping verification')
     } else {
+      await this.verifyContract('mahaARTHPairOracle', deploymentState)
+      await this.verifyContract('mahaToken', deploymentState)
       await this.verifyContract('controller', deploymentState, controllerParams)
       await this.verifyContract('arthController', deploymentState, arthControllerParams)
-      await this.verifyContract('governance', deploymentState)
+      await this.verifyContract('governance', deploymentState, [troveManager.address])
       await this.verifyContract('gmuOracle', deploymentState)
       await this.verifyContract('priceFeed', deploymentState)
       await this.verifyContract('sortedTroves', deploymentState)
@@ -157,6 +163,8 @@ class MainnetDeploymentHelper {
       hintHelpers,
       arthController,
       controller,
+      mahaToken,
+      mahaARTHPairOracle
       // tellorCaller
     }
 
@@ -257,6 +265,11 @@ class MainnetDeploymentHelper {
       await this.sendAndWaitForTransaction(contracts.priceFeed.setAddresses(chainlinkProxyAddress, contracts.gmuOracle.address, {gasPrice}))
     
     await this.sendAndWaitForTransaction(contracts.governance.setPriceFeed(contracts.priceFeed.address, {gasPrice}))
+    await this.sendAndWaitForTransaction(contracts.governance.setStabilityFeeToken(
+        contracts.mahaToken.address,
+        contracts.mahaARTHPairOracle.address,
+        {gasPrice}
+    ))
     await this.sendAndWaitForTransaction(contracts.arthController.addPool(contracts.controller.address, {gasPrice}))
     
     // set TroveManager addr in SortedTroves
