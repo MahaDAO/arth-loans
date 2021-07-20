@@ -1,5 +1,7 @@
 const deploymentHelper = require("../utils/deploymentHelpers.js")
 const testHelpers = require("../utils/testHelpers.js")
+const Governance = artifacts.require("Governance")
+const Controller = artifacts.require("Controller")
 
 const th = testHelpers.TestHelper
 const dec = th.dec
@@ -52,13 +54,18 @@ contract('TroveManager - in Recovery Mode', async accounts => {
   const openTrove = async (params) => th.openTrove(contracts, params)
 
   beforeEach(async () => {
-    contracts = await deploymentHelper.deployLiquityCore()
+    contracts = await deploymentHelper.deployLiquityCore(owner, owner)
     contracts.troveManager = await TroveManagerTester.new()
-    contracts.lusdToken = await LUSDToken.new(
-      contracts.troveManager.address,
-      contracts.stabilityPool.address,
-      contracts.borrowerOperations.address
+    contracts.governance = await Governance.new(contracts.troveManager.address)
+    contracts.controller = await Controller.new(
+        contracts.troveManager.address,
+        contracts.stabilityPool.address,
+        contracts.borrowerOperations.address,
+        contracts.governance.address,
+        contracts.lusdToken.address,
+        contracts.gasPool.address 
     )
+
     const LQTYContracts = await deploymentHelper.deployLQTYContracts(bountyAddress, lpRewardsAddress, multisig)
 
     priceFeed = contracts.priceFeedTestnet
@@ -72,10 +79,20 @@ contract('TroveManager - in Recovery Mode', async accounts => {
     borrowerOperations = contracts.borrowerOperations
     collSurplusPool = contracts.collSurplusPool
     weth = contracts.weth;
-
+    controller = contracts.controller
+    
     await deploymentHelper.connectLQTYContracts(LQTYContracts)
     await deploymentHelper.connectCoreContracts(contracts, LQTYContracts)
     await deploymentHelper.connectLQTYContractsToCore(LQTYContracts, contracts)
+
+    for (const account of [
+        owner,
+        alice, bob, carol, dennis, erin, freddy, greta, harry, ida,
+        whale, defaulter_1, defaulter_2, defaulter_3, defaulter_4,
+        A, B, C, D, E, F, G, H, I
+    ]) {
+        await lusdToken.approve(controller.address, dec(1000000000, 18), {from: account})
+    }
   })
 
   it("checkRecoveryMode(): Returns true if TCR falls below CCR", async () => {
@@ -1639,7 +1656,12 @@ contract('TroveManager - in Recovery Mode', async accounts => {
     await priceFeed.setPrice('200000000000000000000')
     const { collateral: B_coll_2, netDebt: B_netDebt_2 } = await openTrove({ ICR: toBN(dec(150, 16)), extraLUSDAmount: dec(480, 18), extraParams: { from: bob, value: bob_remainingCollateral } })
     const { collateral: D_coll } = await openTrove({ ICR: toBN(dec(266, 16)), extraLUSDAmount: B_netDebt_2, extraParams: { from: dennis } })
+
+    await contracts.mahaToken.mint(dennis, B_netDebt_2, {from: dennis})
+    await contracts.mahaToken.approve(contracts.governance.address, B_netDebt_2, {from: dennis})
     await th.redeemCollateral(dennis, contracts, B_netDebt_2)
+    assert.equal((await contracts.mahaToken.balanceOf(dennis)).toString(), '2259576000000000000000')
+
     price = await priceFeed.getPrice()
     const bob_surplus = B_coll_2.sub(B_netDebt_2.mul(mv._1e18BN).div(price))
     th.assertIsApproximatelyEqual(await collSurplusPool.getCollateral(bob), bob_surplus)
@@ -1662,7 +1684,11 @@ contract('TroveManager - in Recovery Mode', async accounts => {
     await th.fastForwardTime(timeValues.SECONDS_IN_ONE_WEEK * 2, web3.currentProvider)
 
     // Dennis redeems 40, so Bob has a surplus of (200 * 1 - 40) / 200 = 0.8 ETH
+    await contracts.mahaToken.mint(dennis, B_netDebt, {from: dennis})
+    await contracts.mahaToken.approve(contracts.governance.address, B_netDebt, {from: dennis})
     await th.redeemCollateral(dennis, contracts, B_netDebt)
+    assert.equal((await contracts.mahaToken.balanceOf(dennis)).toString(), '1871545500000000000000')
+
     let price = await priceFeed.getPrice()
     const bob_surplus = B_coll.sub(B_netDebt.mul(mv._1e18BN).div(price))
     th.assertIsApproximatelyEqual(await collSurplusPool.getCollateral(bob), bob_surplus)
