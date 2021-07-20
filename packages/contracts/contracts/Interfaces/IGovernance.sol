@@ -9,6 +9,8 @@ import "../Dependencies/IUniswapPairOracle.sol";
 interface IGovernance {
     function getMaxDebtCeiling() external view returns (uint256);
 
+    function getLiquidatedCollPercentToSP() external view returns (uint256);
+
     function getAllowMinting() external view returns (bool);
 
     function getPriceFeed() external view returns (IPriceFeed);

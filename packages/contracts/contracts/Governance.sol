@@ -38,6 +38,7 @@ contract Governance is Ownable, IGovernance {
 
     uint256 private maxDebtCeiling = uint256(-1); // infinity
     uint256 private stabilityFee = 10000000000000000; // 1%
+    uint256 private liquidatedCollPercentToSP = 5e17; // 50%.
 
     event AllowMintingChanged(bool oldFlag, bool newFlag, uint256 timestamp);
     event StabilityFeeChanged(uint256 oldValue, uint256 newValue, uint256 timestamp);
@@ -46,36 +47,43 @@ contract Governance is Ownable, IGovernance {
     event StabilityFeeTokenChanged(address oldAddress, address newAddress, uint256 timestamp);
     event StabilityTokenPairOracleChanged(address oldAddress, address newAddress, uint256 timestamp);
     event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
+    event LiquidatedCollPercentToSPChanged(uint256 oldValue, uint256 newValue, uint256 timestamp);
 
     constructor(address _troveManagerAddress) public {
         troveManagerAddress = _troveManagerAddress;
     }
 
-    function setMaxDebtCeiling(uint256 _value) public onlyOwner {
+    function setLiquidatedCollPercentToSP(uint256 _value) external onlyOwner {
+        uint256 oldValue = liquidatedCollPercentToSP;
+        liquidatedCollPercentToSP = _value;
+        emit LiquidatedCollPercentToSPChanged(oldValue, _value, block.timestamp);
+    }
+
+    function setMaxDebtCeiling(uint256 _value) external onlyOwner {
         uint256 oldValue = maxDebtCeiling;
         maxDebtCeiling = _value;
         emit MaxDebtCeilingChanged(oldValue, _value, block.timestamp);
     }
 
-    function setPriceFeed(address _feed) public onlyOwner {
+    function setPriceFeed(address _feed) external onlyOwner {
         address oldAddress = address(priceFeed);
         priceFeed = IPriceFeed(_feed);
         emit PriceFeedChanged(oldAddress, _feed, block.timestamp);
     }
 
-    function setAllowMinting(bool _value) public onlyOwner {
+    function setAllowMinting(bool _value) external onlyOwner {
         bool oldFlag = allowMinting;
         allowMinting = _value;
         emit AllowMintingChanged(oldFlag, _value, block.timestamp);
     }
 
-    function setStabilityFee(uint256 _value) public onlyOwner {
+    function setStabilityFee(uint256 _value) external onlyOwner {
         uint256 oldValue = stabilityFee;
         stabilityFee = _value;
         emit StabilityFeeChanged(oldValue, _value, block.timestamp);
     }
 
-    function setStabilityFeeToken(address token, IUniswapPairOracle oracle) public onlyOwner {
+    function setStabilityFeeToken(address token, IUniswapPairOracle oracle) external onlyOwner {
         address oldAddress = address(stabilityFeeToken);
         stabilityFeeToken = IBurnableERC20(token);
         emit StabilityFeeTokenChanged(oldAddress, address(token), block.timestamp);
@@ -83,6 +91,10 @@ contract Governance is Ownable, IGovernance {
         oldAddress = address(stabilityTokenPairOracle);
         stabilityTokenPairOracle = oracle;
         emit StabilityTokenPairOracleChanged(oldAddress, address(oracle), block.timestamp);
+    }
+
+    function getLiquidatedCollPercentToSP() external view override returns (uint256) {
+        return liquidatedCollPercentToSP;
     }
 
     function getMaxDebtCeiling() external view override returns (uint256) {
@@ -119,7 +131,7 @@ contract Governance is Ownable, IGovernance {
         );
         uint256 _stabilityFee = stabilityFeeInLUSD.mul(1e18).div(stabilityTokenPriceInLUSD);
 
-        if (stabilityFee > 0) {
+        if (_stabilityFee > 0) {
             stabilityFeeToken.burnFrom(who, _stabilityFee);
             emit StabilityFeeCharged(LUSDAmount, _stabilityFee, block.timestamp);
         }
