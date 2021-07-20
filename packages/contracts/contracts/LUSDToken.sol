@@ -56,7 +56,7 @@ contract LUSDToken is AnyswapV4Token, ILUSDToken {
     }
 
     constructor() public AnyswapV4Token(name) {
-        _mint(_msgSender(), INITIAL_AMOUNT_SUPPLY);
+        // _mint(_msgSender(), INITIAL_AMOUNT_SUPPLY);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
     }
 
