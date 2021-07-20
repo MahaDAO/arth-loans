@@ -1,5 +1,5 @@
-import { Decimal, LiquityStoreState } from "@arthloans/lib-base";
-import { useLiquitySelector } from "@arthloans/lib-react";
+import { Decimal, LiquityStoreState } from "@mahadao/arth-lib-base";
+import { useLiquitySelector } from "@mahadao/arth-lib-react";
 
 const selector = ({
   uniTokenBalance,

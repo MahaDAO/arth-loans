@@ -21,7 +21,7 @@ import {
   MINIMUM_BORROWING_RATE,
   LUSD_MINIMUM_DEBT,
   LUSD_MINIMUM_NET_DEBT
-} from "@arthloans/lib-base";
+} from "@mahadao/arth-lib-base";
 
 import { HintHelpers } from "../types";
 

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Card, Box, Heading, Flex, Button, Label, Input } from "theme-ui";
 
-import { Decimal, LiquityStoreState } from "@arthloans/lib-base";
-import { useLiquitySelector } from "@arthloans/lib-react";
+import { Decimal, LiquityStoreState } from "@mahadao/arth-lib-base";
+import { useLiquitySelector } from "@mahadao/arth-lib-react";
 
 import { useLiquity } from "../hooks/LiquityContext";
 

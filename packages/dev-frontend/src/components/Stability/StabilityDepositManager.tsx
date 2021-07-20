@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect } from "react";
 import { Button, Flex } from "theme-ui";
 
-import { Decimal, Decimalish, LiquityStoreState } from "@arthloans/lib-base";
-import { LiquityStoreUpdate, useLiquityReducer, useLiquitySelector } from "@arthloans/lib-react";
+import { Decimal, Decimalish, LiquityStoreState } from "@mahadao/arth-lib-base";
+import { LiquityStoreUpdate, useLiquityReducer, useLiquitySelector } from "@mahadao/arth-lib-react";
 
 import { COIN } from "../../strings";
 

@@ -1,4 +1,4 @@
-# @arthloans/lib-ethers
+# @mahadao/arth-lib-ethers
 
 [Ethers](https://www.npmjs.com/package/ethers)-based library for reading Liquity protocol state and sending transactions.
 
@@ -7,14 +7,14 @@
 Install in your project:
 
 ```
-npm install --save @arthloans/lib-base @arthloans/lib-ethers ethers@^5.0.0
+npm install --save @mahadao/arth-lib-base @mahadao/arth-lib-ethers ethers@^5.0.0
 ```
 
 Connecting to an Ethereum node and sending a transaction:
 
 ```javascript
 const { Wallet, providers } = require("ethers");
-const { EthersLiquity } = require("@arthloans/lib-ethers");
+const { EthersLiquity } = require("@mahadao/arth-lib-ethers");
 
 async function example() {
   const provider = new providers.JsonRpcProvider("http://localhost:8545");
@@ -34,7 +34,7 @@ async function example() {
 
 See [packages/examples](https://github.com/liquity/liquity/tree/master/packages/examples) in the repo.
 
-Liquity's [Dev UI](https://github.com/liquity/liquity/tree/master/packages/dev-frontend) itself contains many examples of `@arthloans/lib-ethers` use.
+Liquity's [Dev UI](https://github.com/liquity/liquity/tree/master/packages/dev-frontend) itself contains many examples of `@mahadao/arth-lib-ethers` use.
 
 ## API Reference
 

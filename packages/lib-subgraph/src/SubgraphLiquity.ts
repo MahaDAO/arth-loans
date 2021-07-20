@@ -15,7 +15,7 @@ import {
   TroveWithPendingRedistribution,
   UserTrove,
   _emptyTrove
-} from "@arthloans/lib-base";
+} from "@mahadao/arth-lib-base";
 
 import { OrderDirection } from "../types/globalTypes";
 import { Global } from "../types/Global";

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Button, Box, Flex, Card, Heading } from "theme-ui";
 
-import { Decimal, Percent, LiquityStoreState, MINIMUM_COLLATERAL_RATIO } from "@arthloans/lib-base";
-import { useLiquitySelector } from "@arthloans/lib-react";
+import { Decimal, Percent, LiquityStoreState, MINIMUM_COLLATERAL_RATIO } from "@mahadao/arth-lib-base";
+import { useLiquitySelector } from "@mahadao/arth-lib-react";
 
 import { COIN } from "../../strings";
 

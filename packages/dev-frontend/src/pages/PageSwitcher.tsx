@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { AddressZero } from "@ethersproject/constants";
 
-import { LiquityStoreState } from "@arthloans/lib-base";
-import { useLiquitySelector } from "@arthloans/lib-react";
+import { LiquityStoreState } from "@mahadao/arth-lib-base";
+import { useLiquitySelector } from "@mahadao/arth-lib-react";
 
 import { useLiquity } from "../hooks/LiquityContext";
 import { Dashboard } from "./Dashboard";

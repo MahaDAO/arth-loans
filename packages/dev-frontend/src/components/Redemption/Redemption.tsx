@@ -1,5 +1,5 @@
-import { BlockPolledLiquityStoreState } from "@arthloans/lib-ethers";
-import { useLiquitySelector } from "@arthloans/lib-react";
+import { BlockPolledLiquityStoreState } from "@mahadao/arth-lib-ethers";
+import { useLiquitySelector } from "@mahadao/arth-lib-react";
 
 import { useLiquity } from "../../hooks/LiquityContext";
 import { DisabledRedemption } from "./DisabledRedemption";

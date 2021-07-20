@@ -1,6 +1,6 @@
 import { useEffect, useReducer } from "react";
 
-import { LiquityStoreState } from "@arthloans/lib-base";
+import { LiquityStoreState } from "@mahadao/arth-lib-base";
 
 import { equals } from "../utils/equals";
 import { useLiquityStore } from "./useLiquityStore";

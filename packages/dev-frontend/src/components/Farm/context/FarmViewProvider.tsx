@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { LiquityStoreState, Decimal } from "@arthloans/lib-base";
-import { useLiquitySelector } from "@arthloans/lib-react";
+import { LiquityStoreState, Decimal } from "@mahadao/arth-lib-base";
+import { useLiquitySelector } from "@mahadao/arth-lib-react";
 import { FarmViewContext } from "./FarmViewContext";
 import { transitions } from "./transitions";
 import type { FarmView, FarmEvent } from "./transitions";

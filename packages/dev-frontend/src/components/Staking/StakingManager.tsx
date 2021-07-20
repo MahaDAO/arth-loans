@@ -7,9 +7,9 @@ import {
   LiquityStoreState,
   LQTYStake,
   LQTYStakeChange
-} from "@arthloans/lib-base";
+} from "@mahadao/arth-lib-base";
 
-import { LiquityStoreUpdate, useLiquityReducer, useLiquitySelector } from "@arthloans/lib-react";
+import { LiquityStoreUpdate, useLiquityReducer, useLiquitySelector } from "@mahadao/arth-lib-react";
 
 import { GT, COIN } from "../../strings";
 

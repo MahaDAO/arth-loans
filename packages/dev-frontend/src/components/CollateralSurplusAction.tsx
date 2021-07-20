@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import { Button, Flex, Spinner } from "theme-ui";
 
-import { LiquityStoreState } from "@arthloans/lib-base";
-import { useLiquitySelector } from "@arthloans/lib-react";
+import { LiquityStoreState } from "@mahadao/arth-lib-base";
+import { useLiquitySelector } from "@mahadao/arth-lib-react";
 
 import { useLiquity } from "../hooks/LiquityContext";
 

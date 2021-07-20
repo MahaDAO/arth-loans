@@ -1,8 +1,8 @@
 import React, { useState, useRef } from "react";
 import { Container, Flex, Button } from "theme-ui";
 
-import { LiquityStoreState } from "@arthloans/lib-base";
-import { useLiquitySelector } from "@arthloans/lib-react";
+import { LiquityStoreState } from "@mahadao/arth-lib-base";
+import { useLiquitySelector } from "@mahadao/arth-lib-react";
 
 import { Icon } from "./Icon";
 import { SystemStats } from "./SystemStats";

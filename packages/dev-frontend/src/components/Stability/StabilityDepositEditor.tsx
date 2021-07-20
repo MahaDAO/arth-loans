@@ -7,9 +7,9 @@ import {
   StabilityDeposit,
   LiquityStoreState,
   Difference
-} from "@arthloans/lib-base";
+} from "@mahadao/arth-lib-base";
 
-import { useLiquitySelector } from "@arthloans/lib-react";
+import { useLiquitySelector } from "@mahadao/arth-lib-react";
 
 import { COIN, GT } from "../../strings";
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { Heading, Box, Flex, Card, Button } from "theme-ui";
-import { Decimal, LiquityStoreState } from "@arthloans/lib-base";
+import { Decimal, LiquityStoreState } from "@mahadao/arth-lib-base";
 import { LP } from "../../../../strings";
 import { Icon } from "../../../Icon";
 import { EditableRow, StaticRow } from "../../../Trove/Editor";
@@ -12,7 +12,7 @@ import { Description } from "../Description";
 import { Approve } from "../Approve";
 import { Validation } from "../Validation";
 import { useValidationState } from "../../context/useValidationState";
-import { useLiquitySelector } from "@arthloans/lib-react";
+import { useLiquitySelector } from "@mahadao/arth-lib-react";
 
 const transactionId = /farm-/;
 const selector = ({ totalStakedUniTokens }: LiquityStoreState) => ({ totalStakedUniTokens });

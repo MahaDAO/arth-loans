@@ -4,7 +4,7 @@ import { Flex, Spinner, Heading, ThemeProvider as ThemeUIThemeProvider, Paragrap
 import { ThemeProvider } from 'styled-components';
 import ModalsProvider from './components/Modals/index';
 import { SnackbarProvider } from 'notistack';
-import { BatchedWebSocketAugmentedWeb3Provider } from "@arthloans/providers";
+import { BatchedWebSocketAugmentedWeb3Provider } from "@mahadao/arth-providers";
 import { LiquityProvider } from "./hooks/LiquityContext";
 import { WalletConnector } from "./components/WalletConnector";
 import { TransactionProvider } from "./components/Transaction";

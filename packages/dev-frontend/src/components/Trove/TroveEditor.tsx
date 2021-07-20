@@ -9,8 +9,8 @@ import {
   Trove,
   LiquityStoreState,
   LUSD_LIQUIDATION_RESERVE
-} from "@arthloans/lib-base";
-import { useLiquitySelector } from "@arthloans/lib-react";
+} from "@mahadao/arth-lib-base";
+import { useLiquitySelector } from "@mahadao/arth-lib-react";
 
 import { COIN } from "../../strings";
 

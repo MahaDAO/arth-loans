@@ -1,6 +1,6 @@
 import { Button } from "theme-ui";
 
-import { Decimal, LQTYStakeChange } from "@arthloans/lib-base";
+import { Decimal, LQTYStakeChange } from "@mahadao/arth-lib-base";
 
 import { useLiquity } from "../../hooks/LiquityContext";
 import { useTransactionFunction } from "../Transaction";

@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { Card, Heading, Box, Flex, Button } from "theme-ui";
-import { useLiquitySelector } from "@arthloans/lib-react";
-import { LiquityStoreState } from "@arthloans/lib-base";
+import { useLiquitySelector } from "@mahadao/arth-lib-react";
+import { LiquityStoreState } from "@mahadao/arth-lib-base";
 import { DisabledEditableRow } from "./Editor";
 import { useTroveView } from "./context/TroveViewContext";
 import { Icon } from "../Icon";

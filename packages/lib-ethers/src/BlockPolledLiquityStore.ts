@@ -9,7 +9,7 @@ import {
   StabilityDeposit,
   LQTYStake,
   LiquityStore
-} from "@arthloans/lib-base";
+} from "@mahadao/arth-lib-base";
 
 import { ReadableEthersLiquity } from "./ReadableEthersLiquity";
 import {
@@ -20,7 +20,7 @@ import {
 import { EthersCallOverrides, EthersProvider } from "./types";
 
 /**
- * Extra state added to {@link @arthloans/lib-base#LiquityStoreState} by
+ * Extra state added to {@link @mahadao/arth-lib-base#LiquityStoreState} by
  * {@link BlockPolledLiquityStore}.
  *
  * @public
@@ -42,7 +42,7 @@ export interface BlockPolledLiquityStoreExtraState {
 
 /**
  * The type of {@link BlockPolledLiquityStore}'s
- * {@link @arthloans/lib-base#LiquityStore.state | state}.
+ * {@link @mahadao/arth-lib-base#LiquityStore.state | state}.
  *
  * @public
  */
@@ -62,7 +62,7 @@ const promiseAllValues = <T>(object: T) => {
 const decimalify = (bigNumber: BigNumber) => Decimal.fromBigNumberString(bigNumber.toHexString());
 
 /**
- * Ethers-based {@link @arthloans/lib-base#LiquityStore} that updates state whenever there's a new
+ * Ethers-based {@link @mahadao/arth-lib-base#LiquityStore} that updates state whenever there's a new
  * block.
  *
  * @public

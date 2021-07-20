@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react";
 
-import { Decimal, LUSD_MINIMUM_NET_DEBT, Trove } from "@arthloans/lib-base";
+import { Decimal, LUSD_MINIMUM_NET_DEBT, Trove } from "@mahadao/arth-lib-base";
 
 import App from "./App";
 

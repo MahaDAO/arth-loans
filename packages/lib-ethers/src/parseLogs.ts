@@ -3,7 +3,7 @@ import { AddressZero } from "@ethersproject/constants";
 import { Log, TransactionReceipt } from "@ethersproject/abstract-provider";
 import { LogDescription, Interface } from "@ethersproject/abi";
 
-import { Decimal } from "@arthloans/lib-base";
+import { Decimal } from "@mahadao/arth-lib-base";
 
 import { _LiquityContracts, _TypedLiquityContract } from "./contracts";
 

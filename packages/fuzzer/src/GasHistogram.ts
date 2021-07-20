@@ -3,8 +3,11 @@ import assert from "assert";
 import { BigNumber } from "@ethersproject/bignumber";
 import { TransactionReceipt } from "@ethersproject/abstract-provider";
 
-import { EthersTransactionFailedError, SentEthersLiquityTransaction } from "@arthloans/lib-ethers";
-import { MinedReceipt } from "@arthloans/lib-base";
+import {
+  EthersTransactionFailedError,
+  SentEthersLiquityTransaction
+} from "@mahadao/arth-lib-ethers";
+import { MinedReceipt } from "@mahadao/arth-lib-base";
 
 // Supports a max of 8 million gas
 const intervalWidth = 10000;

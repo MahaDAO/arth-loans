@@ -12,10 +12,10 @@ import {
   LUSD_LIQUIDATION_RESERVE,
   Trove,
   TroveWithPendingRedistribution
-} from "@arthloans/lib-base";
+} from "@mahadao/arth-lib-base";
 
-import { EthersLiquity as Liquity } from "@arthloans/lib-ethers";
-import { SubgraphLiquity } from "@arthloans/lib-subgraph";
+import { EthersLiquity as Liquity } from "@mahadao/arth-lib-ethers";
+import { SubgraphLiquity } from "@mahadao/arth-lib-subgraph";
 
 import {
   checkPoolBalances,

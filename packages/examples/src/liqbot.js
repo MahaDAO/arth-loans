@@ -1,7 +1,7 @@
 const { red, blue, green, yellow, dim, bold } = require("chalk");
 const { Wallet, providers } = require("ethers");
-const { Decimal, UserTrove, LUSD_LIQUIDATION_RESERVE } = require("@arthloans/lib-base");
-const { EthersLiquity, EthersLiquityWithStore } = require("@arthloans/lib-ethers");
+const { Decimal, UserTrove, LUSD_LIQUIDATION_RESERVE } = require("@mahadao/arth-lib-base");
+const { EthersLiquity, EthersLiquityWithStore } = require("@mahadao/arth-lib-ethers");
 
 function log(message) {
   console.log(`${dim(`[${new Date().toLocaleTimeString()}]`)} ${message}`);

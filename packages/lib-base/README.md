@@ -1,8 +1,8 @@
-# @arthloans/lib-base
+# @mahadao/arth-lib-base
 
 Shared interfaces and classes of the Liquity SDK.
 
-Needs to be installed in order to use other Liquity SDK packages, for example [@arthloans/lib-ethers](https://www.npmjs.com/package/@arthloans/lib-ethers).
+Needs to be installed in order to use other Liquity SDK packages, for example [@mahadao/arth-lib-ethers](https://www.npmjs.com/package/@mahadao/arth-lib-ethers).
 
 ## API Reference
 

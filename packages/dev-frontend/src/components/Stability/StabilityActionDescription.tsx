@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Decimal, StabilityDeposit, StabilityDepositChange } from "@arthloans/lib-base";
+import { Decimal, StabilityDeposit, StabilityDepositChange } from "@mahadao/arth-lib-base";
 
 import { COIN, GT } from "../../strings";
 import { ActionDescription, Amount } from "../ActionDescription";

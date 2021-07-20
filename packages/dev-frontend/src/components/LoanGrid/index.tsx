@@ -25,8 +25,8 @@ import TransparentInfoDiv from '../InfoDiv'
 import { useMediaQuery } from 'react-responsive';
 import CustomSuccessModal from '../CustomSuccessModal';
 import { TroveView } from '../Trove/context/types';
-import { LiquityStoreState, Percent } from '@arthloans/lib-base';
-import { useLiquitySelector } from '@arthloans/lib-react';
+import { LiquityStoreState, Percent } from '@mahadao/arth-lib-base';
+import { useLiquitySelector } from '@mahadao/arth-lib-react';
 
 interface LoanProps {
     type: 'loan' | 'redeem'

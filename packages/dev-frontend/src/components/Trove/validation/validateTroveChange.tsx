@@ -10,7 +10,7 @@ import {
   LiquityStoreState,
   TroveClosureParams,
   TroveCreationParams
-} from "@arthloans/lib-base";
+} from "@mahadao/arth-lib-base";
 
 import { COIN } from "../../../strings";
 

@@ -3,7 +3,7 @@ import {
   LiquityStoreState,
   StabilityDeposit,
   StabilityDepositChange
-} from "@arthloans/lib-base";
+} from "@mahadao/arth-lib-base";
 
 import { COIN } from "../../../strings";
 import { Amount } from "../../ActionDescription";

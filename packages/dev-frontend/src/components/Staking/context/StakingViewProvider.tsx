@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
-import { LiquityStoreState, LQTYStake } from "@arthloans/lib-base";
-import { LiquityStoreUpdate, useLiquityReducer } from "@arthloans/lib-react";
+import { LiquityStoreState, LQTYStake } from "@mahadao/arth-lib-base";
+import { LiquityStoreUpdate, useLiquityReducer } from "@mahadao/arth-lib-react";
 
 import { useMyTransactionState } from "../../Transaction";
 

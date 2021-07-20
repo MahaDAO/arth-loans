@@ -7,8 +7,8 @@ import { defaultAbiCoder } from "@ethersproject/abi";
 import { buildStyles, CircularProgressbarWithChildren } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 
-import { EthersTransactionOverrides } from "@arthloans/lib-ethers";
-import { SentLiquityTransaction, LiquityReceipt } from "@arthloans/lib-base";
+import { EthersTransactionOverrides } from "@mahadao/arth-lib-ethers";
+import { SentLiquityTransaction, LiquityReceipt } from "@mahadao/arth-lib-base";
 
 import { useLiquity } from "../hooks/LiquityContext";
 

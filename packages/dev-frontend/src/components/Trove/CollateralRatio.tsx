@@ -1,7 +1,7 @@
 import React from "react";
 import { Flex, Box, Card } from "theme-ui";
 
-import { CRITICAL_COLLATERAL_RATIO, Decimal, Difference, Percent } from "@arthloans/lib-base";
+import { CRITICAL_COLLATERAL_RATIO, Decimal, Difference, Percent } from "@mahadao/arth-lib-base";
 
 import { Icon } from "../Icon";
 

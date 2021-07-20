@@ -1,5 +1,5 @@
 import React from "react";
-import { Decimal } from "@arthloans/lib-base";
+import { Decimal } from "@mahadao/arth-lib-base";
 import { LP } from "../../../strings";
 import { ErrorDescription } from "../../ErrorDescription";
 import { useValidationState } from "../context/useValidationState";

@@ -1,6 +1,6 @@
 import { useContext } from "react";
 
-import { LiquityStore } from "@arthloans/lib-base";
+import { LiquityStore } from "@mahadao/arth-lib-base";
 
 import { LiquityStoreContext } from "../components/LiquityStoreProvider";
 

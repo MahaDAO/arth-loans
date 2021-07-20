@@ -1,4 +1,4 @@
-import { Decimal } from "@arthloans/lib-base";
+import { Decimal } from "@mahadao/arth-lib-base";
 
 type UniswapResponse = {
   data?: {

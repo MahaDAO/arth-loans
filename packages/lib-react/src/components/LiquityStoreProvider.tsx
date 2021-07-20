@@ -1,4 +1,4 @@
-import { LiquityStore } from "@arthloans/lib-base";
+import { LiquityStore } from "@mahadao/arth-lib-base";
 import React, { createContext, useEffect, useState } from "react";
 
 export const LiquityStoreContext = createContext<LiquityStore | undefined>(undefined);

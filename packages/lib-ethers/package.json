@@ -1,7 +1,7 @@
 {
-  "name": "@arthloans/lib-ethers",
+  "name": "@mahadao/arth-lib-ethers",
   "version": "0.0.0-semantic-release",
-  "description": "Liquity SDK Ethers-based implementation",
+  "description": "ARTH Loans SDK Ethers-based implementation",
   "keywords": [
     "Liquity",
     "protocol",
@@ -10,7 +10,7 @@
   ],
   "homepage": "https://github.com/liquity/liquity#readme",
   "license": "MIT",
-  "author": "Daniel Simon <dani@liquity.org>",
+  "author": "Steven Enamakel <enamakel@mahadao.com>",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "https://github.com/liquity/dev",
@@ -34,7 +34,7 @@
     "test-live:run": "cross-env USE_LIVE_VERSION=true hardhat test"
   },
   "peerDependencies": {
-    "@arthloans/lib-base": "^3.0.0",
+    "@mahadao/arth-lib-base": "^3.0.0",
     "ethers": "^5.0.0"
   },
   "devDependencies": {

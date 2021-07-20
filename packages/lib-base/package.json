@@ -1,9 +1,10 @@
 {
-  "name": "@arthloans/lib-base",
+  "name": "@mahadao/arth-lib-base",
   "version": "0.0.0-semantic-release",
-  "description": "Liquity SDK shared interfaces",
+  "description": "ARTH loans SDK shared interfaces",
   "keywords": [
-    "Liquity",
+    "arthcoin",
+    "mahadao",
     "protocol",
     "DeFi",
     "Ethereum"

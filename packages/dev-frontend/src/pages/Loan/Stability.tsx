@@ -25,8 +25,8 @@ import prettyNumber from '../../components/PrettyNumber';
 import { useMediaQuery } from 'react-responsive';
 import { StabilityView } from '../../components/Stability/context/types';
 import { useStabilityView } from '../../components/Stability/context/StabilityViewContext';
-import { LiquityStoreUpdate, useLiquityReducer, useLiquitySelector } from '@arthloans/lib-react';
-import { Decimal, Decimalish, LiquityStoreState } from '@arthloans/lib-base';
+import { LiquityStoreUpdate, useLiquityReducer, useLiquitySelector } from '@mahadao/arth-lib-react';
+import { Decimal, Decimalish, LiquityStoreState } from '@mahadao/arth-lib-base';
 import {
     selectForStabilityDepositChangeValidation,
     validateStabilityDepositChange

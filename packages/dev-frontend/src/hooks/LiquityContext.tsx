@@ -4,13 +4,13 @@ import { getNetwork } from "@ethersproject/networks";
 import { Web3Provider } from "@ethersproject/providers";
 import { useWeb3React } from "@web3-react/core";
 
-import { isBatchedProvider, isWebSocketAugmentedProvider } from "@arthloans/providers";
+import { isBatchedProvider, isWebSocketAugmentedProvider } from "@mahadao/arth-providers";
 import {
   BlockPolledLiquityStore,
   EthersLiquity,
   EthersLiquityWithStore,
   _connectByChainId
-} from "@arthloans/lib-ethers";
+} from "@mahadao/arth-lib-ethers";
 
 import { LiquityFrontendConfig, getConfig } from "../config";
 
