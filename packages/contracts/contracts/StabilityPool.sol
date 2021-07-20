@@ -682,6 +682,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         coreController.burn(address(this), _debtToOffset);
 
         activePoolCached.sendETH(address(this), _collToAdd);
+        // TODO: trigger the funds deposit function either here or in active pool.
         activePoolCached.sendETH(governance.getLiquidationCollReceiverFund(), _collToFund);
     }
 
