@@ -535,7 +535,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
      * and transfers the Trove's ETH collateral from ActivePool to StabilityPool.
      * Only called by liquidation functions in the TroveManager.
      */
-    function offset(uint256 _debtToOffset, uint256 _collToAdd) external override {
+    function offset(uint256 _entireTroveCollateral, uint256 _debtToOffset, uint256 _entireTroveCollateralAfterLiquidatorShare) external override {
         _requireCallerIsTroveManager();
         uint256 totalLUSD = totalLUSDDeposits; // cached to save an SLOAD
         if (totalLUSD == 0 || _debtToOffset == 0) {
@@ -544,18 +544,35 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
         _triggerLQTYIssuance(communityIssuance);
 
+        (uint256 finalCollToAdd, uint256 finalCollToFund) = _computeCollateralToRedistribution(
+            _entireTroveCollateral, 
+            _entireTroveCollateralAfterLiquidatorShare
+        );
         (uint256 ETHGainPerUnitStaked, uint256 LUSDLossPerUnitStaked) = _computeRewardsPerUnitStaked(
-            _collToAdd,
+            finalCollToAdd,
             _debtToOffset,
             totalLUSD
         );
 
         _updateRewardSumAndProduct(ETHGainPerUnitStaked, LUSDLossPerUnitStaked); // updates S and P
 
-        _moveOffsetCollAndDebt(_collToAdd, _debtToOffset);
+        _moveOffsetCollAndDebt(finalCollToAdd, finalCollToFund, _debtToOffset);
     }
 
     // --- Offset helper functions ---
+
+    function _computeCollateralToRedistribution(
+        uint256 _entireTroveCollateral, 
+        uint256 _entireCollateralAfterLiquidatorShare
+    ) internal returns (uint256, uint256) {
+        // 1. Get the collateral that pool should recieve according to entire trove collateral(this calculation includes 0.5% that is given to liquidator).
+        uint256 collateralToThisAddress = _entireTroveCollateral.mul(governance.getLiquidatedCollPercentToSP()).div(_100pct);
+        
+        // 2. Get the amount that should be given to fund if we also take stability pool share out.
+        uint256 collateralToFund = _entireCollateralAfterLiquidatorShare.sub(collateralToThisAddress);
+
+        return (collateralToThisAddress, collateralToFund);
+    }
 
     function _computeRewardsPerUnitStaked(
         uint256 _collToAdd,
@@ -653,7 +670,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         emit P_Updated(newP);
     }
 
-    function _moveOffsetCollAndDebt(uint256 _collToAdd, uint256 _debtToOffset) internal {
+    function _moveOffsetCollAndDebt(uint256 _collToAdd, uint256 _collToFund, uint256 _debtToOffset) internal {
         IActivePool activePoolCached = activePool;
 
         // Cancel the liquidated LUSD debt with the LUSD in the stability pool
@@ -665,6 +682,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         coreController.burn(address(this), _debtToOffset);
 
         activePoolCached.sendETH(address(this), _collToAdd);
+        activePoolCached.sendETH(governance.getLiquidationCollReceiverFund(), _collToFund);
     }
 
     function _decreaseLUSD(uint256 _amount) internal {
