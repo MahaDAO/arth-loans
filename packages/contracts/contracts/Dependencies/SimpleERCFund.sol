@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import {IERC20} from "./IERC20.sol";
 import {SafeERC20} from "./SafeERC20.sol";
-import {Operator} from "../../access/Operator.sol";
+import {Operator} from "./Operator.sol";
 import {ISimpleERCFund} from "./ISimpleERCFund.sol";
 
 contract SimpleERCFund is ISimpleERCFund, Operator {
