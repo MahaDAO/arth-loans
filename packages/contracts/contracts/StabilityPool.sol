@@ -544,7 +544,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
         _triggerLQTYIssuance(communityIssuance);
 
-        (uint256 finalCollToAdd, uint256 finalCollToFund) = _computeCollateralToRedistribution(
+        (uint256 finalCollToAdd, uint256 finalCollToFund) = _computeCollateralDistribution(
             _entireTroveCollateral, 
             _entireTroveCollateralAfterLiquidatorShare
         );
@@ -561,7 +561,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
     // --- Offset helper functions ---
 
-    function _computeCollateralToRedistribution(
+    function _computeCollateralDistribution(
         uint256 _entireTroveCollateral, 
         uint256 _entireCollateralAfterLiquidatorShare
     ) internal returns (uint256, uint256) {
