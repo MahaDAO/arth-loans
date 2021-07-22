@@ -1289,8 +1289,9 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
         _requireUserAcceptsFee(totals.ETHFee, totals.totalETHDrawn, _maxFeePercentage);
 
-        // Send the ETH fee to the LQTY staking contract
+        // Send the ETH fee to the governance contract.
         contractsCache.activePool.sendETH(address(contractsCache.governance), totals.ETHFee);
+        // Governance nows has the ETH fee and hence can send it to fund.
         contractsCache.governance.sendToFund(wethAddress, totals.ETHFee, "Redeeming fee triggered");
 
         totals.ETHToSendToRedeemer = totals.totalETHDrawn.sub(totals.ETHFee);
@@ -1304,8 +1305,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         // Update Active Pool LUSD, and send ETH to account
         contractsCache.activePool.decreaseLUSDDebt(totals.totalLUSDToRedeem);
         contractsCache.activePool.sendETH(msg.sender, totals.ETHToSendToRedeemer);
-
-        governance.chargeStabilityFee(msg.sender, _LUSDamount);
+        contractsCache.governance.chargeStabilityFee(msg.sender, _LUSDamount);
     }
 
     // --- Helper functions ---

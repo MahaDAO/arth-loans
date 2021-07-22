@@ -540,7 +540,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     function _sendFeeToFund(ILUSDToken _lusdToken, uint256 _LUSDFeeToFund) internal {
+        // 1. Mint the fee tokens to governance.
         coreController.mint(address(governance), _LUSDFeeToFund);
+        // 2. The governance nows has the fee tokens, and hence can be sent to funds by governance.
         governance.sendToFund(address(_lusdToken), _LUSDFeeToFund, "Borrowing fee triggered");
     }
 
