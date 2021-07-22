@@ -526,24 +526,22 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         if (LUSDFee > 0) {
             // If frontEndTag is not there then send entire fee to fund.
             if (_frontEndTag == address(0)) {
-                _sendFeeToFund(LUSDFee);
+                _sendFeeToFund(_lusdToken, LUSDFee);
             } else {
                 // Else split and send half to fund and half to frontend.
                 uint256 feeToFrontEnd = LUSDFee.mul(50).div(100);
                 uint256 remainingFee = LUSDFee.sub(feeToFrontEnd);
                 coreController.mint(_frontEndTag, feeToFrontEnd);  // send half to frontend.
-                _sendFeeToFund(remainingFee);
+                _sendFeeToFund(_lusdToken, remainingFee);  // And reamining half to fund.
             }
         }
 
         return LUSDFee;
     }
 
-    function _sendFeeToFund(uint256 _LUSDFeeToFund) internal {
-        ISimpleERCFund fund = governance.getFund();
-        coreController.mint(address(this), _LUSDFeeToFund);
-        weth.approve(address(fund), _LUSDFeeToFund);
-        fund.deposit(address(weth), _LUSDFeeToFund, "Borrowing fee triggered");
+    function _sendFeeToFund(ILUSDToken _lusdToken, uint256 _LUSDFeeToFund) internal {
+        coreController.mint(address(governance), _LUSDFeeToFund);
+        governance.sendToFund(address(_lusdToken), _LUSDFeeToFund, "Borrowing fee triggered");
     }
 
     function _getUSDValue(uint256 _coll, uint256 _price) internal pure returns (uint256) {
