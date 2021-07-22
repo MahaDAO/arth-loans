@@ -91,9 +91,9 @@ contract EchidnaTester {
             address(lusdToken),
             address(sortedTroves),
             address(0),
-            address(0),
             address(governance),
-            address(controller)
+            address(controller),
+            address(weth)
         );
 
         borrowerOperations.setAddresses(
