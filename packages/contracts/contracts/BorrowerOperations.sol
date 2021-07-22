@@ -530,10 +530,23 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 LUSDFee = _troveManager.getBorrowingFee(_LUSDAmount);
 
         _requireUserAcceptsFee(LUSDFee, _LUSDAmount, _maxFeePercentage);
-
-        coreController.mint(_frontEndTag, LUSDFee);
+        
+        // If fee > 0, send half to frontend and half to fund.
+        if (LUSDFee > 0) {
+            uint256 feeToFrontEnd = LUSDFee.mul(50).div(100);
+            uint256 remainingFee = LUSDFee.sub(feeToFrontEnd);
+            coreController.mint(_frontEndTag, feeToFrontEnd);  // send half to frontend.
+            _sendFeeToFund(remainingFee);
+        }
 
         return LUSDFee;
+    }
+
+    function _sendFeeToFund(uint256 _LUSDFeeToFund) internal {
+        ISimpleERCFund fund = governance.getFund();
+        coreController.mint(address(this), _LUSDFeeToFund);
+        weth.approve(address(fund), _LUSDFeeToFund);
+        fund.deposit(address(weth), _LUSDFeeToFund, "Borrowing fee triggered");
     }
 
     function _getUSDValue(uint256 _coll, uint256 _price) internal pure returns (uint256) {
