@@ -176,6 +176,8 @@ interface ITroveManager is ILiquityBase {
 
     function setTroveStatus(address _borrower, uint256 num) external;
 
+    function setTroveFrontEndTag(address _borrower, address _frontEndTag) external;
+
     function increaseTroveColl(address _borrower, uint256 _collIncrease) external returns (uint256);
 
     function decreaseTroveColl(address _borrower, uint256 _collDecrease) external returns (uint256);
