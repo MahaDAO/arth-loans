@@ -23,4 +23,6 @@ interface IGovernance {
     function getFund() external view returns (ISimpleERCFund);
 
     function chargeStabilityFee(address who, uint256 LUSDAmount) external;
+
+    function sendToFund(address token, uint256 amount, string memory reason) external;
 }

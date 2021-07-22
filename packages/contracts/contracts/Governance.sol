@@ -24,6 +24,7 @@ contract Governance is ARTHOwnable, IGovernance {
     uint256 public constant _100pct = 1000000000000000000; // 1e18 == 100%
 
     address public immutable troveManagerAddress;
+    address public immutable borrowerOperationAddress;
 
     // Maximum amount of debt that this deployment can have (used to limit exposure to volatile assets)
     // set this according to how much ever debt we'd like to accumulate; default is infinity
@@ -51,9 +52,11 @@ contract Governance is ARTHOwnable, IGovernance {
     event StabilityTokenPairOracleChanged(address oldAddress, address newAddress, uint256 timestamp);
     event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
     event FundAddressChanged(address oldAddress, address newAddress, uint256 timestamp);
+    event SentToFund(address token, uint256 amount, uint256 timestamp, string reason);
 
-    constructor(address _troveManagerAddress) public {
+    constructor(address _troveManagerAddress, address _borrowerOperationAddress) public {
         troveManagerAddress = _troveManagerAddress;
+        borrowerOperationAddress = _borrowerOperationAddress;
     }
 
     function setMaxDebtCeiling(uint256 _value) public onlyOwner {
@@ -140,7 +143,23 @@ contract Governance is ARTHOwnable, IGovernance {
         }
     }
 
+    // Amount of tokens have to be transferred to this addr before calling this func.
+    function sendToFund(address token, uint256 amount, string memory reason) external override {
+        _requireCallerIsBOorTroveM();
+
+        IERC20(token).approve(address(fund), amount);
+        fund.deposit(token, amount, reason);
+        emit SentToFund(token, amount, block.timestamp, reason);
+    }
+
     function _requireCallerIsTroveManager() internal view {
         require(msg.sender == troveManagerAddress, "Governance: Caller is not TroveManager");
+    }
+
+    function _requireCallerIsBOorTroveM() internal view {
+        require(
+            msg.sender == borrowerOperationAddress || msg.sender == troveManagerAddress,
+            "Governance: Caller is neither BorrowerOperations nor TroveManager"
+        );
     }
 }
