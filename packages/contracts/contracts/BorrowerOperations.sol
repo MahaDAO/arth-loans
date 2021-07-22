@@ -183,7 +183,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _lowerHint,
         address _frontEndTag
     ) external override {
-        _requireFrontEndIsRegistered(_frontEndTag);
+        _requireFrontEndIsRegisteredOrZero(_frontEndTag);
         _requireFrontEndNotRegistered(msg.sender);
 
         ContractsCache memory contractsCache = ContractsCache(troveManager, activePool, lusdToken, getPriceFeed(), gasPool);
@@ -524,10 +524,14 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         
         // If fee > 0, send half to frontend and half to fund.
         if (LUSDFee > 0) {
-            uint256 feeToFrontEnd = LUSDFee.mul(50).div(100);
-            uint256 remainingFee = LUSDFee.sub(feeToFrontEnd);
-            coreController.mint(_frontEndTag, feeToFrontEnd);  // send half to frontend.
-            _sendFeeToFund(remainingFee);
+            if (_frontEndTag == address(0)) {
+                _sendFeeToFund(LUSDFee);
+            } else {
+                uint256 feeToFrontEnd = LUSDFee.mul(50).div(100);
+                uint256 remainingFee = LUSDFee.sub(feeToFrontEnd);
+                coreController.mint(_frontEndTag, feeToFrontEnd);  // send half to frontend.
+                _sendFeeToFund(remainingFee);
+            }
         }
 
         return LUSDFee;
@@ -646,10 +650,10 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         );
     }
 
-    function _requireFrontEndIsRegistered(address _address) internal view {
+    function _requireFrontEndIsRegisteredOrZero(address _address) internal view {
         require(
-            frontEnds[_address],
-            "BorrowerOperations: Tag must be a registered front end."
+            frontEnds[_address] || _address == address(0),
+            "BorrowerOperations: Tag must be a registered front end, or the zero address"
         );
     }
 
