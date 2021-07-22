@@ -51,13 +51,7 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
         address lqtyTokenCached = address(troveManagerCached.lqtyToken());
         checkContract(lqtyTokenCached);
         lqtyToken = IERC20(lqtyTokenCached);
-
-        ILQTYStaking lqtyStakingCached = troveManagerCached.lqtyStaking();
-        require(
-            _lqtyStakingAddress == address(lqtyStakingCached),
-            "BorrowerWrappersScript: Wrong LQTYStaking address"
-        );
-        lqtyStaking = lqtyStakingCached;
+        lqtyStaking = ILQTYStaking(_lqtyStakingAddress);
     }
 
     function claimCollateralAndOpenTrove(
