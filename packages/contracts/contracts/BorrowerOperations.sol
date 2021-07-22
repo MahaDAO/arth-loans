@@ -522,11 +522,13 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
         _requireUserAcceptsFee(LUSDFee, _LUSDAmount, _maxFeePercentage);
         
-        // If fee > 0, send half to frontend and half to fund.
+        // If fee > 0, send fee.
         if (LUSDFee > 0) {
+            // If frontEndTag is not there then send entire to fund.
             if (_frontEndTag == address(0)) {
                 _sendFeeToFund(LUSDFee);
             } else {
+                // Else split and send half to fund and half to frontend.
                 uint256 feeToFrontEnd = LUSDFee.mul(50).div(100);
                 uint256 remainingFee = LUSDFee.sub(feeToFrontEnd);
                 coreController.mint(_frontEndTag, feeToFrontEnd);  // send half to frontend.
