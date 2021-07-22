@@ -172,6 +172,8 @@ interface ITroveManager is ILiquityBase {
 
     function getTroveDebt(address _borrower) external view returns (uint256);
 
+    function getTroveFrontEnd(address _borrower) external view returns (address);
+
     function getTroveColl(address _borrower) external view returns (uint256);
 
     function setTroveStatus(address _borrower, uint256 num) external;

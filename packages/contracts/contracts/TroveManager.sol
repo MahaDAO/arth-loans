@@ -1872,6 +1872,10 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         return Troves[_borrower].debt;
     }
 
+    function getTroveFrontEnd(address _borrower) external view override returns (address) {
+        return Troves[_borrower].frontEndTag;
+    }
+
     function getTroveColl(address _borrower) external view override returns (uint256) {
         return Troves[_borrower].coll;
     }
