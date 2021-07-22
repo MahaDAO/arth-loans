@@ -8,6 +8,7 @@ import "./Dependencies/LiquityMath.sol";
 import "./Dependencies/Ownable.sol";
 import "./Interfaces/IBurnableERC20.sol";
 import "./Interfaces/IGovernance.sol";
+import "./Interfaces/ISimpleERCFund.sol";
 
 /*
  * The Default Pool holds the ETH and LUSD debt (but not LUSD tokens) from liquidations that have been redistributed
@@ -34,6 +35,9 @@ contract Governance is Ownable, IGovernance {
     // price feed
     IPriceFeed private priceFeed;
 
+    // The fund which recieves all the fees.
+    ISimpleERCFund private fund;
+
     IUniswapPairOracle private stabilityTokenPairOracle;
 
     uint256 private maxDebtCeiling = uint256(-1); // infinity
@@ -46,6 +50,7 @@ contract Governance is Ownable, IGovernance {
     event StabilityFeeTokenChanged(address oldAddress, address newAddress, uint256 timestamp);
     event StabilityTokenPairOracleChanged(address oldAddress, address newAddress, uint256 timestamp);
     event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
+    event FundAddressChanged(address oldAddress, address newAddress, uint256 timestamp);
 
     constructor(address _troveManagerAddress) public {
         troveManagerAddress = _troveManagerAddress;
@@ -55,6 +60,12 @@ contract Governance is Ownable, IGovernance {
         uint256 oldValue = maxDebtCeiling;
         maxDebtCeiling = _value;
         emit MaxDebtCeilingChanged(oldValue, _value, block.timestamp);
+    }
+
+    function setFund(address _newFund) public onlyOwner {
+        address oldAddress = address(fund);
+        fund = ISimpleERCFund(_newFund);
+        emit FundAddressChanged(oldAddress, _newFund, block.timestamp);
     }
 
     function setPriceFeed(address _feed) public onlyOwner {
@@ -87,6 +98,10 @@ contract Governance is Ownable, IGovernance {
 
     function getMaxDebtCeiling() external view override returns (uint256) {
         return maxDebtCeiling;
+    }
+
+    function getFund() external view override returns (ISimpleERCFund) {
+        return fund;
     }
 
     function getStabilityFee() external view override returns (uint256) {
