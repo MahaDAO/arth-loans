@@ -23,6 +23,7 @@ interface ITroveManager is ILiquityBase {
     event CollSurplusPoolAddressChanged(address _collSurplusPoolAddress);
     event SortedTrovesAddressChanged(address _sortedTrovesAddress);
     event LQTYTokenAddressChanged(address _lqtyTokenAddress);
+    event WETHAddressChanged(address _wethAddressChanged);
     event GovernanceAddressChanged(address _governanceAddress);
     event CoreControllerAddressChanged(address _coreControllerAddress);
 

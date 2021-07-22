@@ -210,6 +210,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     event LQTYTokenAddressChanged(address _lqtyTokenAddress);
     event GovernanceAddressChanged(address _governanceAddress);
     event CoreControllerChanged(address _coreControllerAddress);
+    event WETHAddressChanged(address _wethAddress);
 
     event RewardSnapshotDetailsUpdated(address owner, address newOwner, uint256 timestamp);
     event TroveOwnersUpdated(address owner, address newOwner, uint256 idx, uint256 timestamp);
@@ -295,6 +296,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         governance = IGovernance(_governanceAddress);
         coreController = IController(_coreControllerAddress);
 
+        emit WETHAddressChanged(_wethAddress);
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
         emit GovernanceAddressChanged(_governanceAddress);
         emit ActivePoolAddressChanged(_activePoolAddress);
