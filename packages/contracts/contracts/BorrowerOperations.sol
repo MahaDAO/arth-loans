@@ -524,7 +524,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         
         // If fee > 0, send fee.
         if (LUSDFee > 0) {
-            // If frontEndTag is not there then send entire to fund.
+            // If frontEndTag is not there then send entire fee to fund.
             if (_frontEndTag == address(0)) {
                 _sendFeeToFund(LUSDFee);
             } else {
