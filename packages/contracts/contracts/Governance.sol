@@ -8,7 +8,7 @@ import "./Dependencies/LiquityMath.sol";
 import "./Dependencies/Ownable.sol";
 import "./Interfaces/IBurnableERC20.sol";
 import "./Interfaces/IGovernance.sol";
-import "./Interfaces/ISimpleERCFund.sol";
+import "./Dependencies/ISimpleERCFund.sol";
 
 /*
  * The Default Pool holds the ETH and LUSD debt (but not LUSD tokens) from liquidations that have been redistributed
