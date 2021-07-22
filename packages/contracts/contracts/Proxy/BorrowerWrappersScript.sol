@@ -65,7 +65,8 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
         uint256 _LUSDAmount,
         uint256 _ETHAmount,
         address _upperHint,
-        address _lowerHint
+        address _lowerHint,
+        address _frontEndTag
     ) external payable {
         uint256 balanceBefore = address(this).balance;
 
@@ -80,7 +81,7 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
         uint256 totalCollateral = balanceAfter.sub(balanceBefore).add(_ETHAmount);
 
         // Open trove with obtained collateral, plus collateral sent by user
-        borrowerOperations.openTrove(_maxFee, _LUSDAmount, totalCollateral, _upperHint, _lowerHint);
+        borrowerOperations.openTrove(_maxFee, _LUSDAmount, totalCollateral, _upperHint, _lowerHint, _frontEndTag);
     }
 
     function claimSPRewardsAndRecycle(

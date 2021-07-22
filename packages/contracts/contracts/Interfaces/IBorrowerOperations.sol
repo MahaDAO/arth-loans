@@ -52,7 +52,8 @@ interface IBorrowerOperations {
         uint256 _LUSDAmount,
         uint256 _ETHAmount,
         address _upperHint,
-        address _lowerHint
+        address _lowerHint,
+        address _frontEndTag
     ) external;
 
     function addColl(

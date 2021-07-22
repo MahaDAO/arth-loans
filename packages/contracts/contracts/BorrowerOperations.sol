@@ -189,8 +189,12 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 _LUSDAmount,
         uint256 _ETHAmount,
         address _upperHint,
-        address _lowerHint
+        address _lowerHint,
+        address _frontEndTag
     ) external override {
+        _requireFrontEndIsRegistered(_frontEndTag);
+        _requireFrontEndNotRegistered(msg.sender);
+
         ContractsCache memory contractsCache = ContractsCache(troveManager, activePool, lusdToken, getPriceFeed(), gasPool);
         LocalVariables_openTrove memory vars;
 
@@ -632,6 +636,13 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         require(
             !frontEnds[_address],
             "BorrowerOperations: must not already be a registered front end"
+        );
+    }
+
+    function _requireFrontEndIsRegistered(address _address) internal view {
+        require(
+            frontEnds[_address],
+            "BorrowerOperations: Tag must be a registered front end."
         );
     }
 
