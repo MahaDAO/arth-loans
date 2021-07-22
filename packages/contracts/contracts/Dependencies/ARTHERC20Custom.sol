@@ -3,7 +3,7 @@
 pragma solidity 0.6.11;
 
 import {IERC20} from "./IERC20.sol";
-import {ARTHOwnable} from "./ARTHOwnable.sol";
+import {TransferableOwnable} from "./TransferableOwnable.sol";
 import {Address} from "./Address.sol";
 import {Context} from "./Context.sol";
 import {SafeMath} from "./SafeMath.sol";
@@ -33,7 +33,7 @@ import {Pausable} from "./Pausable.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-abstract contract ARTHERC20Custom is Pausable, IERC20, ARTHOwnable {
+abstract contract ARTHERC20Custom is Pausable, IERC20, TransferableOwnable {
     using SafeMath for uint256;
 
     uint256 internal _totalSupply;

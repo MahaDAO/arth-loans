@@ -5,7 +5,7 @@ pragma solidity 0.6.11;
 import "./Dependencies/IERC20.sol";
 import "./Dependencies/IUniswapPairOracle.sol";
 import "./Dependencies/LiquityMath.sol";
-import "./Dependencies/ARTHOwnable.sol";
+import "./Dependencies/TransferableOwnable.sol";
 import "./Interfaces/IBurnableERC20.sol";
 import "./Interfaces/IGovernance.sol";
 import "./Dependencies/ISimpleERCFund.sol";
@@ -17,7 +17,7 @@ import "./Dependencies/ISimpleERCFund.sol";
  * When a trove makes an operation that applies its pending ETH and LUSD debt, its pending ETH and LUSD debt is moved
  * from the Default Pool to the Active Pool.
  */
-contract Governance is ARTHOwnable, IGovernance {
+contract Governance is TransferableOwnable, IGovernance {
     using SafeMath for uint256;
 
     string public constant NAME = "Governance";
