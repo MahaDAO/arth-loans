@@ -17,6 +17,7 @@ import "./Interfaces/IGovernance.sol";
 import "./Interfaces/ILUSDToken.sol";
 import "./Interfaces/IController.sol";
 import "./Interfaces/IGasPool.sol";
+import "./Dependencies/ISimpleERCFund.sol";
 
 contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOperations {
     string public constant NAME = "BorrowerOperations";
@@ -88,6 +89,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         adjustTrove
     }
 
+    mapping(address => bool) public frontEnds;
+
+    event FrontEndRegistered(address indexed _frontEnd, uint256 timestamp);
     event CoreControllerAddressChanged(address _coreControllerAddress);
     event TroveManagerAddressChanged(address _newTroveManagerAddress);
     event ActivePoolAddressChanged(address _activePoolAddress);
@@ -172,6 +176,13 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     // --- Borrower Trove Operations ---
+
+    function registerFrontEnd() external override {
+        _requireFrontEndNotRegistered(msg.sender);
+        _requireTroveisNotActive(troveManager, msg.sender);
+        frontEnds[msg.sender] = true;
+        emit FrontEndRegistered(msg.sender, block.timestamp);
+    }
 
     function openTrove(
         uint256 _maxFeePercentage,
@@ -616,6 +627,20 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     // --- 'Require' wrapper functions ---
+
+    function _requireFrontEndNotRegistered(address _address) internal view {
+        require(
+            !frontEnds[_address],
+            "BorrowerOperations: must not already be a registered front end"
+        );
+    }
+
+    function _requireValidKickbackRate(uint256 _kickbackRate) internal pure {
+        require(
+            _kickbackRate <= DECIMAL_PRECISION,
+            "BorrowerOperations: Kickback rate must be in range [0,1]"
+        );
+    }
 
     function _requireSingularCollChange(uint256 _ETHAmount, uint256 _collWithdrawal) internal pure {
         require(

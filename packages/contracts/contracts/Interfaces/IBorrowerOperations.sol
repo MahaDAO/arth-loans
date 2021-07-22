@@ -45,6 +45,8 @@ interface IBorrowerOperations {
         address _coreControllerAddress
     ) external;
 
+    function registerFrontEnd() external;
+
     function openTrove(
         uint256 _maxFee,
         uint256 _LUSDAmount,
