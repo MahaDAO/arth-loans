@@ -635,13 +635,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         );
     }
 
-    function _requireValidKickbackRate(uint256 _kickbackRate) internal pure {
-        require(
-            _kickbackRate <= DECIMAL_PRECISION,
-            "BorrowerOperations: Kickback rate must be in range [0,1]"
-        );
-    }
-
     function _requireSingularCollChange(uint256 _ETHAmount, uint256 _collWithdrawal) internal pure {
         require(
             _ETHAmount == 0 || _collWithdrawal == 0,
