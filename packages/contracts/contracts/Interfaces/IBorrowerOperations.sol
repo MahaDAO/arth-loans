@@ -39,7 +39,6 @@ interface IBorrowerOperations {
         address _collSurplusPoolAddress,
         address _sortedTrovesAddress,
         address _lusdTokenAddress,
-        address _lqtyStakingAddress,
         address _wethAddress,
         address _governanceAddress,
         address _coreControllerAddress

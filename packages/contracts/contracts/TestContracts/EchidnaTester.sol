@@ -105,7 +105,6 @@ contract EchidnaTester {
             address(collSurplusPool),
             address(sortedTroves),
             address(lusdToken),
-            address(0),
             address(weth),
             address(governance),
             address(controller)
