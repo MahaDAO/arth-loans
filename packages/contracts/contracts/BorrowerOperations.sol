@@ -212,7 +212,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
                 contractsCache.troveManager,
                 contractsCache.lusdToken,
                 _LUSDAmount,
-                _maxFeePercentage
+                _maxFeePercentage,
+                _frontEndTag
             );
             vars.netDebt = vars.netDebt.add(vars.LUSDFee);
         }
@@ -399,7 +400,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
                 contractsCache.troveManager,
                 contractsCache.lusdToken,
                 _LUSDChange,
-                _maxFeePercentage
+                _maxFeePercentage,
+                address(0)  // TODO: replace with frontend tag.
             );
             vars.netDebtChange = vars.netDebtChange.add(vars.LUSDFee); // The raw debt change includes the fee
         }
@@ -520,16 +522,15 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         ITroveManager _troveManager,
         ILUSDToken _lusdToken,
         uint256 _LUSDAmount,
-        uint256 _maxFeePercentage
+        uint256 _maxFeePercentage,
+        address _frontEndTag
     ) internal returns (uint256) {
         _troveManager.decayBaseRateFromBorrowing(); // decay the baseRate state variable
         uint256 LUSDFee = _troveManager.getBorrowingFee(_LUSDAmount);
 
         _requireUserAcceptsFee(LUSDFee, _LUSDAmount, _maxFeePercentage);
 
-        // Send fee to LQTY staking contract
-        lqtyStaking.increaseF_LUSD(LUSDFee);
-        coreController.mint(lqtyStakingAddress, LUSDFee);
+        coreController.mint(_frontEndTag, LUSDFee);
 
         return LUSDFee;
     }
