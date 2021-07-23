@@ -43,7 +43,7 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
   before(async () => {
     coreContracts = await deploymentHelper.deployLiquityCore(owner, owner)
     coreContracts.troveManager = await TroveManagerTester.new()
-    coreContracts.governance = await Governance.new(coreContracts.troveManager.address)
+    coreContracts.governance = await Governance.new(coreContracts.troveManager.address, coreContracts.borrowerOperations.address)
     coreContracts.controller = await Controller.new(
         coreContracts.troveManager.address,
         coreContracts.stabilityPool.address,
@@ -287,6 +287,7 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
 
   describe('DefaultPool', async accounts => {
     // sendETHToActivePool
+    // TODO: @steven, revert string is not matching with expected reason.
     it("sendETHToActivePool(): reverts when called by an account that is not TroveManager", async () => {
       // Attempt call from alice
       try {
@@ -298,6 +299,7 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
     })
 
     // increaseLUSD	
+    // TODO: @steven, revert string is not matching with expected reason.
     it("increaseLUSDDebt(): reverts when called by an account that is not TroveManager", async () => {
       // Attempt call from alice
       try {
@@ -309,6 +311,7 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
     })
 
     // decreaseLUSD	
+    // TODO: @steven, revert string is not matching with expected reason.
     it("decreaseLUSD(): reverts when called by an account that is not TroveManager", async () => {
       // Attempt call from alice
       try {
@@ -371,6 +374,7 @@ contract('Access Control: Liquity functions with the caller restricted to Liquit
     })
 
     // burn
+    // TODO: @steven, revert string is not matching with expected reason.
     it("burn(): reverts when called by an account that is not BO nor TroveM nor SP", async () => {
       // Attempt call from alice
       try {

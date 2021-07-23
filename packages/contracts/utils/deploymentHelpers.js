@@ -14,6 +14,7 @@ const ARTHController = artifacts.require("ARTHController")
 const Controller = artifacts.require("Controller")
 const Governance = artifacts.require("Governance")
 const MahaToken = artifacts.require("MockMaha")
+const EcosystemFund = artifacts.require("EcosystemFund")
 const MockUniswapOracle = artifacts.require("MockUniswapOracle")
 
 const WETH = artifacts.require("./WETH.sol")
@@ -105,12 +106,13 @@ class DeploymentHelper {
     const borrowerOperations = await BorrowerOperations.new()
     const hintHelpers = await HintHelpers.new()
     const lusdToken = await LUSDToken.new()
-    const governance = await Governance.new(troveManager.address)
+    const governance = await Governance.new(troveManager.address, borrowerOperations.address)
     const mahaToken = await MahaToken.new()
     const mahaMockUniswapOracle = await MockUniswapOracle.new()
+    const ecosystemFund = await EcosystemFund.new()
     const arthController = await ARTHController.new(
         lusdToken.address, 
-        lusdToken.address,
+        mahaToken.address,
         deployer,
         timelock
     )
@@ -123,6 +125,7 @@ class DeploymentHelper {
         gasPool.address
     )
 
+    EcosystemFund.setAsDeployed(ecosystemFund)
     MahaToken.setAsDeployed(mahaToken)
     MockUniswapOracle.setAsDeployed(mahaMockUniswapOracle)
     Governance.setAsDeployed(governance)
@@ -142,6 +145,7 @@ class DeploymentHelper {
     HintHelpers.setAsDeployed(hintHelpers)
 
     const coreContracts = {
+      ecosystemFund,
       governance,
       arthController,
       controller,
@@ -375,11 +379,12 @@ class DeploymentHelper {
 
   // Connect contracts to their dependencies
   static async connectCoreContracts(contracts, LQTYContracts) {
-
     await contracts.lusdToken.setArthController(contracts.arthController.address);
     await contracts.arthController.addPool(contracts.controller.address);
     await contracts.governance.setPriceFeed(contracts.priceFeedTestnet.address);
     await contracts.governance.setStabilityFeeToken(contracts.mahaToken.address, contracts.mahaMockUniswapOracle.address)
+    await contracts.governance.setFund(contracts.ecosystemFund.address)
+
     // set TroveManager addr in SortedTroves
     await contracts.sortedTroves.setParams(
       maxBytes32,
@@ -402,9 +407,9 @@ class DeploymentHelper {
       contracts.lusdToken.address,
       contracts.sortedTroves.address,
       LQTYContracts.lqtyToken.address,
-      LQTYContracts.lqtyStaking.address,
       contracts.governance.address,
-      contracts.controller.address
+      contracts.controller.address,
+      contracts.weth.address
     )
 
     // set contracts in BorrowerOperations 
@@ -417,7 +422,6 @@ class DeploymentHelper {
       contracts.collSurplusPool.address,
       contracts.sortedTroves.address,
       contracts.lusdToken.address,
-      LQTYContracts.lqtyStaking.address,
       contracts.weth.address,
       contracts.governance.address,
       contracts.controller.address
