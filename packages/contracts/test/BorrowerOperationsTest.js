@@ -9,14 +9,14 @@ const WETH = artifacts.require("./WETH")
 const Controller = artifacts.require("Controller")
 const Governance = artifacts.require("Governance")
 
-const th = testHelpers.TestHelper
 
+const th = testHelpers.TestHelper
+const ZERO_ADDR = th.ZERO_ADDRESS
 const dec = th.dec
 const toBN = th.toBN
 const mv = testHelpers.MoneyValues
 const timeValues = testHelpers.TimeValues
 
-const ZERO_ADDRESS = th.ZERO_ADDRESS
 const assertRevert = th.assertRevert
 
 /* NOTE: Some of the borrowing tests do not test for specific LUSD fee values. They only test that the
@@ -72,7 +72,7 @@ contract('BorrowerOperations', async accounts => {
       contracts = await deploymentHelper.deployLiquityCore(owner, owner)
       contracts.borrowerOperations = await BorrowerOperationsTester.new()
       contracts.troveManager = await TroveManagerTester.new()
-      contracts.governance = await Governance.new(contracts.troveManager.address)
+      contracts.governance = await Governance.new(contracts.troveManager.address, contracts.borrowerOperations.address)
       contracts.weth = await WETH.new()
       contracts.controller = await Controller.new(
         contracts.troveManager.address,
@@ -1392,14 +1392,14 @@ contract('BorrowerOperations', async accounts => {
       // Make the LUSD request 2 wei above min net debt to correct for floor division, and make net debt = min net debt + 1 wei
       await weth.deposit({ from: A, value: dec(100, 30) });
       await weth.approve(borrowerOperations.address, dec(100, 30), { from: A});
-      await borrowerOperations.openTrove(th._100pct, await getNetBorrowingAmount(MIN_NET_DEBT.add(toBN('2'))), dec(100, 30) ,A, A, { from: A})
+      await borrowerOperations.openTrove(th._100pct, await getNetBorrowingAmount(MIN_NET_DEBT.add(toBN('2'))), dec(100, 30) ,A, A, ZERO_ADDR, { from: A})
 
       const repayTxA = await borrowerOperations.repayLUSD(1, A, A, { from: A })
       assert.isTrue(repayTxA.receipt.status)
 
       await weth.deposit({ from: B, value: dec(100, 30) });
       await weth.approve(borrowerOperations.address, dec(100, 30), { from: B });
-      await borrowerOperations.openTrove(th._100pct, dec(20, 25), dec(100, 30),  B, B, { from: B })
+      await borrowerOperations.openTrove(th._100pct, dec(20, 25), dec(100, 30),  B, B, ZERO_ADDR, { from: B })
 
       const repayTxB = await borrowerOperations.repayLUSD(dec(19, 25), B, B, { from: B })
       assert.isTrue(repayTxB.receipt.status)
@@ -1409,7 +1409,7 @@ contract('BorrowerOperations', async accounts => {
       // Make the LUSD request 2 wei above min net debt to correct for floor division, and make net debt = min net debt + 1 wei
       await weth.deposit({ from: A, value: dec(100, 30) });
       await weth.approve(borrowerOperations.address, dec(100, 30), { from: A });
-      await borrowerOperations.openTrove(th._100pct, await getNetBorrowingAmount(MIN_NET_DEBT.add(toBN('2'))), dec(100, 30), A, A, { from: A })
+      await borrowerOperations.openTrove(th._100pct, await getNetBorrowingAmount(MIN_NET_DEBT.add(toBN('2'))), dec(100, 30), A, A, ZERO_ADDR, { from: A })
 
       const repayTxAPromise = borrowerOperations.repayLUSD(2, A, A, { from: A })
       await assertRevert(repayTxAPromise, "BorrowerOps: Trove's net debt must be greater than minimum")
@@ -3226,13 +3226,13 @@ contract('BorrowerOperations', async accounts => {
       // Add 1 wei to correct for rounding error in helper function
       await weth.deposit({from: A, value: dec(100, 30)})
       await weth.approve(borrowerOperations.address, dec(100, 30) , { from: A })
-      const txA = await borrowerOperations.openTrove(th._100pct, await getNetBorrowingAmount(MIN_NET_DEBT.add(toBN(1))), dec(100, 30), A, A, { from: A })
+      const txA = await borrowerOperations.openTrove(th._100pct, await getNetBorrowingAmount(MIN_NET_DEBT.add(toBN(1))), dec(100, 30), A, A, ZERO_ADDR, { from: A })
       assert.isTrue(txA.receipt.status)
       assert.isTrue(await sortedTroves.contains(A))
 
       await weth.deposit({ from: C, value: dec(100, 30) })
       await weth.approve(borrowerOperations.address, dec(100, 30), { from: C })
-      const txC = await borrowerOperations.openTrove(th._100pct, await getNetBorrowingAmount(MIN_NET_DEBT.add(toBN(dec(47789898, 22)))), dec(100, 30), A, A, { from: C })
+      const txC = await borrowerOperations.openTrove(th._100pct, await getNetBorrowingAmount(MIN_NET_DEBT.add(toBN(dec(47789898, 22)))), dec(100, 30), A, A, ZERO_ADDR, { from: C })
       
       assert.isTrue(txC.receipt.status)
       assert.isTrue(await sortedTroves.contains(C))
@@ -3241,17 +3241,17 @@ contract('BorrowerOperations', async accounts => {
     it("openTrove(): reverts if net debt < minimum net debt", async () => {
       await weth.deposit({ from: A, value: dec(100, 30) })
       await weth.approve(borrowerOperations.address, dec(100, 30), { from: A })
-      const txAPromise = borrowerOperations.openTrove(th._100pct, 0, dec(100, 30), A, A, { from: A })
+      const txAPromise = borrowerOperations.openTrove(th._100pct, 0, dec(100, 30), A, A, ZERO_ADDR, { from: A })
       await assertRevert(txAPromise, "revert")
 
       await weth.deposit({ from: B, value: dec(100, 30) })
       await weth.approve(borrowerOperations.address, dec(100, 30), { from: B })
-      const txBPromise = borrowerOperations.openTrove(th._100pct, await getNetBorrowingAmount(MIN_NET_DEBT.sub(toBN(1))), dec(100, 30), B, B, { from: B  })
+      const txBPromise = borrowerOperations.openTrove(th._100pct, await getNetBorrowingAmount(MIN_NET_DEBT.sub(toBN(1))), dec(100, 30), B, B, ZERO_ADDR, { from: B  })
       await assertRevert(txBPromise, "revert")
 
       await weth.deposit({ from: C, value: dec(100, 30) })
       await weth.approve(borrowerOperations.address, dec(100, 30), { from: C })
-      const txCPromise = borrowerOperations.openTrove(th._100pct, MIN_NET_DEBT.sub(toBN(dec(173, 18))), dec(100, 30), C, C, { from: C })
+      const txCPromise = borrowerOperations.openTrove(th._100pct, MIN_NET_DEBT.sub(toBN(dec(173, 18))), dec(100, 30), C, C, ZERO_ADDR, { from: C })
       await assertRevert(txCPromise, "revert")
     })
 
@@ -3364,47 +3364,47 @@ contract('BorrowerOperations', async accounts => {
     it("openTrove(): reverts if max fee > 100%", async () => {
       await weth.deposit({ from: A, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: A })
-      await assertRevert(borrowerOperations.openTrove(dec(2, 18), dec(10000, 18), dec(100, 'ether'),  A, A, { from: A }), "Max fee percentage must be between 0.5% and 100%")
+      await assertRevert(borrowerOperations.openTrove(dec(2, 18), dec(10000, 18), dec(100, 'ether'),  A, A, ZERO_ADDR, { from: A }), "Max fee percentage must be between 0.5% and 100%")
 
       await weth.deposit({ from: B, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: B })
-      await assertRevert(borrowerOperations.openTrove('1000000000000000001', dec(20000, 18), dec(100, 'ether'), B, B, { from: B }), "Max fee percentage must be between 0.5% and 100%")
+      await assertRevert(borrowerOperations.openTrove('1000000000000000001', dec(20000, 18), dec(100, 'ether'), B, B, ZERO_ADDR, { from: B }), "Max fee percentage must be between 0.5% and 100%")
     })
 
     it("openTrove(): reverts if max fee < 0.5% in Normal mode", async () => {
       await weth.deposit({ from: A, value: dec(2200, 'ether') })
       await weth.approve(borrowerOperations.address, dec(2200, 'ether'), { from: A })
-      await assertRevert(borrowerOperations.openTrove(0, dec(195000, 18), dec(2200, 'ether'), A, A, { from: A}), "Max fee percentage must be between 0.5% and 100%")
-      await assertRevert(borrowerOperations.openTrove(1, dec(195000, 18), dec(2200, 'ether'), A, A, { from: A }), "Max fee percentage must be between 0.5% and 100%")
+      await assertRevert(borrowerOperations.openTrove(0, dec(195000, 18), dec(2200, 'ether'), A, A, ZERO_ADDR, { from: A}), "Max fee percentage must be between 0.5% and 100%")
+      await assertRevert(borrowerOperations.openTrove(1, dec(195000, 18), dec(2200, 'ether'), A, A, ZERO_ADDR, { from: A }), "Max fee percentage must be between 0.5% and 100%")
         
       await weth.deposit({ from: B, value: dec(1200, 'ether') })
       await weth.approve(borrowerOperations.address, dec(1200, 'ether'), { from: B })
-      await assertRevert(borrowerOperations.openTrove('4999999999999999', dec(195000, 18), dec(1200, 'ether'), B, B, { from: B }), "Max fee percentage must be between 0.5% and 100%")
+      await assertRevert(borrowerOperations.openTrove('4999999999999999', dec(195000, 18), dec(1200, 'ether'), B, B, ZERO_ADDR, { from: B }), "Max fee percentage must be between 0.5% and 100%")
     })
 
     it("openTrove(): allows max fee < 0.5% in Recovery Mode", async () => {
       await weth.deposit({ from: A, value: dec(2000, 'ether') })
       await weth.approve(borrowerOperations.address, dec(2000, 'ether'), { from: A })
-      await borrowerOperations.openTrove(th._100pct, dec(195000, 18), dec(2000, 'ether'), A, A, { from: A })
+      await borrowerOperations.openTrove(th._100pct, dec(195000, 18), dec(2000, 'ether'), A, A, ZERO_ADDR, { from: A })
 
       await priceFeed.setPrice(dec(100, 18))
       assert.isTrue(await th.checkRecoveryMode(contracts))
 
       await weth.deposit({ from: B, value: dec(3100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(3100, 'ether'), { from: B })
-      await borrowerOperations.openTrove(0, dec(19500, 18), dec(3100, 'ether'), B, B, { from: B})
+      await borrowerOperations.openTrove(0, dec(19500, 18), dec(3100, 'ether'), B, B, ZERO_ADDR, { from: B})
       
       await priceFeed.setPrice(dec(50, 18))
       assert.isTrue(await th.checkRecoveryMode(contracts))
       await weth.deposit({ from: C, value: dec(3100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(3100, 'ether'), { from: C })
-      await borrowerOperations.openTrove(1, dec(19500, 18), dec(3100, 'ether'), C, C, { from: C })
+      await borrowerOperations.openTrove(1, dec(19500, 18), dec(3100, 'ether'), C, C, ZERO_ADDR, { from: C })
       
       await priceFeed.setPrice(dec(25, 18))
       assert.isTrue(await th.checkRecoveryMode(contracts))
       await weth.deposit({ from: D, value: dec(3100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(3100, 'ether'), { from: D })
-      await borrowerOperations.openTrove('4999999999999999', dec(19500, 18), dec(3100, 'ether'), D, D, { from: D })
+      await borrowerOperations.openTrove('4999999999999999', dec(19500, 18), dec(3100, 'ether'), D, D, ZERO_ADDR, { from: D })
     })
 
     it("openTrove(): reverts if fee exceeds max fee percentage", async () => {
@@ -3427,22 +3427,22 @@ contract('BorrowerOperations', async accounts => {
       await weth.approve(borrowerOperations.address, dec(4000, 'ether'), { from: D })
 
       const lessThan5pct = '49999999999999999'
-      await assertRevert(borrowerOperations.openTrove(lessThan5pct, dec(30000, 18), dec(1000, 'ether'), A, A, { from: D }), "Fee exceeded provided maximum")
+      await assertRevert(borrowerOperations.openTrove(lessThan5pct, dec(30000, 18), dec(1000, 'ether'), A, A, ZERO_ADDR, { from: D }), "Fee exceeded provided maximum")
 
       borrowingRate = await troveManager.getBorrowingRate() // expect 5% rate
       assert.equal(borrowingRate, dec(5, 16))
       // Attempt with maxFee 1%
-      await assertRevert(borrowerOperations.openTrove(dec(1, 16), dec(30000, 18), dec(1000, 'ether'), A, A, { from: D }), "Fee exceeded provided maximum")
+      await assertRevert(borrowerOperations.openTrove(dec(1, 16), dec(30000, 18), dec(1000, 'ether'), A, A, ZERO_ADDR, { from: D }), "Fee exceeded provided maximum")
 
       borrowingRate = await troveManager.getBorrowingRate() // expect 5% rate
       assert.equal(borrowingRate, dec(5, 16))
       // Attempt with maxFee 3.754%
-      await assertRevert(borrowerOperations.openTrove(dec(3754, 13), dec(30000, 18),  dec(1000, 'ether'), A, A, { from: D }), "Fee exceeded provided maximum")
+      await assertRevert(borrowerOperations.openTrove(dec(3754, 13), dec(30000, 18),  dec(1000, 'ether'), A, A, ZERO_ADDR, { from: D }), "Fee exceeded provided maximum")
 
       borrowingRate = await troveManager.getBorrowingRate() // expect 5% rate
       assert.equal(borrowingRate, dec(5, 16))
       // Attempt with maxFee 1e-16%
-      await assertRevert(borrowerOperations.openTrove(dec(5, 15), dec(30000, 18), dec(1000, 'ether'),  A, A, { from: D }), "Fee exceeded provided maximum")
+      await assertRevert(borrowerOperations.openTrove(dec(5, 15), dec(30000, 18), dec(1000, 'ether'),  A, A, ZERO_ADDR, { from: D }), "Fee exceeded provided maximum")
     })
 
     it("openTrove(): succeeds when fee is less than max fee percentage", async () => {
@@ -3461,7 +3461,7 @@ contract('BorrowerOperations', async accounts => {
       const moreThan5pct = '50000000000000001'
       await weth.deposit({ from: D, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: D })
-      const tx1 = await borrowerOperations.openTrove(moreThan5pct, dec(10000, 18), dec(100, 'ether'), A, A, { from: D })
+      const tx1 = await borrowerOperations.openTrove(moreThan5pct, dec(10000, 18), dec(100, 'ether'), A, A, ZERO_ADDR, { from: D })
       assert.isTrue(tx1.receipt.status)
 
       borrowingRate = await troveManager.getBorrowingRate() // expect 5% rate
@@ -3470,7 +3470,7 @@ contract('BorrowerOperations', async accounts => {
       // Attempt with maxFee = 5%
       await weth.deposit({ from: H, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: H })
-      const tx2 = await borrowerOperations.openTrove(dec(5, 16), dec(10000, 18), dec(100, 'ether'), A, A, { from: H })
+      const tx2 = await borrowerOperations.openTrove(dec(5, 16), dec(10000, 18), dec(100, 'ether'), A, A, ZERO_ADDR, { from: H })
       assert.isTrue(tx2.receipt.status)
 
       borrowingRate = await troveManager.getBorrowingRate() // expect 5% rate
@@ -3479,7 +3479,7 @@ contract('BorrowerOperations', async accounts => {
       // Attempt with maxFee 10%
       await weth.deposit({ from: E, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: E })
-      const tx3 = await borrowerOperations.openTrove(dec(1, 17), dec(10000, 18), dec(100, 'ether') , A, A, { from: E })
+      const tx3 = await borrowerOperations.openTrove(dec(1, 17), dec(10000, 18), dec(100, 'ether') , A, A, ZERO_ADDR, { from: E })
       assert.isTrue(tx3.receipt.status)
 
       borrowingRate = await troveManager.getBorrowingRate() // expect 5% rate
@@ -3488,13 +3488,13 @@ contract('BorrowerOperations', async accounts => {
       // Attempt with maxFee 37.659%
       await weth.deposit({ from: F, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: F })
-      const tx4 = await borrowerOperations.openTrove(dec(37659, 13), dec(10000, 18), dec(100, 'ether'), A, A, { from: F })
+      const tx4 = await borrowerOperations.openTrove(dec(37659, 13), dec(10000, 18), dec(100, 'ether'), A, A, ZERO_ADDR, { from: F })
       assert.isTrue(tx4.receipt.status)
 
       // Attempt with maxFee 100%
       await weth.deposit({ from: G, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: G })
-      const tx5 = await borrowerOperations.openTrove(dec(1, 18), dec(10000, 18), dec(100, 'ether'), A, A, { from: G })
+      const tx5 = await borrowerOperations.openTrove(dec(1, 18), dec(10000, 18), dec(100, 'ether'), A, A, ZERO_ADDR, { from: G })
       assert.isTrue(tx5.receipt.status)
     })
 
@@ -3592,7 +3592,7 @@ contract('BorrowerOperations', async accounts => {
         // D withdraws LUSD
         await weth.deposit({ from: D, value: dec(200, 'ether') })
         await weth.approve(borrowerOperations.address, dec(200, 'ether'), { from: D })
-        const openTroveTx = await borrowerOperations.openTrove(th._100pct, D_LUSDRequest, dec(200, 'ether'), ZERO_ADDRESS, ZERO_ADDRESS, { from: D })
+        const openTroveTx = await borrowerOperations.openTrove(th._100pct, D_LUSDRequest, dec(200, 'ether'), ZERO_ADDR, ZERO_ADDR, ZERO_ADDR, { from: D })
 
         const emittedFee = toBN(th.getLUSDFeeFromLUSDBorrowingEvent(openTroveTx))
         assert.isTrue(toBN(emittedFee).gt(toBN('0')))
@@ -3668,7 +3668,7 @@ contract('BorrowerOperations', async accounts => {
       const LUSDRequest_D = toBN(dec(40000, 18))
       await weth.deposit({from: D, value: dec(500, 'ether')})
       await weth.approve(borrowerOperations.address, dec(500, 'ether'), { from: D })
-      await borrowerOperations.openTrove(th._100pct, LUSDRequest_D, dec(500, 'ether'), D, D, { from: D })
+      await borrowerOperations.openTrove(th._100pct, LUSDRequest_D, dec(500, 'ether'), D, D, ZERO_ADDR, { from: D })
 
       // Check LQTY staking LUSD balance has increased
       const lqtyStaking_LUSDBalance_After = await lusdToken.balanceOf(lqtyStaking.address)
@@ -3714,7 +3714,7 @@ contract('BorrowerOperations', async accounts => {
       const LUSDRequest = toBN(dec(10000, 18))
       await weth.deposit({from: C, value: dec(100, 'ether')})
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: C })
-      const txC = await borrowerOperations.openTrove(th._100pct, LUSDRequest, dec(100, 'ether'), ZERO_ADDRESS, ZERO_ADDRESS, { from: C })
+      const txC = await borrowerOperations.openTrove(th._100pct, LUSDRequest, dec(100, 'ether'), ZERO_ADDR, ZERO_ADDR, ZERO_ADDR, { from: C })
       const _LUSDFee = toBN(th.getEventArgByName(txC, "LUSDBorrowingFeePaid", "_LUSDFee"))
 
       const expectedFee = BORROWING_FEE_FLOOR.mul(toBN(LUSDRequest)).div(toBN(dec(1, 18)))
@@ -3853,7 +3853,7 @@ contract('BorrowerOperations', async accounts => {
 
       await weth.deposit({from: carol, value: dec(1, 'ether')})
       await weth.approve(borrowerOperations.address, dec(1, 'ether'), { from: carol })
-      await assertRevert(borrowerOperations.openTrove(th._100pct, await getNetBorrowingAmount(MIN_NET_DEBT), dec(1, 'ether'), carol, carol, { from: carol }))
+      await assertRevert(borrowerOperations.openTrove(th._100pct, await getNetBorrowingAmount(MIN_NET_DEBT), dec(1, 'ether'), carol, carol, ZERO_ADDR, { from: carol }))
     })
 
     it("openTrove(): creates a new Trove and assigns the correct collateral and debt amount", async () => {
@@ -3871,7 +3871,7 @@ contract('BorrowerOperations', async accounts => {
       const LUSDRequest = MIN_NET_DEBT
       await weth.deposit({from: alice, value: dec(100, 'ether')})
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: alice })
-      borrowerOperations.openTrove(th._100pct, MIN_NET_DEBT, dec(100, 'ether'), carol, carol, { from: alice })
+      borrowerOperations.openTrove(th._100pct, MIN_NET_DEBT, dec(100, 'ether'), carol, carol, ZERO_ADDR, { from: alice })
 
       // Get the expected debt based on the LUSD request (adding fee and liq. reserve on top)
       const expectedDebt = LUSDRequest
@@ -4029,7 +4029,7 @@ contract('BorrowerOperations', async accounts => {
 
       await weth.deposit({from: alice, value: dec(100, 'ether')})
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: alice })
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(100, 'ether'), alice, alice, { from: alice })
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(100, 'ether'), alice, alice, ZERO_ADDR, { from: alice })
 
       // check after
       const alice_Trove_After = await troveManager.Troves(alice)
@@ -4056,7 +4056,7 @@ contract('BorrowerOperations', async accounts => {
 
       await weth.deposit({ from: alice, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: alice })
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(100, 'ether'), alice, alice, { from: alice })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(100, 'ether'), alice, alice, ZERO_ADDR, { from: alice })
 
       // check after
       const alice_LUSDTokenBalance_After = await lusdToken.balanceOf(alice)
@@ -4203,11 +4203,11 @@ contract('BorrowerOperations', async accounts => {
 
         await weth.deposit({from: alice, value: troveColl})
         await weth.approve(borrowerOperations.address, troveColl, { from: alice })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, { from: alice  })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, ZERO_ADDR, { from: alice  })
         
         await weth.deposit({ from: bob, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: bob })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, { from: bob  })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, ZERO_ADDR, { from: bob  })
 
         await priceFeed.setPrice(dec(100, 18))
 
@@ -4239,11 +4239,11 @@ contract('BorrowerOperations', async accounts => {
 
         await weth.deposit({ from: alice, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: alice })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, { from: alice })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, ZERO_ADDR, { from: alice })
 
         await weth.deposit({ from: bob, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: bob })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, { from: bob })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, ZERO_ADDR,  { from: bob })
 
         await priceFeed.setPrice(dec(100, 18))
 
@@ -4275,11 +4275,11 @@ contract('BorrowerOperations', async accounts => {
 
         await weth.deposit({ from: alice, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: alice })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, { from: alice })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, ZERO_ADDR, { from: alice })
         
         await weth.deposit({ from: bob, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: bob })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, { from: bob })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, ZERO_ADDR, { from: bob })
 
         await priceFeed.setPrice(dec(100, 18))
 
@@ -4310,11 +4310,11 @@ contract('BorrowerOperations', async accounts => {
 
         await weth.deposit({ from: alice, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: alice })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, { from: alice  })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, ZERO_ADDR, { from: alice  })
         
         await weth.deposit({ from: bob, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: bob })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, { from: bob })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, ZERO_ADDR, { from: bob })
 
         await priceFeed.setPrice(dec(100, 18))
 
@@ -4345,11 +4345,11 @@ contract('BorrowerOperations', async accounts => {
 
         await weth.deposit({ from: alice, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: alice })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, { from: alice })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, ZERO_ADDR, { from: alice })
         
         await weth.deposit({ from: bob, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: bob })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, { from: bob  })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, ZERO_ADDR, { from: bob  })
 
         await priceFeed.setPrice(dec(100, 18))
 
@@ -4381,11 +4381,11 @@ contract('BorrowerOperations', async accounts => {
 
         await weth.deposit({ from: alice, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: alice })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, { from: alice })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, ZERO_ADDR, { from: alice })
         
         await weth.deposit({ from: bob, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: bob })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, { from: bob})
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, ZERO_ADDR, { from: bob})
 
         await priceFeed.setPrice(dec(100, 18))
 
@@ -4417,11 +4417,11 @@ contract('BorrowerOperations', async accounts => {
 
         await weth.deposit({ from: alice, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: alice })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, { from: alice })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, ZERO_ADDR, { from: alice })
         
         await weth.deposit({ from: bob, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: bob })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, { from: bob })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, ZERO_ADDR, { from: bob })
 
         await priceFeed.setPrice(dec(100, 18))
 
@@ -4453,11 +4453,11 @@ contract('BorrowerOperations', async accounts => {
 
         await weth.deposit({ from: alice, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: alice })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, { from: alice })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, ZERO_ADDR, { from: alice })
         
         await weth.deposit({ from: bob, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: bob })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, { from: bob })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, ZERO_ADDR, { from: bob })
 
         await priceFeed.setPrice(dec(100, 18))
 
@@ -4489,11 +4489,11 @@ contract('BorrowerOperations', async accounts => {
 
         await weth.deposit({ from: alice, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: alice })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, { from: alice })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, alice, alice, ZERO_ADDR, { from: alice })
         
         await weth.deposit({ from: bob, value: troveColl })
         await weth.approve(borrowerOperations.address, troveColl, { from: bob })
-        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, { from: bob })
+        await borrowerOperations.openTrove(th._100pct, troveLUSDAmount, troveColl, bob, bob, ZERO_ADDR, { from: bob })
 
         await priceFeed.setPrice(dec(100, 18))
 
@@ -4525,7 +4525,7 @@ contract('BorrowerOperations', async accounts => {
         // we need 2 troves to be able to close 1 and have 1 remaining in the system
         await weth.deposit({ from: alice, value: dec(1000, 18)})
         await weth.approve(borrowerOperations.address, dec(1000, 18), { from: alice})
-        await borrowerOperations.openTrove(th._100pct, dec(100000, 18), dec(1000, 18), alice, alice, { from: alice })
+        await borrowerOperations.openTrove(th._100pct, dec(100000, 18), dec(1000, 18), alice, alice, ZERO_ADDR, { from: alice })
 
         // Alice sends LUSD to NonPayable so its LUSD balance covers its debt
         await lusdToken.transfer(nonPayable.address, dec(10000, 18), {from: alice})
