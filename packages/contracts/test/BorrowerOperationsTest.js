@@ -886,7 +886,7 @@ contract('BorrowerOperations', async accounts => {
       await openTrove({ extraLUSDAmount: toBN(dec(10, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: A } })
       assert.equal((await troveManager.Troves(A)).frontEndTag, ZERO_ADDR)
       await openTrove({ extraLUSDAmount: toBN(dec(20, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: B } })
-      assert.equal((await troveManager.Troves(BORROWING_FEE_FLOOR)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(B)).frontEndTag, ZERO_ADDR)
       await openTrove({ extraLUSDAmount: toBN(dec(40, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: C } })
       assert.equal((await troveManager.Troves(C)).frontEndTag, ZERO_ADDR)
       await openTrove({ extraLUSDAmount: toBN(dec(40, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: D } })
@@ -906,7 +906,7 @@ contract('BorrowerOperations', async accounts => {
       await openTrove({ extraLUSDAmount: toBN(dec(60, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: B } })
       assert.equal((await troveManager.Troves(B)).frontEndTag, ZERO_ADDR)
       await openTrove({ extraLUSDAmount: toBN(dec(70, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: C } })
-      assert.equal((await troveManager.Troves(Controller)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(C)).frontEndTag, ZERO_ADDR)
       await openTrove({ extraLUSDAmount: toBN(dec(80, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: D } })
       assert.equal((await troveManager.Troves(D)).frontEndTag, ZERO_ADDR)
       await openTrove({ extraLUSDAmount: toBN(dec(180, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: E } })
@@ -961,7 +961,7 @@ contract('BorrowerOperations', async accounts => {
       await openTrove({ extraLUSDAmount: toBN(dec(60, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: B } })
       assert.equal((await troveManager.Troves(B)).frontEndTag, ZERO_ADDR)
       await openTrove({ extraLUSDAmount: toBN(dec(70, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: C } })
-      assert.equal((await troveManager.Troves(CSS)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(C)).frontEndTag, ZERO_ADDR)
       await openTrove({ extraLUSDAmount: toBN(dec(80, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: D } })
       assert.equal((await troveManager.Troves(D)).frontEndTag, ZERO_ADDR)
       await openTrove({ extraLUSDAmount: toBN(dec(180, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: E } })
@@ -1021,7 +1021,7 @@ contract('BorrowerOperations', async accounts => {
       await openTrove({ extraLUSDAmount: toBN(dec(40, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: B } })
       assert.equal((await troveManager.Troves(B)).frontEndTag, ZERO_ADDR)
       await openTrove({ extraLUSDAmount: toBN(dec(50, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: C } })
-      assert.equal((await troveManager.Troves(Controller)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(C)).frontEndTag, ZERO_ADDR)
       await openTrove({ extraLUSDAmount: toBN(dec(50, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: D } })
       assert.equal((await troveManager.Troves(D)).frontEndTag, ZERO_ADDR)
       await openTrove({ extraLUSDAmount: toBN(dec(50, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: E } })
@@ -1195,7 +1195,7 @@ contract('BorrowerOperations', async accounts => {
         await openTrove({ extraLUSDAmount: toBN(dec(30, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: A } })
         assert.equal((await troveManager.Troves(A)).frontEndTag, ZERO_ADDR)
         await openTrove({ extraLUSDAmount: toBN(dec(40, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: B } })
-        assert.equal((await troveManager.Troves(BORROWING_FEE_FLOOR)).frontEndTag, ZERO_ADDR)
+        assert.equal((await troveManager.Troves(B)).frontEndTag, ZERO_ADDR)
         await openTrove({ extraLUSDAmount: toBN(dec(50, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: C } })
         assert.equal((await troveManager.Troves(Controller)).frontEndTag, ZERO_ADDR)
         await openTrove({ extraLUSDAmount: toBN(dec(50, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: D } })
@@ -1734,7 +1734,7 @@ contract('BorrowerOperations', async accounts => {
       await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: alice } })
       assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
       await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: B } })
-      assert.equal((await troveManager.Troves(BORROWING_FEE_FLOOR)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(B)).frontEndTag, ZERO_ADDR)
       const bobBalBefore = await lusdToken.balanceOf(B)
       assert.isTrue(bobBalBefore.gt(toBN('0')))
 
@@ -3169,8 +3169,8 @@ contract('BorrowerOperations', async accounts => {
       await openTrove({ extraLUSDAmount: toBN(dec(100000, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: alice } })
       assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
 
-      // Transfer some tokens to Alice so she has enough to close her trove
-      await lusdToken.transfer(alice, dec(100000, 18), {from: owner})
+      // Mint some tokens to Alice so she has enough to close her trove
+      await lusdToken.unprotectedMint(alice, dec(100000, 18), {from: owner})
 
       // Check she has more LUSD than her trove debt
       const aliceBal = await lusdToken.balanceOf(alice)
