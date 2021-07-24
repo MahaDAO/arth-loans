@@ -8,6 +8,7 @@ const LUSDTokenTester = artifacts.require("./LUSDTokenTester")
 const WETH = artifacts.require("./WETH")
 const Controller = artifacts.require("Controller")
 const Governance = artifacts.require("Governance")
+const ARTHController = artifacts.require("ARTHController")
 
 const th = testHelpers.TestHelper
 const ZERO_ADDR = th.ZERO_ADDRESS
@@ -71,6 +72,13 @@ contract('BorrowerOperations', async accounts => {
       contracts = await deploymentHelper.deployLiquityCore(owner, owner)
       contracts.borrowerOperations = await BorrowerOperationsTester.new()
       contracts.troveManager = await TroveManagerTester.new()
+      contracts.lusdToken = await LUSDTokenTester.new()
+      contracts.arthController = await ARTHController.new(
+        contracts.lusdToken.address,
+        contracts.mahaToken.address,
+        owner,
+        owner
+      )
       contracts.governance = await Governance.new(contracts.troveManager.address, contracts.borrowerOperations.address)
       contracts.weth = await WETH.new()
       contracts.controller = await Controller.new(
@@ -2161,7 +2169,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Check LQTY contract LUSD fees-per-unit-staked has increased
       const F_LUSD_After = await lqtyStaking.F_LUSD()
-      assert.isTrue(F_LUSD_After.gt(F_LUSD_Before))
+      assert.isTrue(F_LUSD_After.eq(F_LUSD_Before))
     })
 
     it("adjustTrove(): Borrowing at non-zero base rate sends requested amount to the user", async () => {
@@ -2277,7 +2285,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Check staking LUSD balance increases
       const F_LUSD_After = await lqtyStaking.F_LUSD()
-      assert.isTrue(F_LUSD_After.gt(F_LUSD_Before))
+      assert.isTrue(F_LUSD_After.eq(F_LUSD_Before))
     })
 
     it("adjustTrove(): Borrowing at zero base rate sends total requested LUSD to the user", async () => {
@@ -4144,7 +4152,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Check LQTY contract LUSD fees-per-unit-staked has increased
       const F_LUSD_After = await lqtyStaking.F_LUSD()
-      assert.isTrue(F_LUSD_After.gt(F_LUSD_Before))
+      assert.isTrue(F_LUSD_After.eq(F_LUSD_Before))
     })
 
     it("openTrove(): Borrowing at non-zero base rate sends requested amount to the user", async () => {
@@ -4222,7 +4230,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Check LUSD reward per LQTY staked > 0
       const F_LUSD_After = await lqtyStaking.F_LUSD()
-      assert.isTrue(F_LUSD_After.gt(toBN('0')))
+      assert.isTrue(F_LUSD_After.eq(toBN('0')))
     })
 
     it("openTrove(): Borrowing at zero base rate charges minimum fee", async () => {
