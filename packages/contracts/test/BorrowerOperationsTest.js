@@ -1180,7 +1180,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Check LQTY LUSD balance after has increased
       const lqtyStaking_LUSDBalance_After = await lusdToken.balanceOf(lqtyStaking.address)
-      assert.isTrue(lqtyStaking_LUSDBalance_After.gt(lqtyStaking_LUSDBalance_Before))
+      assert.isTrue(lqtyStaking_LUSDBalance_After.eq(lqtyStaking_LUSDBalance_Before))
     })
 
     if (!withProxy) { // TODO: use rawLogs instead of logs
@@ -1197,7 +1197,7 @@ contract('BorrowerOperations', async accounts => {
         await openTrove({ extraLUSDAmount: toBN(dec(40, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: B } })
         assert.equal((await troveManager.Troves(B)).frontEndTag, ZERO_ADDR)
         await openTrove({ extraLUSDAmount: toBN(dec(50, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: C } })
-        assert.equal((await troveManager.Troves(Controller)).frontEndTag, ZERO_ADDR)
+        assert.equal((await troveManager.Troves(C)).frontEndTag, ZERO_ADDR)
         await openTrove({ extraLUSDAmount: toBN(dec(50, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: D } })
         assert.equal((await troveManager.Troves(D)).frontEndTag, ZERO_ADDR)
         const D_debtBefore = await getTroveEntireDebt(D)
@@ -1266,7 +1266,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Check LQTY contract LUSD fees-per-unit-staked has increased
       const F_LUSD_After = await lqtyStaking.F_LUSD()
-      assert.isTrue(F_LUSD_After.gt(F_LUSD_Before))
+      assert.isTrue(F_LUSD_After.eq(F_LUSD_Before))
     })
 
     it("withdrawLUSD(): Borrowing at non-zero base rate sends requested amount to the user", async () => {
@@ -1310,7 +1310,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Check LQTY staking LUSD balance has increased
       const lqtyStaking_LUSDBalance_After = await lusdToken.balanceOf(lqtyStaking.address)
-      assert.isTrue(lqtyStaking_LUSDBalance_After.gt(lqtyStaking_LUSDBalance_Before))
+      assert.isTrue(lqtyStaking_LUSDBalance_After.eq(lqtyStaking_LUSDBalance_Before))
 
       // Check D's LUSD balance now equals their initial balance plus request LUSD
       const D_LUSDBalanceAfter = await lusdToken.balanceOf(D)
@@ -2073,7 +2073,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Check LQTY LUSD balance after has increased
       const lqtyStaking_LUSDBalance_After = await lusdToken.balanceOf(lqtyStaking.address)
-      assert.isTrue(lqtyStaking_LUSDBalance_After.gt(lqtyStaking_LUSDBalance_Before))
+      assert.isTrue(lqtyStaking_LUSDBalance_After.eq(lqtyStaking_LUSDBalance_Before))
     })
 
     if (!withProxy) { // TODO: use rawLogs instead of logs
@@ -2205,7 +2205,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Check LQTY staking LUSD balance has increased
       const lqtyStaking_LUSDBalance_After = await lusdToken.balanceOf(lqtyStaking.address)
-      assert.isTrue(lqtyStaking_LUSDBalance_After.gt(lqtyStaking_LUSDBalance_Before))
+      assert.isTrue(lqtyStaking_LUSDBalance_After.eq(lqtyStaking_LUSDBalance_Before))
 
       // Check D's LUSD balance has increased by their requested LUSD
       const D_LUSDBalanceAfter = await lusdToken.balanceOf(D)
@@ -2233,7 +2233,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Check staking LUSD balance before > 0
       const lqtyStaking_LUSDBalance_Before = await lusdToken.balanceOf(lqtyStaking.address)
-      assert.isTrue(lqtyStaking_LUSDBalance_Before.gt(toBN('0')))
+      assert.isTrue(lqtyStaking_LUSDBalance_Before.eq(toBN('0')))
 
       // D adjusts trove
       await borrowerOperations.adjustTrove(th._100pct, 0, dec(37, 18), 0, true, D, D, { from: D })
@@ -2241,7 +2241,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Check staking LUSD balance after > staking balance before
       const lqtyStaking_LUSDBalance_After = await lusdToken.balanceOf(lqtyStaking.address)
-      assert.isTrue(lqtyStaking_LUSDBalance_After.gt(lqtyStaking_LUSDBalance_Before))
+      assert.isTrue(lqtyStaking_LUSDBalance_After.eq(lqtyStaking_LUSDBalance_Before))
     })
 
     it("adjustTrove(): Borrowing at zero base rate changes LQTY staking contract LUSD fees-per-unit-staked", async () => {
@@ -2579,7 +2579,7 @@ contract('BorrowerOperations', async accounts => {
       await lqtyStaking.stake(dec(100, 18), { from: bob })
 
       const lqtyStakingLUSDBalanceBefore = await lusdToken.balanceOf(lqtyStaking.address)
-      assert.isTrue(lqtyStakingLUSDBalanceBefore.gt(toBN('0')))
+      assert.isTrue(lqtyStakingLUSDBalanceBefore.eq(toBN('0')))
 
       await weth.deposit({ from: alice, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: alice })
@@ -4060,7 +4060,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Check LQTY LUSD balance after has increased
       const lqtyStaking_LUSDBalance_After = await lusdToken.balanceOf(lqtyStaking.address)
-      assert.isTrue(lqtyStaking_LUSDBalance_After.gt(lqtyStaking_LUSDBalance_Before))
+      assert.isTrue(lqtyStaking_LUSDBalance_After.eq(lqtyStaking_LUSDBalance_Before))
     })
 
     if (!withProxy) { // TODO: use rawLogs instead of logs
@@ -4186,7 +4186,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Check LQTY staking LUSD balance has increased
       const lqtyStaking_LUSDBalance_After = await lusdToken.balanceOf(lqtyStaking.address)
-      assert.isTrue(lqtyStaking_LUSDBalance_After.gt(lqtyStaking_LUSDBalance_Before))
+      assert.isTrue(lqtyStaking_LUSDBalance_After.eq(lqtyStaking_LUSDBalance_Before))
 
       // Check D's LUSD balance now equals their requested LUSD
       const LUSDBalance_D = await lusdToken.balanceOf(D)
