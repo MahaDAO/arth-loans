@@ -1,5 +1,8 @@
 const deploymentHelper = require("../utils/deploymentHelpers.js")
 const testHelpers = require("../utils/testHelpers.js")
+const Controller = artifacts.require("Controller")
+const Governance = artifacts.require("Governance")
+const ARTHController = artifacts.require("ARTHController")
 
 const th = testHelpers.TestHelper
 const { dec, toBN } = th
@@ -50,7 +53,7 @@ contract('HintHelpers', async accounts => {
    utils.toWei((amountFinney.toString()), 'finney')
    await weth.deposit({from: account, value: coll})
    await weth.approve(borrowerOperations.address, coll, {from: account})
-   await borrowerOperations.openTrove(th._100pct, 0, coll, account, account, { from: account})
+   await borrowerOperations.openTrove(th._100pct, 0, coll, account, account, th.ZERO_ADDRESS, { from: account})
  }
 
  const withdrawLUSDfromTrove = async (account) => {
@@ -75,13 +78,24 @@ contract('HintHelpers', async accounts => {
   }
 
   before(async () => {
-    contracts = await deploymentHelper.deployLiquityCore()
+    contracts = await deploymentHelper.deployLiquityCore(owner, owner)
     contracts.troveManager = await TroveManagerTester.new()
-    contracts.lusdToken = await LUSDToken.new(
-      contracts.troveManager.address,
-      contracts.stabilityPool.address,
-      contracts.borrowerOperations.address
+    contracts.lusdToken = await LUSDToken.new()
+    contracts.arthController = await ARTHController.new(
+        contracts.lusdToken.address,
+        contracts.mahaToken.address,
+        owner,
+        owner
     )
+    contracts.controller = await Controller.new(
+        contracts.troveManager.address,
+        contracts.stabilityPool.address,
+        contracts.borrowerOperations.address,
+        contracts.governance.address,
+        contracts.lusdToken.address,
+        contracts.gasPool.address
+    )
+    contracts.governance = await Governance.new(contracts.troveManager.address, contracts.borrowerOperations.address)
     const LQTYContracts = await deploymentHelper.deployLQTYContracts(bountyAddress, lpRewardsAddress, multisig)
 
     sortedTroves = contracts.sortedTroves

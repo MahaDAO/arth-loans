@@ -22,6 +22,7 @@ const timeValues = testHelpers.TimeValues
 const ZERO_ADDRESS = th.ZERO_ADDRESS
 const assertRevert = th.assertRevert
 
+describe.skip('- Skip LQTY Growth tests', () => {
 contract('LQTY Token', async accounts => {
   const [owner, A, B, C, D] = accounts
 
@@ -381,5 +382,4 @@ contract('LQTY Token', async accounts => {
     await assertRevert(tx, 'LQTY: invalid signature')
   })
 })
-
-
+})
