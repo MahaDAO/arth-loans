@@ -54,7 +54,7 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
     beforeEach(async () => {
       contracts = await deploymentHelper.deployLiquityCore(owner, owner)
       contracts.troveManager = await TroveManagerTester.new()
-      contracts.governance = await Governance.new(contracts.troveManager.address)
+      contracts.governance = await Governance.new(contracts.troveManager.address, contracts.borrowerOperations.address)
       contracts.controller = await Controller.new(
         contracts.troveManager.address,
         contracts.stabilityPool.address,
@@ -117,8 +117,6 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
     })
 
     it("liquidation < 1 minute after a deposit does not change totalLQTYIssued", async () => {
-      
-      
       await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(2, 18)), extraParams: {from: A } })
       await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(2, 18)), extraParams: {from: B } })
 
@@ -168,7 +166,7 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
     it("withdrawFromSP(): reward term G does not update when no LQTY is issued", async () => {
       await weth.deposit({from: A, value: dec(1000, 'ether')});
       await weth.approve(borrowerOperations.address, dec(1000, 'ether'), { from: A });
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(1000, 'ether') , A, A, { from: A })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(1000, 'ether') , A, A, ZERO_ADDRESS, { from: A })
       await stabilityPool.provideToSP(dec(10000, 18), ZERO_ADDRESS, { from: A })
 
       const A_initialDeposit = ((await stabilityPool.deposits(A))[0]).toString()
@@ -177,7 +175,7 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       // defaulter opens trove
       await weth.deposit({ from: defaulter_1, value: dec(100, 'ether') });
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: defaulter_1 });
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(100, 'ether') , defaulter_1, defaulter_1, { from: defaulter_1})
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(100, 'ether') , defaulter_1, defaulter_1, ZERO_ADDRESS, { from: defaulter_1})
 
       // ETH drops
       await priceFeed.setPrice(dec(100, 18))
@@ -221,23 +219,23 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       // Whale opens Trove with 10k ETH
       await weth.deposit({ from: whale, value: dec(10000, 'ether') });
       await weth.approve(borrowerOperations.address, dec(10000, 'ether'), { from: whale });
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether') , whale, whale, { from: whale })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether') , whale, whale, ZERO_ADDRESS, { from: whale })
 
       await weth.deposit({ from: A, value: dec(100, 'ether') });
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: A });
-      await borrowerOperations.openTrove(th._100pct, dec(1, 22), dec(100, 'ether') , A, A, { from: A })
+      await borrowerOperations.openTrove(th._100pct, dec(1, 22), dec(100, 'ether') , A, A, ZERO_ADDRESS, { from: A })
 
       await weth.deposit({ from: B, value: dec(100, 'ether') });
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: B });
-      await borrowerOperations.openTrove(th._100pct, dec(1, 22), dec(100, 'ether'), B, B, { from: B })
+      await borrowerOperations.openTrove(th._100pct, dec(1, 22), dec(100, 'ether'), B, B, ZERO_ADDRESS, { from: B })
 
       await weth.deposit({ from: C, value: dec(100, 'ether') });
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: C });
-      await borrowerOperations.openTrove(th._100pct, dec(1, 22), dec(100, 'ether'), C, C, { from: C })
+      await borrowerOperations.openTrove(th._100pct, dec(1, 22), dec(100, 'ether'), C, C, ZERO_ADDRESS, { from: C })
       
       await weth.deposit({ from: D, value: dec(100, 'ether') });
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: D });
-      await borrowerOperations.openTrove(th._100pct, dec(1, 22), dec(100, 'ether') , D, D, { from: D })
+      await borrowerOperations.openTrove(th._100pct, dec(1, 22), dec(100, 'ether') , D, D, ZERO_ADDRESS, { from: D })
 
       // Check all LQTY balances are initially 0
       assert.equal(await lqtyToken.balanceOf(A), 0)
@@ -309,23 +307,23 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       // Whale opens Trove with 10k ETH
       await weth.deposit({ from: whale, value: dec(10000, 'ether') });
       await weth.approve(borrowerOperations.address, dec(10000, 'ether'), { from: whale });
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(10000, 'ether') , whale, whale, { from: whale })
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(10000, 'ether') , whale, whale, ZERO_ADDRESS, { from: whale })
 
       await weth.deposit({ from: A, value: dec(200, 'ether')  });
       await weth.approve(borrowerOperations.address, dec(200, 'ether') , { from: A });
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(200, 'ether'), A, A, { from: A})
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(200, 'ether'), A, A, ZERO_ADDRESS, { from: A})
 
       await weth.deposit({ from: B, value:  dec(300, 'ether') });
       await weth.approve(borrowerOperations.address,  dec(300, 'ether'), { from: B });
-      await borrowerOperations.openTrove(th._100pct, dec(20000, 18),  dec(300, 'ether'), B, B, { from: B })
+      await borrowerOperations.openTrove(th._100pct, dec(20000, 18),  dec(300, 'ether'), B, B, ZERO_ADDRESS, { from: B })
       
       await weth.deposit({ from: C, value: dec(400, 'ether') });
       await weth.approve(borrowerOperations.address, dec(400, 'ether'), { from: C });
-      await borrowerOperations.openTrove(th._100pct, dec(30000, 18), dec(400, 'ether'), C, C, { from: C })
+      await borrowerOperations.openTrove(th._100pct, dec(30000, 18), dec(400, 'ether'), C, C, ZERO_ADDRESS, { from: C })
       
       await weth.deposit({ from: D, value: dec(100, 'ether') });
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: D });
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(100, 'ether'), D, D, { from: D })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(100, 'ether'), D, D, ZERO_ADDRESS, { from: D })
 
       // Check all LQTY balances are initially 0
       assert.equal(await lqtyToken.balanceOf(A), 0)
@@ -416,31 +414,31 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       // Whale opens Trove with 10k ETH
       await weth.deposit({from: whale, value: dec(10000, 'ether') })
       await weth.approve(borrowerOperations.address, dec(10000, 'ether') , {from: whale})
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether') , whale, whale, { from: whale})
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether') , whale, whale, ZERO_ADDRESS, { from: whale})
 
       await weth.deposit({from: A, value: dec(200, 'ether') })
       await weth.approve(borrowerOperations.address, dec(200, 'ether') , {from: A})
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(200, 'ether'), A, A, { from: A })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(200, 'ether'), A, A, ZERO_ADDRESS, { from: A })
 
       await weth.deposit({from: B, value: dec(300, 'ether') })
       await weth.approve(borrowerOperations.address, dec(300, 'ether') , {from: B})
-      await borrowerOperations.openTrove(th._100pct, dec(20000, 18), dec(300, 'ether'), B, B, { from: B })
+      await borrowerOperations.openTrove(th._100pct, dec(20000, 18), dec(300, 'ether'), B, B, ZERO_ADDRESS, { from: B })
 
       await weth.deposit({from: C, value: dec(400, 'ether') })
       await weth.approve(borrowerOperations.address, dec(400, 'ether') , {from: C})
-      await borrowerOperations.openTrove(th._100pct, dec(30000, 18), dec(400, 'ether'), C, C, { from: C })
+      await borrowerOperations.openTrove(th._100pct, dec(30000, 18), dec(400, 'ether'), C, C, ZERO_ADDRESS, { from: C })
 
       await weth.deposit({from: D, value: dec(500, 'ether') })
       await weth.approve(borrowerOperations.address, dec(500, 'ether') , {from: D})
-      await borrowerOperations.openTrove(th._100pct, dec(40000, 18), dec(500, 'ether'), D, D, { from: D })
+      await borrowerOperations.openTrove(th._100pct, dec(40000, 18), dec(500, 'ether'), D, D, ZERO_ADDRESS, { from: D })
 
       await weth.deposit({from: E, value: dec(600, 'ether') })
       await weth.approve(borrowerOperations.address, dec(600, 'ether') , {from: E})
-      await borrowerOperations.openTrove(th._100pct, dec(40000, 18), dec(600, 'ether'), E, E, { from: E })
+      await borrowerOperations.openTrove(th._100pct, dec(40000, 18), dec(600, 'ether'), E, E, ZERO_ADDRESS, { from: E })
 
       await weth.deposit({from: defaulter_1, value: dec(300, 'ether') })
       await weth.approve(borrowerOperations.address, dec(300, 'ether'), {from: defaulter_1})
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(30000, 18)), dec(300, 'ether'), defaulter_1, defaulter_1, { from: defaulter_1 })
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(30000, 18)), dec(300, 'ether'), defaulter_1, defaulter_1, ZERO_ADDRESS, { from: defaulter_1 })
 
       // Check all LQTY balances are initially 0
       assert.equal(await lqtyToken.balanceOf(A), 0)
@@ -566,25 +564,25 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       // Whale opens Trove with 10k ETH
       await weth.deposit({from: whale, value: dec(10000, 'ether')})
       await weth.approve(borrowerOperations.address, dec(10000, 'ether'), {from: whale})
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)),  dec(10000, 'ether'), whale, whale, { from: whale })
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)),  dec(10000, 'ether'), whale, whale, ZERO_ADDRESS, { from: whale })
 
       const allDepositors = [A, B, C, D, E, F, G, H]
       // 4 Defaulters open trove with 200LUSD debt, and 200% ICR
       await weth.deposit({from: defaulter_1, value: dec(200, 'ether')})
       await weth.approve(borrowerOperations.address, dec(200, 'ether'), {from: defaulter_1})
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(20000, 18)), dec(200, 'ether'), defaulter_1, defaulter_1, { from: defaulter_1  })
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(20000, 18)), dec(200, 'ether'), defaulter_1, defaulter_1, ZERO_ADDRESS, { from: defaulter_1  })
       
       await weth.deposit({from: defaulter_2, value: dec(200, 'ether')})
       await weth.approve(borrowerOperations.address, dec(200, 'ether'), {from: defaulter_2})
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(20000, 18)), dec(200, 'ether'), defaulter_2, defaulter_2, { from: defaulter_2 })
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(20000, 18)), dec(200, 'ether'), defaulter_2, defaulter_2, ZERO_ADDRESS, { from: defaulter_2 })
       
       await weth.deposit({from: defaulter_3, value: dec(200, 'ether')})
       await weth.approve(borrowerOperations.address, dec(200, 'ether'), {from: defaulter_3})
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(20000, 18)), dec(200, 'ether'), defaulter_3, defaulter_3, { from: defaulter_3 })
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(20000, 18)), dec(200, 'ether'), defaulter_3, defaulter_3, ZERO_ADDRESS, { from: defaulter_3 })
       
       await weth.deposit({from: defaulter_4, value: dec(200, 'ether')})
       await weth.approve(borrowerOperations.address, dec(200, 'ether'), {from: defaulter_4})
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(20000, 18)), dec(200, 'ether'), defaulter_4, defaulter_4, { from: defaulter_4 })
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(20000, 18)), dec(200, 'ether'), defaulter_4, defaulter_4, ZERO_ADDRESS, { from: defaulter_4 })
 
       // price drops by 50%: defaulter ICR falls to 100%
       await priceFeed.setPrice(dec(100, 18));
@@ -599,7 +597,7 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       for (account of depositors_1) {
         await weth.deposit({from: account, value: dec(200, 'ether')})
         await weth.approve(borrowerOperations.address, dec(200, 'ether'), {from: account})
-        await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(200, 'ether'), account, account, { from: account  })
+        await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(200, 'ether'), account, account, ZERO_ADDRESS, { from: account  })
         await stabilityPool.provideToSP(dec(10000, 18), ZERO_ADDRESS, { from: account })
       }
 
@@ -614,7 +612,7 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       for (account of depositors_2) {
         await weth.deposit({from: account, value: dec(200, 'ether')})
         await weth.approve(borrowerOperations.address, dec(200, 'ether'), {from: account})
-        await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(200, 'ether'), account, account, { from: account })
+        await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(200, 'ether'), account, account, ZERO_ADDRESS, { from: account })
         await stabilityPool.provideToSP(dec(10000, 18), ZERO_ADDRESS, { from: account })
       }
 
@@ -629,7 +627,7 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       for (account of depositors_3) {
         await weth.deposit({from: account, value: dec(200, 'ether')})
         await weth.approve(borrowerOperations.address, dec(200, 'ether'), {from: account})
-        await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(200, 'ether'), account, account, { from: account })
+        await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(200, 'ether'), account, account, ZERO_ADDRESS, { from: account })
         await stabilityPool.provideToSP(dec(10000, 18), ZERO_ADDRESS, { from: account })
       }
 
@@ -644,7 +642,7 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       for (account of depositors_4) {
         await weth.deposit({from: account, value: dec(200, 'ether')})
         await weth.approve(borrowerOperations.address, dec(200, 'ether'), {from: account})
-        await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(200, 'ether'), account, account, { from: account })
+        await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(200, 'ether'), account, account, ZERO_ADDRESS, { from: account })
         await stabilityPool.provideToSP(dec(10000, 18), ZERO_ADDRESS, { from: account })
       }
 
@@ -699,15 +697,15 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
 
       await weth.deposit({from: A, value: dec(200, 'ether')})
       await weth.approve(borrowerOperations.address, dec(200, 'ether'), {from: A})
-      await borrowerOperations.openTrove(th._100pct, dec(16000, 18),  dec(200, 'ether'), A, A, { from: A })
+      await borrowerOperations.openTrove(th._100pct, dec(16000, 18),  dec(200, 'ether'), A, A, ZERO_ADDRESS, { from: A })
 
       await weth.deposit({from: B, value: dec(100, 'ether')})
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), {from: B})
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18),  dec(100, 'ether'), B, B, { from: B })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18),  dec(100, 'ether'), B, B, ZERO_ADDRESS, { from: B })
 
       await weth.deposit({from: C, value: dec(200, 'ether')})
       await weth.approve(borrowerOperations.address, dec(200, 'ether'), {from: C})
-      await borrowerOperations.openTrove(th._100pct, dec(16000, 18),  dec(200, 'ether'), C, C, { from: C })
+      await borrowerOperations.openTrove(th._100pct, dec(16000, 18),  dec(200, 'ether'), C, C, ZERO_ADDRESS, { from: C })
 
       const totalLQTYissuance_0 = await communityIssuanceTester.totalLQTYIssued()
       const G_0 = await stabilityPool.epochToScaleToG(0, 0)  // epochs and scales will not change in this test: no liquidations
@@ -815,7 +813,7 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       // Whale opens Trove with 100 ETH
       await weth.deposit({from: whale, value: dec(100, 'ether')})
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), {from: whale})
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(100, 'ether'), whale, whale, { from: whale })
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(100, 'ether'), whale, whale, ZERO_ADDRESS, { from: whale })
 
       const fiveDefaulters = [defaulter_1, defaulter_2, defaulter_3, defaulter_4, defaulter_5]
 
@@ -824,24 +822,24 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
         await weth.approve(borrowerOperations.address,dec(10000, 'ether'), {from: sender})
       }
 
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether'), ZERO_ADDRESS, ZERO_ADDRESS, { from: A, })
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether'), ZERO_ADDRESS, ZERO_ADDRESS, { from: B, })
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether'), ZERO_ADDRESS, ZERO_ADDRESS, { from: C,  })
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether'), ZERO_ADDRESS, ZERO_ADDRESS, { from: D,})
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether'), ZERO_ADDRESS, ZERO_ADDRESS, { from: E, })
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether'), ZERO_ADDRESS, ZERO_ADDRESS, { from: F, })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether'), ZERO_ADDRESS, ZERO_ADDRESS, ZERO_ADDRESS, { from: A, })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether'), ZERO_ADDRESS, ZERO_ADDRESS, ZERO_ADDRESS, { from: B, })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether'), ZERO_ADDRESS, ZERO_ADDRESS, ZERO_ADDRESS, { from: C,  })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether'), ZERO_ADDRESS, ZERO_ADDRESS, ZERO_ADDRESS, { from: D,})
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether'), ZERO_ADDRESS, ZERO_ADDRESS, ZERO_ADDRESS, { from: E, })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether'), ZERO_ADDRESS, ZERO_ADDRESS, ZERO_ADDRESS, { from: F, })
 
       for (const defaulter of fiveDefaulters) {
         // Defaulters 1-5 each withdraw to 9999.9 debt (including gas comp)
         await weth.deposit({from: defaulter, value: dec(100, 'ether') })
         await weth.approve(borrowerOperations.address, dec(100, 'ether') , {from: defaulter})
-        await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount('9999900000000000000000'), dec(100, 'ether'), defaulter, defaulter, { from: defaulter})
+        await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount('9999900000000000000000'), dec(100, 'ether'), defaulter, defaulter, ZERO_ADDRESS, { from: defaulter})
       }
 
       // Defaulter 6 withdraws to 10k debt (inc. gas comp)
       await weth.deposit({from: defaulter_6, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether') , {from: defaulter_6})
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(100, 'ether'), defaulter_6, defaulter_6, { from: defaulter_6})
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(100, 'ether'), defaulter_6, defaulter_6, ZERO_ADDRESS, { from: defaulter_6})
 
       // Confirm all depositors have 0 LQTY
       for (const depositor of [A, B, C, D, E, F]) {
@@ -998,27 +996,27 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       // Whale opens Trove with 10k ETH
       await weth.deposit({from: whale, value: dec(10000, 'ether')})
       await weth.approve(borrowerOperations.address, dec(10000, 'ether'), {from: whale})
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18),  dec(10000, 'ether'), whale, whale, { from: whale })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18),  dec(10000, 'ether'), whale, whale, ZERO_ADDRESS, { from: whale })
 
       await weth.deposit({from: A, value:  dec(100, 'ether')})
       await weth.approve(borrowerOperations.address,  dec(100, 'ether'), {from: A})
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18),  dec(100, 'ether'), A, A, { from: A })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18),  dec(100, 'ether'), A, A, ZERO_ADDRESS, { from: A })
 
       await weth.deposit({from: B, value:  dec(100, 'ether')})
       await weth.approve(borrowerOperations.address,  dec(100, 'ether'), {from: B})
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(100, 'ether') , B, B, { from: B})
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(100, 'ether') , B, B, ZERO_ADDRESS, { from: B})
 
       await weth.deposit({from: C, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether') , {from: C})
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(100, 'ether') , C, C, { from: C })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(100, 'ether') , C, C, ZERO_ADDRESS, { from: C })
 
       await weth.deposit({from: D, value: dec(10000, 'ether')})
       await weth.approve(borrowerOperations.address, dec(10000, 'ether'), {from: D})
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(100, 'ether'), D, D, { from: D  })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(100, 'ether'), D, D, ZERO_ADDRESS, { from: D  })
 
       await weth.deposit({from: E, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address,dec(100, 'ether') , {from: E})
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(100, 'ether') , E, E, { from: E })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(100, 'ether') , E, E, ZERO_ADDRESS, { from: E })
 
       // Check all LQTY balances are initially 0
       assert.equal(await lqtyToken.balanceOf(A), 0)
@@ -1156,40 +1154,40 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       // Whale opens Trove with 10k ETH
       await weth.deposit({from: whale, value:  dec(10000, 'ether')  })
       await weth.approve(borrowerOperations.address,  dec(10000, 'ether')  , {from: whale})
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18),  dec(10000, 'ether') , whale, whale, { from: whale })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18),  dec(10000, 'ether') , whale, whale, ZERO_ADDRESS, { from: whale })
 
       await weth.deposit({from: A, value:  dec(200, 'ether')  })
       await weth.approve(borrowerOperations.address,  dec(200, 'ether'), {from: A})
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(200, 'ether'), A, A, { from: A })
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(200, 'ether'), A, A, ZERO_ADDRESS, { from: A })
 
       await weth.deposit({from: B, value:  dec(800, 'ether')   })
       await weth.approve(borrowerOperations.address,  dec(800, 'ether') , {from: B})
-      await borrowerOperations.openTrove(th._100pct, dec(60000, 18), dec(800, 'ether'), B, B, { from: B })
+      await borrowerOperations.openTrove(th._100pct, dec(60000, 18), dec(800, 'ether'), B, B, ZERO_ADDRESS, { from: B })
         
       await weth.deposit({from: C, value: dec(400, 'ether') })
       await weth.approve(borrowerOperations.address,  dec(400, 'ether') , {from: C})
-      await borrowerOperations.openTrove(th._100pct, dec(30000, 18), dec(400, 'ether'), C, C, { from: C })
+      await borrowerOperations.openTrove(th._100pct, dec(30000, 18), dec(400, 'ether'), C, C, ZERO_ADDRESS, { from: C })
       
       await weth.deposit({from: D, value:  dec(500, 'ether')})
       await weth.approve(borrowerOperations.address,  dec(500, 'ether'), {from: D})
-      await borrowerOperations.openTrove(th._100pct, dec(40000, 18), dec(500, 'ether'), D, D, { from: D})
+      await borrowerOperations.openTrove(th._100pct, dec(40000, 18), dec(500, 'ether'), D, D, ZERO_ADDRESS, { from: D})
 
       await weth.deposit({from: E, value: dec(400, 'ether') })
       await weth.approve(borrowerOperations.address, dec(400, 'ether'), {from: E})
-      await borrowerOperations.openTrove(th._100pct, dec(30000, 18), dec(400, 'ether'), E, E, { from: E })
+      await borrowerOperations.openTrove(th._100pct, dec(30000, 18), dec(400, 'ether'), E, E, ZERO_ADDRESS, { from: E })
 
       // D1, D2, D3 open troves with total debt 50k, 30k, 10k respectively (inc. gas comp)
       await weth.deposit({from: defaulter_1, value: dec(500, 'ether') })
       await weth.approve(borrowerOperations.address,dec(500, 'ether') , {from: defaulter_1})
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(50000, 18)), dec(500, 'ether') , defaulter_1, defaulter_1, { from: defaulter_1 })
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(50000, 18)), dec(500, 'ether') , defaulter_1, defaulter_1, ZERO_ADDRESS, { from: defaulter_1 })
       
       await weth.deposit({from: defaulter_2, value: dec(200, 'ether') })
       await weth.approve(borrowerOperations.address, dec(200, 'ether'), {from: defaulter_2})
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(20000, 18)), dec(200, 'ether'), defaulter_2, defaulter_2, { from: defaulter_2 })
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(20000, 18)), dec(200, 'ether'), defaulter_2, defaulter_2, ZERO_ADDRESS, { from: defaulter_2 })
       
       await weth.deposit({from: defaulter_3, value: dec(100, 'ether')  })
       await weth.approve(borrowerOperations.address, dec(100, 'ether') , {from: defaulter_3})
-      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(100, 'ether'), defaulter_3, defaulter_3, { from: defaulter_3 })
+      await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(100, 'ether'), defaulter_3, defaulter_3, ZERO_ADDRESS, { from: defaulter_3 })
 
       // Check all LQTY balances are initially 0
       assert.equal(await lqtyToken.balanceOf(A), 0)
@@ -1559,7 +1557,7 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       // Whale opens Trove with 10k ETH
       await weth.deposit({from: whale, value: dec(10000, 'ether') })
       await weth.approve(borrowerOperations.address, dec(10000, 'ether') , {from: whale})
-      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether') , whale, whale, { from: whale})
+      await borrowerOperations.openTrove(th._100pct, dec(10000, 18), dec(10000, 'ether') , whale, whale, ZERO_ADDRESS, { from: whale})
 
       const _4_Defaulters = [defaulter_1, defaulter_2, defaulter_3, defaulter_4]
 
@@ -1567,7 +1565,7 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
         // Defaulters 1-4 each withdraw to 9999.9 debt (including gas comp)
         await weth.deposit({from: defaulter, value:  dec(100, 'ether') })
         await weth.approve(borrowerOperations.address,  dec(100, 'ether'), {from: defaulter})
-        await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(99999, 17)),  dec(100, 'ether'), defaulter, defaulter, { from: defaulter})
+        await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(99999, 17)),  dec(100, 'ether'), defaulter, defaulter, ZERO_ADDRESS, { from: defaulter})
       }
 
       // Confirm all would-be depositors have 0 LQTY
@@ -1585,12 +1583,12 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       // A, B provides 5000 LUSD to SP
       await weth.deposit({from: A, value: dec(200, 'ether') })
       await weth.approve(borrowerOperations.address,  dec(200, 'ether'), {from: A})
-      await borrowerOperations.openTrove(th._100pct, dec(5000, 18), dec(200, 'ether'), A, A, { from: A })
+      await borrowerOperations.openTrove(th._100pct, dec(5000, 18), dec(200, 'ether'), A, A, ZERO_ADDRESS, { from: A })
       await stabilityPool.provideToSP(dec(5000, 18), frontEnd_1, { from: A })
       
       await weth.deposit({from: B, value:  dec(200, 'ether')  })
       await weth.approve(borrowerOperations.address,  dec(200, 'ether') , {from: B})
-      await borrowerOperations.openTrove(th._100pct, dec(5000, 18), dec(200, 'ether') , B, B, { from: B })
+      await borrowerOperations.openTrove(th._100pct, dec(5000, 18), dec(200, 'ether') , B, B, ZERO_ADDRESS, { from: B })
       await stabilityPool.provideToSP(dec(5000, 18), frontEnd_1, { from: B })
 
       // 1 month passes (M1)
@@ -1607,7 +1605,7 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       // C provides to SP
       await weth.deposit({from: C, value:  dec(200, 'ether')})
       await weth.approve(borrowerOperations.address, dec(200, 'ether') , {from: C})
-      await borrowerOperations.openTrove(th._100pct, dec(99999, 17), dec(200, 'ether'), C, C, { from: C })
+      await borrowerOperations.openTrove(th._100pct, dec(99999, 17), dec(200, 'ether'), C, C, ZERO_ADDRESS, { from: C })
       await stabilityPool.provideToSP(dec(99999, 17), frontEnd_1, { from: C })
 
       // 1 month passes (M2)
@@ -1624,7 +1622,7 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       // D provides to SP
       await weth.deposit({from: D, value:  dec(200, 'ether') })
       await weth.approve(borrowerOperations.address,dec(200, 'ether')  , {from: D})
-      await borrowerOperations.openTrove(th._100pct, dec(99999, 17), dec(200, 'ether') , D, D, { from: D})
+      await borrowerOperations.openTrove(th._100pct, dec(99999, 17), dec(200, 'ether') , D, D, ZERO_ADDRESS, { from: D})
       await stabilityPool.provideToSP(dec(99999, 17), frontEnd_1, { from: D })
 
       // 1 month passes (M3)
@@ -1641,7 +1639,7 @@ contract('StabilityPool - LQTY Rewards', async accounts => {
       // E provides to SP
       await weth.deposit({from: E, value:  dec(200, 'ether') })
       await weth.approve(borrowerOperations.address, dec(200, 'ether')  , {from: E})
-      await borrowerOperations.openTrove(th._100pct, dec(99999, 17),  dec(200, 'ether') , E, E, { from: E })
+      await borrowerOperations.openTrove(th._100pct, dec(99999, 17),  dec(200, 'ether') , E, E, ZERO_ADDRESS, { from: E })
       await stabilityPool.provideToSP(dec(99999, 17), frontEnd_1, { from: E })
 
       // 1 month passes (M4)
