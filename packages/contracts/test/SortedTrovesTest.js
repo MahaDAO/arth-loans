@@ -5,6 +5,9 @@ const SortedTroves = artifacts.require("SortedTroves")
 const SortedTrovesTester = artifacts.require("SortedTrovesTester")
 const TroveManagerTester = artifacts.require("TroveManagerTester")
 const LUSDToken = artifacts.require("LUSDToken")
+const Controller = artifacts.require("Controller")
+const Governance = artifacts.require("Governance")
+const ARTHController = artifacts.require("ARTHController")
 
 const th = testHelpers.TestHelper
 const dec = th.dec
@@ -58,13 +61,24 @@ contract('SortedTroves', async accounts => {
 
   describe('SortedTroves', () => {
     beforeEach(async () => {
-      contracts = await deploymentHelper.deployLiquityCore()
+      contracts = await deploymentHelper.deployLiquityCore(owner, owner)
       contracts.troveManager = await TroveManagerTester.new()
-      contracts.lusdToken = await LUSDToken.new(
+      contracts.lusdToken = await LUSDToken.new()
+      contracts.arthController = await ARTHController.new(
+        contracts.lusdToken.address,
+        contracts.mahaToken.address,
+        owner,
+        owner
+      )
+      contracts.governance = await Governance.new(contracts.troveManager.address, contracts.borrowerOperations.address)
+      contracts.controller = await Controller.new(
         contracts.troveManager.address,
         contracts.stabilityPool.address,
-        contracts.borrowerOperations.address
-      )
+        contracts.borrowerOperations.address,
+        contracts.governance.address,
+        contracts.lusdToken.address,
+        contracts.gasPool.address
+    )
       const LQTYContracts = await deploymentHelper.deployLQTYContracts(bountyAddress, lpRewardsAddress, multisig)
 
       priceFeed = contracts.priceFeedTestnet
@@ -76,6 +90,15 @@ contract('SortedTroves', async accounts => {
       await deploymentHelper.connectLQTYContracts(LQTYContracts)
       await deploymentHelper.connectCoreContracts(contracts, LQTYContracts)
       await deploymentHelper.connectLQTYContractsToCore(LQTYContracts, contracts)
+
+      for (const account of [
+        owner,
+        alice, bob, carol, dennis, erin, flyn, graham, harriet, ida,
+        defaulter_1, defaulter_2, defaulter_3, defaulter_4,
+        A, B, C, D, E, F, G, H, I, J, whale
+      ]) {
+        await contracts.lusdToken.approve(contracts.controller.address, dec(10000000000000, 18), {from: account})
+      }
     })
 
     it('contains(): returns true for addresses that have opened troves', async () => {
