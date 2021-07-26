@@ -24,7 +24,7 @@ contract('StabilityPool', async accounts => {
     weth = await WETH.new()
     const mockActivePoolAddress = (await NonPayable.new(weth.address)).address
     const dumbContractAddress = (await NonPayable.new(weth.address)).address
-    await stabilityPool.setAddresses(dumbContractAddress, dumbContractAddress, mockActivePoolAddress, dumbContractAddress, dumbContractAddress, dumbContractAddress, dumbContractAddress, weth.address)
+    await stabilityPool.setAddresses(dumbContractAddress, dumbContractAddress, mockActivePoolAddress, dumbContractAddress, dumbContractAddress, dumbContractAddress, weth.address, dumbContractAddress, dumbContractAddress)
   })
 
   it('getETH(): gets the recorded ETH balance', async () => {
