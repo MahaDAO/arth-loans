@@ -66,7 +66,7 @@ contract('TroveManager', async accounts => {
         owner,
         owner
     )
-    contracts.governance = await Governance.new(contracts.troveManager.address)
+    contracts.governance = await Governance.new(contracts.troveManager.address, contracts.borrowerOperations.address)
     contracts.controller = await Controller.new(
         contracts.troveManager.address,
         contracts.stabilityPool.address,
@@ -2802,15 +2802,15 @@ contract('TroveManager', async accounts => {
   it("redeemCollateral(): performs partial redemption if resultant debt is > minimum net debt", async () => {
     await weth.deposit({ from: A, value: dec(1000, 'ether') })
     await weth.approve(borrowerOperations.address, dec(1000, 'ether'), { from: A })
-    await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(1000, 'ether'), A, A, { from: A})
+    await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(10000, 18)), dec(1000, 'ether'), A, A, th.ZERO_ADDRESS, { from: A})
     
     await weth.deposit({ from: B, value: dec(1000, 'ether') })
     await weth.approve(borrowerOperations.address, dec(1000, 'ether'), { from: B})
-    await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(20000, 18)), dec(1000, 'ether'), B, B, { from: B })
+    await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(20000, 18)), dec(1000, 'ether'), B, B, th.ZERO_ADDRESS, { from: B })
     
     await weth.deposit({ from: C, value: dec(1000, 'ether') })
     await weth.approve(borrowerOperations.address, dec(1000, 'ether'), { from: C})
-    await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(30000, 18)), dec(1000, 'ether'), C, C, { from: C })
+    await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(30000, 18)), dec(1000, 'ether'), C, C, th.ZERO_ADDRESS, { from: C })
 
     // A and C send all their tokens to B
     await lusdToken.transfer(B, await lusdToken.balanceOf(A), {from: A})
@@ -2838,15 +2838,15 @@ contract('TroveManager', async accounts => {
   it("redeemCollateral(): doesn't perform partial redemption if resultant debt would be < minimum net debt", async () => {
     await weth.deposit({from: A, value: dec(1000, 'ether')})
     await weth.approve(borrowerOperations.address, dec(1000, 'ether'), { from: A })
-    await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(6000, 18)), dec(1000, 'ether'), A, A, { from: A })
+    await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(6000, 18)), dec(1000, 'ether'), A, A, th.ZERO_ADDRESS, { from: A })
     
     await weth.deposit({ from: B, value: dec(1000, 'ether') })
     await weth.approve(borrowerOperations.address, dec(1000, 'ether'), { from: B })
-    await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(20000, 18)), dec(1000, 'ether'), B, B, { from: B })
+    await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(20000, 18)), dec(1000, 'ether'), B, B, th.ZERO_ADDRESS, { from: B })
     
     await weth.deposit({ from: C, value: dec(1000, 'ether') })
     await weth.approve(borrowerOperations.address, dec(1000, 'ether'), { from: C })
-    await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(30000, 18)), dec(1000, 'ether'), C, C, { from: C })
+    await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(30000, 18)), dec(1000, 'ether'), C, C, th.ZERO_ADDRESS, { from: C })
 
     // A and C send all their tokens to B
     await lusdToken.transfer(B, await lusdToken.balanceOf(A), {from: A})
