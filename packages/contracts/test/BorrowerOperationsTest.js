@@ -3014,13 +3014,13 @@ contract('BorrowerOperations', async accounts => {
       // Check emitted fee = 0
       const emittedFee = toBN(await th.getEventArgByName(txAlice, 'LUSDBorrowingFeePaid', '_LUSDFee'))
       assert.isTrue(emittedFee.eq(toBN('0')))
-
+      const fee = BigNumber.from(th.getLUSDFeeFromLUSDBorrowingEvent(txAlice))
       assert.isTrue(await th.checkRecoveryMode(contracts))
 
       // Check no fee was sent to staking contract
       const lqtyStakingLUSDBalanceAfter = await lusdToken.balanceOf(lqtyStaking.address)
       assert.equal(lqtyStakingLUSDBalanceAfter.toString(), lqtyStakingLUSDBalanceBefore.toString())
-      assert.equal((await lusdToken.balanceOf(ecosystemFund.address)).toString(), balance.add(emittedFee).toString())
+      assert.equal((await lusdToken.balanceOf(ecosystemFund.address)).toString(), balance.add(fee).toString())
     })
 
     it("adjustTrove(): reverts when change would cause the TCR of the system to fall below the CCR", async () => {
@@ -3353,7 +3353,7 @@ contract('BorrowerOperations', async accounts => {
       // check after
       const alice_LUSDTokenBalance_After = await lusdToken.balanceOf(alice)
       assert.isTrue(alice_LUSDTokenBalance_After.eq(alice_LUSDTokenBalance_Before.add(toBN(dec(100, 18)))))
-      assert.equal((await lusdToken.balanceOf(ecosystemFund.address)).toString(), balance.toString())
+      assert.equal((await lusdToken.balanceOf(ecosystemFund.address)).toString(), balance.add(txFeeBN).toString())
     })
 
     it("adjustTrove(): Changes the activePool ETH and raw ether balance by the requested decrease", async () => {
