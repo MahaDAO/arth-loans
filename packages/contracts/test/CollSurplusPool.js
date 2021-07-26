@@ -33,7 +33,7 @@ contract('CollSurplusPool', async accounts => {
   beforeEach(async () => {
     contracts = await deploymentHelper.deployLiquityCore(owner, owner)
     contracts.troveManager = await TroveManagerTester.new()
-    contracts.governance = await Governance.new(contracts.troveManager.address)
+    contracts.governance = await Governance.new(contracts.troveManager.address, contracts.borrowerOperations.address)
     contracts.controller = await Controller.new(
         contracts.troveManager.address,
         contracts.stabilityPool.address,
@@ -54,7 +54,11 @@ contract('CollSurplusPool', async accounts => {
     await deploymentHelper.connectLQTYContracts(LQTYContracts)
     await deploymentHelper.connectLQTYContractsToCore(LQTYContracts, contracts)
 
-    for (const account of [A, B]) await lusdToken.approve(controller.address, dec(100000000000, 18), {from: account})
+    for (const account of [A, B]) {
+        await contracts.mahaToken.approve(contracts.governance.address, dec(100000000000, 18), {from: account})
+        await contracts.mahaToken.mint(account, dec(100000000000, 18), {from: account})
+        await lusdToken.approve(controller.address, dec(100000000000, 18), {from: account})
+    }
   })
 
   it("CollSurplusPool::getETH(): Returns the ETH balance of the CollSurplusPool after redemption", async () => {

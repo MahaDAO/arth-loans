@@ -4,6 +4,9 @@ const { BNConverter } = require("../utils/BNConverter.js")
 const testHelpers = require("../utils/testHelpers.js")
 const TroveManagerTester = artifacts.require("./TroveManagerTester.sol")
 const LiquityMathTester = artifacts.require("./LiquityMathTester.sol")
+const Controller = artifacts.require("Controller")
+const Governance = artifacts.require("Governance")
+const ARTHController = artifacts.require("ARTHController")
 
 const th = testHelpers.TestHelper
 const timeValues = testHelpers.TimeValues
@@ -16,7 +19,7 @@ contract('Fee arithmetic tests', async accounts => {
   let troveManagerTester
   let mathTester
 
-  const [bountyAddress, lpRewardsAddress, multisig] = accounts.slice(997, 1000)
+  const [owner, bountyAddress, lpRewardsAddress, multisig] = accounts;
 
   // see: https://docs.google.com/spreadsheets/d/1RbD8VGzq7xFgeK1GOkz_9bbKVIx-xkOz0VsVelnUFdc/edit#gid=0
   // Results array, maps seconds to expected hours passed output (rounded down to nearest hour).
@@ -331,20 +334,35 @@ contract('Fee arithmetic tests', async accounts => {
   ]
 
   before(async () => {
-    troveManagerTester = await TroveManagerTester.new()
-    TroveManagerTester.setAsDeployed(troveManagerTester)
-
     mathTester = await LiquityMathTester.new()
     LiquityMathTester.setAsDeployed(mathTester)
   })
 
   beforeEach(async () => {
-    contracts = await deploymentHelper.deployLiquityCore()
+    contracts = await deploymentHelper.deployLiquityCore(owner, owner)
+    contracts.troveManager = await TroveManagerTester.new()
+    contracts.governance = await Governance.new(contracts.troveManager.address, contracts.borrowerOperations.address)
+    contracts.arthController = await ARTHController.new(
+        contracts.lusdToken.address,
+        contracts.mahaToken.address,
+        owner,
+        owner
+    )
+    contracts.controller = await Controller.new(
+        contracts.troveManager.address,
+        contracts.stabilityPool.address,
+        contracts.borrowerOperations.address,
+        contracts.governance.address,
+        contracts.lusdToken.address,
+        contracts.gasPool.address
+    )
     const LQTYContracts = await deploymentHelper.deployLQTYContracts(bountyAddress, lpRewardsAddress, multisig)
 
     await deploymentHelper.connectLQTYContracts(LQTYContracts)
     await deploymentHelper.connectCoreContracts(contracts, LQTYContracts)
     await deploymentHelper.connectLQTYContractsToCore(LQTYContracts, contracts)
+
+    troveManagerTester = contracts.troveManager
   })
 
   it("minutesPassedSinceLastFeeOp(): returns minutes passed for no time increase", async () => {

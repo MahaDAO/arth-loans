@@ -5,6 +5,7 @@ const NonPayable = artifacts.require('NonPayable.sol')
 const th = testHelpers.TestHelper
 const dec = th.dec
 
+describe.skip('- Skip default pool', () => {
 contract('DefaultPool', async accounts => {
   let defaultPool
   let nonPayable
@@ -34,6 +35,7 @@ contract('DefaultPool', async accounts => {
     const sendETHData = th.getTransactionData('sendETHToActivePool(uint256)', [web3.utils.toHex(amount)])
     await th.assertRevert(mockTroveManager.forward(defaultPool.address, sendETHData, { from: owner }), 'DefaultPool: sending ETH failed')
   })
+})
 })
 
 contract('Reset chain state', async accounts => { })
