@@ -1,7 +1,7 @@
 const StabilityPool = artifacts.require("./StabilityPool.sol")
 const ActivePool = artifacts.require("./ActivePool.sol")
 const DefaultPool = artifacts.require("./DefaultPool.sol")
-const NonPayable = artifacts.require("./NonPayable.sol")
+const NonPayable = artifacts.require("./NonPayableERC20.sol")
 const WETH = artifacts.require("./WETH.sol")
 
 const testHelpers = require("../utils/testHelpers.js")
