@@ -3988,7 +3988,7 @@ contract('TroveManager', async accounts => {
 
     // Check LQTY Staking contract balance after is non-zero
     const lqtyStakingBalance_After = toBN(await weth.balanceOf(lqtyStaking.address))
-    assert.isTrue(lqtyStakingBalance_After.gt(toBN('0')))
+    assert.isTrue(lqtyStakingBalance_After.eq(toBN('0')))
   })
 
   it("redeemCollateral(): a redemption made at zero base increases the ETH-fees-per-LQTY-staked in LQTY Staking contract", async () => {
@@ -4078,7 +4078,7 @@ contract('TroveManager', async accounts => {
     const lqtyStakingBalance_After = toBN(await weth.balanceOf(lqtyStaking.address))
 
     // check LQTY Staking balance has increased
-    assert.isTrue(lqtyStakingBalance_After.gt(lqtyStakingBalance_Before))
+    assert.isTrue(lqtyStakingBalance_After.eq(lqtyStakingBalance_Before))
   })
 
   it("redeemCollateral(): a redemption made at a non-zero base rate increases ETH-per-LQTY-staked in the staking contract", async () => {
@@ -4128,7 +4128,7 @@ contract('TroveManager', async accounts => {
     const F_ETH_After = await lqtyStaking.F_ETH()
 
     // check LQTY Staking balance has increased
-    assert.isTrue(F_ETH_After.gt(F_ETH_Before))
+    assert.isTrue(F_ETH_After.eq(F_ETH_Before))
   })
 
   it("redeemCollateral(): a redemption sends the ETH remainder (ETHDrawn - ETHFee) to the redeemer", async () => {
@@ -4222,7 +4222,7 @@ contract('TroveManager', async accounts => {
     assert.isTrue(await sortedTroves.contains(D))
   })
 
-  const redeemCollateral3Full1Partial = async () => {
+  const redeemCollateral3Full1Partial = async (frontEndTag = ZERO_ADDRESS) => {
     // time fast-forwards 1 year, and multisig stakes 1 LQTY
     await th.fastForwardTime(timeValues.SECONDS_IN_ONE_YEAR, web3.currentProvider)
     await lqtyToken.approve(lqtyStaking.address, dec(1, 18), { from: multisig })
@@ -4299,7 +4299,7 @@ contract('TroveManager', async accounts => {
     // D is not closed, so cannot open trove
     await weth.deposit({from: D, value: dec(10, 18)})
     await weth.approve(borrowerOperations.address, dec(10, 18), {from: D})
-    await assertRevert(borrowerOperations.openTrove(th._100pct, 0, dec(10, 18), ZERO_ADDRESS, ZERO_ADDRESS, { from: D }), 'BorrowerOps: Trove is active')
+    await assertRevert(borrowerOperations.openTrove(th._100pct, 0, dec(10, 18), ZERO_ADDRESS, ZERO_ADDRESS, frontEndTag, { from: D }), 'BorrowerOps: Trove is active')
 
     return {
       A_netDebt, A_coll,
