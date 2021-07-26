@@ -44,6 +44,7 @@ const getPermitDigest = ( name, address, chainId, version,
     ]))
 }
 
+describe('- Skip LUSD test', () => {
 contract('LUSDToken', async accounts => {
   const [owner, alice, bob, carol, dennis] = accounts;
 
@@ -407,7 +408,7 @@ contract('LUSDToken', async accounts => {
     testCorpus({ withProxy: true })
   })
 })
-
+})
 
 
 contract('Reset chain state', async accounts => {})

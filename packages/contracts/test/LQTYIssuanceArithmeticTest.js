@@ -32,7 +32,7 @@ const repeatedlyIssueLQTY = async (stabilityPool, timeBetweenIssuances, duration
   }
 }
 
-
+describe.skip('- Skip LQTY tests', () => {
 contract('LQTY community issuance arithmetic tests', async accounts => {
   let contracts
   let borrowerOperations
@@ -901,4 +901,5 @@ contract('LQTY community issuance arithmetic tests', async accounts => {
     // Check the actual balance differs by no more than 1e18 (i.e. 1 token) from the expected balance
     assert.isTrue(diff.lte(th.toBN(dec(1, 18))))
   })
+})
 })

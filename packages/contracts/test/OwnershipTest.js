@@ -1,8 +1,11 @@
 const deploymentHelper = require("../utils/deploymentHelpers.js")
 const { TestHelper: th, MoneyValues: mv } = require("../utils/testHelpers.js")
-
+const Controller = artifacts.require("Controller")
+const Governance = artifacts.require("Governance")
+const ARTHController = artifacts.require("ARTHController")
 const GasPool = artifacts.require("./GasPool.sol")
 const BorrowerOperationsTester = artifacts.require("./BorrowerOperationsTester.sol")
+const LUSDTokenTester = artifacts.require("./LUSDTokenTester")
 
 contract('All Liquity functions with onlyOwner modifier', async accounts => {
 
@@ -25,9 +28,24 @@ contract('All Liquity functions with onlyOwner modifier', async accounts => {
   let lockupContractFactory
 
   before(async () => {
-    contracts = await deploymentHelper.deployLiquityCore()
+    contracts = await deploymentHelper.deployLiquityCore(owner, owner)
     contracts.borrowerOperations = await BorrowerOperationsTester.new()
-    contracts = await deploymentHelper.deployLUSDToken(contracts)
+    contracts.lusdToken = await LUSDTokenTester.new()
+    contracts.arthController = await ARTHController.new(
+        contracts.lusdToken.address,
+        contracts.mahaToken.address,
+        owner,
+        owner
+      )
+      contracts.governance = await Governance.new(contracts.troveManager.address, contracts.borrowerOperations.address)
+      contracts.controller = await Controller.new(
+        contracts.troveManager.address,
+        contracts.stabilityPool.address,
+        contracts.borrowerOperations.address,
+        contracts.governance.address,
+        contracts.lusdToken.address,
+        contracts.gasPool.address
+    )
     const LQTYContracts = await deploymentHelper.deployLQTYContracts(bountyAddress, lpRewardsAddress, multisig)
 
     lusdToken = contracts.lusdToken
@@ -79,7 +97,7 @@ contract('All Liquity functions with onlyOwner modifier', async accounts => {
 
   describe('TroveManager', async accounts => {
     it("setAddresses(): reverts when called by non-owner, with wrong addresses, or twice", async () => {
-      await testSetAddresses(troveManager, 11)
+      await testSetAddresses(troveManager, 12)
     })
   })
 
@@ -97,7 +115,7 @@ contract('All Liquity functions with onlyOwner modifier', async accounts => {
 
   describe('StabilityPool', async accounts => {
     it("setAddresses(): reverts when called by non-owner, with wrong addresses, or twice", async () => {
-      await testSetAddresses(stabilityPool, 8)
+      await testSetAddresses(stabilityPool, 9)
     })
   })
 

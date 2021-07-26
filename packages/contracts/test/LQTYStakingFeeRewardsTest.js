@@ -24,6 +24,7 @@ const ZERO = th.toBN('0')
  * 
  */ 
 
+describe('- Skip LQTY test', () => {
 contract('LQTYStaking revenue share tests', async accounts => {
 
   const [bountyAddress, lpRewardsAddress, multisig] = accounts.slice(997, 1000)
@@ -724,4 +725,5 @@ contract('LQTYStaking revenue share tests', async accounts => {
     const lqtyStakingTester = await LQTYStakingTester.new()
     await assertRevert(lqtyStakingTester.requireCallerIsTroveManager(), 'LQTYStaking: caller is not TroveM')
   })
+})
 })
