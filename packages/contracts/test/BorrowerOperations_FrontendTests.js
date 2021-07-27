@@ -2748,8 +2748,8 @@ contract('BorrowerOperations', async accounts => {
       const tx = await borrowerOperations.adjustTrove(th._100pct, 0, dec(1, 18), 0, true, C, C, { from: C })
       assert.equal((await troveManager.Troves(C)).frontEndTag, ZERO_ADDR)
       const txFeeBN = BigNumber.from(th.getLUSDFeeFromLUSDBorrowingEvent(tx))
-      ecosystemFundBN = ecosystemFundBN.add(txCFeeBN.div(2))
-      front2EndBN = front2EndBN.add(txCFeeBN.div(2))
+      ecosystemFundBN = ecosystemFundBN.add(txFeeBN.div(2))
+      front2EndBN = front2EndBN.add(txFeeBN.div(2))
       th.assertIsApproximatelyEqual((await lusdToken.balanceOf(ecosystemFund.address)).toString(), ecosystemFundBN.toString(), 10)
       th.assertIsApproximatelyEqual((await lusdToken.balanceOf(frontEnd_2)).toString(), front2EndBN.toString(), 10)
 
@@ -2770,8 +2770,8 @@ contract('BorrowerOperations', async accounts => {
       const tx1 = await borrowerOperations.adjustTrove(th._100pct, 0, dec(1, 18), 0, true, C, C, { from: C })
       assert.equal((await troveManager.Troves(D)).frontEndTag, ZERO_ADDR)
       const tx1FeeBN = BigNumber.from(th.getLUSDFeeFromLUSDBorrowingEvent(tx1))
-      ecosystemFundBN = ecosystemFundBN.add(txCFeeBN.div(2))
-      front2EndBN = front2EndBN.add(txCFeeBN.div(2))
+      ecosystemFundBN = ecosystemFundBN.add(tx1FeeBN.div(2))
+      front2EndBN = front2EndBN.add(tx1FeeBN.div(2))
       th.assertIsApproximatelyEqual((await lusdToken.balanceOf(ecosystemFund.address)).toString(), ecosystemFundBN.toString(), 10)
       th.assertIsApproximatelyEqual((await lusdToken.balanceOf(frontEnd_2)).toString(), front2EndBN.toString(), 10)
 
@@ -2781,7 +2781,7 @@ contract('BorrowerOperations', async accounts => {
       // after minimum interval had passed 
       assert.isTrue(lastFeeOpTime_3.gt(lastFeeOpTime_1))
     })
-    return;
+    
     it("adjustTrove(): borrower can't grief the baseRate and stop it decaying by issuing debt at higher frequency than the decay granularity", async () => {
       const txWhale = await openTrove({ ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
       assert.equal((await troveManager.Troves(whale)).frontEndTag, ZERO_ADDR)
