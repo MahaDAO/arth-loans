@@ -3658,10 +3658,10 @@ contract('BorrowerOperations', async accounts => {
     })
 
     it("adjustTrove(): debt increase in Recovery Mode charges no fee", async () => {
-      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: alice } })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
-      await openTrove({ extraLUSDAmount: toBN(dec(200000, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: bob } })
-      assert.equal((await troveManager.Troves(bob)).frontEndTag, ZERO_ADDR)
+      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), frontEndTag: frontEnd_1, ICR: toBN(dec(2, 18)), extraParams: { from: alice } })
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_1)
+      await openTrove({ extraLUSDAmount: toBN(dec(200000, 18)), frontEndTag: frontEnd_2, ICR: toBN(dec(2, 18)), extraParams: { from: bob } })
+      assert.equal((await troveManager.Troves(bob)).frontEndTag, frontEnd_2)
 
       assert.isFalse(await th.checkRecoveryMode(contracts))
 
@@ -3682,7 +3682,7 @@ contract('BorrowerOperations', async accounts => {
       await weth.deposit({ from: alice, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: alice })
       const txAlice = await borrowerOperations.adjustTrove(th._100pct, 0, dec(50, 18), dec(100, 'ether'), true, alice, alice, { from: alice })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
       assert.isTrue(txAlice.receipt.status)
 
       // Check emitted fee = 0
@@ -3847,8 +3847,8 @@ contract('BorrowerOperations', async accounts => {
     })
 
     it("adjustTrove(): With 0 debt change, doesnt change borrower's debt or ActivePool debt", async () => {
-      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: alice } })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), frontEndTag: frontEnd_1, ICR: toBN(dec(2, 18)), extraParams: { from: alice } })
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_1)
 
       const aliceDebtBefore = await getTroveEntireDebt(alice)
       const activePoolDebtBefore = await activePool.getLUSDDebt()
@@ -3860,7 +3860,7 @@ contract('BorrowerOperations', async accounts => {
       await weth.deposit({from: alice, value: dec(1, 'ether')})
       await weth.approve(borrowerOperations.address, dec(1, 'ether'), { from: alice })
       await borrowerOperations.adjustTrove(th._100pct, 0, 0, dec(1, 'ether'), false, alice, alice, { from: alice })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_1)
 
       const aliceDebtAfter = await getTroveEntireDebt(alice)
       const activePoolDebtAfter = await activePool.getLUSDDebt()
@@ -3911,10 +3911,10 @@ contract('BorrowerOperations', async accounts => {
     })
 
     it("adjustTrove(): updates borrower's debt and coll with a decrease in both", async () => {
-      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
-      assert.equal((await troveManager.Troves(whale)).frontEndTag, ZERO_ADDR)
-      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: alice } })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), frontEndTag: frontEnd_1, ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
+      assert.equal((await troveManager.Troves(whale)).frontEndTag, frontEnd_1)
+      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)),  frontEndTag: frontEnd_2, ICR: toBN(dec(10, 18)), extraParams: { from: alice } })
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
 
       const debtBefore = await getTroveEntireDebt(alice)
       const collBefore = await getTroveEntireColl(alice)
@@ -3923,7 +3923,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Alice adjusts trove coll and debt decrease (-0.5 ETH, -50LUSD)
       await borrowerOperations.adjustTrove(th._100pct, dec(500, 'finney'), dec(50, 18), 0, false, alice, alice, { from: alice })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
 
       const debtAfter = await getTroveEntireDebt(alice)
       const collAfter = await getTroveEntireColl(alice)
@@ -3934,9 +3934,9 @@ contract('BorrowerOperations', async accounts => {
 
     it("adjustTrove(): updates borrower's  debt and coll with coll increase, debt decrease", async () => {
       await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
-      assert.equal((await troveManager.Troves(whale)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(whale)).frontEndTag, frontEnd_1)
       await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: alice } })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
 
       const debtBefore = await getTroveEntireDebt(alice)
       const collBefore = await getTroveEntireColl(alice)
@@ -3947,7 +3947,7 @@ contract('BorrowerOperations', async accounts => {
       await weth.deposit({ from: alice, value: dec(500, 'finney') })
       await weth.approve(borrowerOperations.address, dec(500, 'finney'), { from: alice })
       await borrowerOperations.adjustTrove(th._100pct, 0, dec(50, 18), dec(500, 'finney'), false, alice, alice, { from: alice })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
 
       const debtAfter = await getTroveEntireDebt(alice)
       const collAfter = await getTroveEntireColl(alice)
@@ -4036,10 +4036,10 @@ contract('BorrowerOperations', async accounts => {
     })
 
     it("adjustTrove():  updates borrower's stake and totalStakes with a coll decrease", async () => {
-      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
-      assert.equal((await troveManager.Troves(whale)).frontEndTag, ZERO_ADDR)
-      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: alice } })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), frontEndTag: frontEnd_1, ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
+      assert.equal((await troveManager.Troves(whale)).frontEndTag, frontEnd_1)
+      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), frontEndTag: frontEnd_2, ICR: toBN(dec(10, 18)), extraParams: { from: alice } })
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
 
       const stakeBefore = await troveManager.getTroveStake(alice)
       const totalStakesBefore = await troveManager.totalStakes();
@@ -4048,7 +4048,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Alice adjusts trove - coll decrease and debt decrease
       await borrowerOperations.adjustTrove(th._100pct, dec(500, 'finney'), dec(50, 18), 0, false, alice, alice, { from: alice })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
 
       const stakeAfter = await troveManager.getTroveStake(alice)
       const totalStakesAfter = await troveManager.totalStakes();
@@ -4058,17 +4058,17 @@ contract('BorrowerOperations', async accounts => {
     })
 
     it("adjustTrove(): changes LUSDToken balance by the requested decrease", async () => {
-      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
-      assert.equal((await troveManager.Troves(whale)).frontEndTag, ZERO_ADDR)
-      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: alice } })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), frontEndTag: frontEnd_1, ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
+      assert.equal((await troveManager.Troves(whale)).frontEndTag, frontEnd_1)
+      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), frontEndTag: frontEnd_2, ICR: toBN(dec(10, 18)), extraParams: { from: alice } })
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
 
       const alice_LUSDTokenBalance_Before = await lusdToken.balanceOf(alice)
       assert.isTrue(alice_LUSDTokenBalance_Before.gt(toBN('0')))
 
       // Alice adjusts trove - coll decrease and debt decrease
       await borrowerOperations.adjustTrove(th._100pct, dec(100, 'finney'), dec(10, 18), 0, false, alice, alice, { from: alice })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
 
       // check after
       const alice_LUSDTokenBalance_After = await lusdToken.balanceOf(alice)
@@ -4099,7 +4099,7 @@ contract('BorrowerOperations', async accounts => {
       await weth.deposit({ from: alice, value: dec(1, 'ether') })
       await weth.approve(borrowerOperations.address, dec(1, 'ether'), { from: alice })
       const tx = await borrowerOperations.adjustTrove(th._100pct, 0, dec(100, 18), dec(1, 'ether'), true, alice, alice, { from: alice })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
       const txFeeBN = BigNumber.from(th.getLUSDFeeFromLUSDBorrowingEvent(tx))
       ecosystemFundBN = ecosystemFundBN.add(txFeeBN.div(2))
       front2EndBN = front2EndBN.add(txFeeBN.div(2))
@@ -4112,10 +4112,10 @@ contract('BorrowerOperations', async accounts => {
     })
 
     it("adjustTrove(): Changes the activePool ETH and raw ether balance by the requested decrease", async () => {
-      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
-      assert.equal((await troveManager.Troves(whale)).frontEndTag, ZERO_ADDR)
-      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: alice } })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), frontEndTag: frontEnd_1, ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
+      assert.equal((await troveManager.Troves(whale)).frontEndTag, frontEnd_1)
+      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), frontEndTag: frontEnd_2, ICR: toBN(dec(10, 18)), extraParams: { from: alice } })
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
 
       const activePool_ETH_Before = await activePool.getETH()
       const activePool_RawEther_Before = await weth.balanceOf(activePool.address)
@@ -4124,7 +4124,7 @@ contract('BorrowerOperations', async accounts => {
 
       // Alice adjusts trove - coll decrease and debt decrease
       await borrowerOperations.adjustTrove(th._100pct, dec(100, 'finney'), dec(10, 18), 0, false, alice, alice, { from: alice })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
 
       const activePool_ETH_After = await activePool.getETH()
       const activePool_RawEther_After = await weth.balanceOf(activePool.address)
@@ -4173,10 +4173,10 @@ contract('BorrowerOperations', async accounts => {
     })
 
     it("adjustTrove(): Changes the LUSD debt in ActivePool by requested decrease", async () => {
-      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
-      assert.equal((await troveManager.Troves(whale)).frontEndTag, ZERO_ADDR)
-      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: alice } })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), frontEndTag: frontEnd_1, ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
+      assert.equal((await troveManager.Troves(whale)).frontEndTag, frontEnd_1)
+      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), frontEndTag: frontEnd_2, ICR: toBN(dec(10, 18)), extraParams: { from: alice } })
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
       const balance = BigNumber.from((await lusdToken.balanceOf(ecosystemFund.address)).toString())
 
       const activePool_LUSDDebt_Before = await activePool.getLUSDDebt()
@@ -4186,7 +4186,7 @@ contract('BorrowerOperations', async accounts => {
       await weth.deposit({ from: alice, value: dec(1, 'ether') })
       await weth.approve(borrowerOperations.address, dec(1, 'ether'), { from: alice })
       await borrowerOperations.adjustTrove(th._100pct, 0, dec(30, 18), dec(1, 'ether'), false, alice, alice, { from: alice })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
 
       const activePool_LUSDDebt_After = await activePool.getLUSDDebt()
       assert.isTrue(activePool_LUSDDebt_After.eq(activePool_LUSDDebt_Before.sub(toBN(dec(30, 18)))))
