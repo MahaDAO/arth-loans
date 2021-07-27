@@ -83,9 +83,11 @@ class MainnetDeploymentHelper {
     const lusdTokenFactory = await this.getFactory("LUSDToken")
     const mahaTokenFactory = await this.getFactory("MahaToken")  // TODO: do no redeploy in mainnet as it already exists.
     const mahaARTHPairoracleFactory = await this.getFactory("MockUniswapOracle")  // TODO: replace with the proper oracle as it exists on mainnet.
+    const ecosystemFundFactory = await this.getFactory("EcosystemFund")
     // const tellorCallerFactory = await this.getFactory("TellorCaller")
 
     // Deploy txs
+    const ecosystemFund = await this.loadOrDeploy(ecosystemFundFactory, 'ecosystemFund', deploymentState)
     const gmuOracle = await this.loadOrDeploy(gmuOracleFactory, 'gmuOracle', deploymentState, [BigNumber.from(2e6)])
     const priceFeed = await this.loadOrDeploy(priceFeedFactory, 'priceFeed', deploymentState)
     const sortedTroves = await this.loadOrDeploy(sortedTrovesFactory, 'sortedTroves', deploymentState)
@@ -98,7 +100,7 @@ class MainnetDeploymentHelper {
     const borrowerOperations = await this.loadOrDeploy(borrowerOperationsFactory, 'borrowerOperations', deploymentState)
     const hintHelpers = await this.loadOrDeploy(hintHelpersFactory, 'hintHelpers', deploymentState)
     const mahaToken = await this.loadOrDeploy(mahaTokenFactory, 'mahaToken', deploymentState)
-    const governance = await this.loadOrDeploy(governanceFactory, 'governance', deploymentState, [troveManager.address])
+    const governance = await this.loadOrDeploy(governanceFactory, 'governance', deploymentState, [troveManager.address, borrowerOperations.address])
     // const tellorCaller = await this.loadOrDeploy(tellorCallerFactory, 'tellorCaller', deploymentState, [tellorMasterAddr])
     const lusdToken = await this.loadOrDeploy(
         lusdTokenFactory,
@@ -127,6 +129,7 @@ class MainnetDeploymentHelper {
     if (!this.configParams.ETHERSCAN_BASE_URL) {
       console.log('No Etherscan Url defined, skipping verification')
     } else {
+      await this.verifyContract('ecosystemFund', deploymentState)
       await this.verifyContract('mahaARTHPairOracle', deploymentState)
       await this.verifyContract('mahaToken', deploymentState)
       await this.verifyContract('controller', deploymentState, controllerParams)
@@ -162,6 +165,7 @@ class MainnetDeploymentHelper {
       borrowerOperations,
       hintHelpers,
       arthController,
+      ecosystemFund,
       controller,
       mahaToken,
       mahaARTHPairOracle
@@ -270,6 +274,10 @@ class MainnetDeploymentHelper {
         contracts.mahaARTHPairOracle.address,
         {gasPrice}
     ))
+    await this.sendAndWaitForTransaction(contracts.governance.setFund(
+        contracts.ecosystemFund.address,
+        {gasPrice}
+    ))
     await this.sendAndWaitForTransaction(contracts.arthController.addPool(contracts.controller.address, {gasPrice}))
     
     // set TroveManager addr in SortedTroves
@@ -293,9 +301,9 @@ class MainnetDeploymentHelper {
         contracts.lusdToken.address,
         contracts.sortedTroves.address,
         LQTYContracts.lqtyToken.address,
-        LQTYContracts.lqtyStaking.address,
         contracts.governance.address,
         contracts.controller.address,
+        this.configParams.externalAddrs.WETH_ERC20,
 	    {gasPrice}
       ))
 
@@ -310,7 +318,6 @@ class MainnetDeploymentHelper {
         contracts.collSurplusPool.address,
         contracts.sortedTroves.address,
         contracts.lusdToken.address,
-        LQTYContracts.lqtyStaking.address,
         this.configParams.externalAddrs.WETH_ERC20,
         contracts.governance.address,
         contracts.controller.address,
