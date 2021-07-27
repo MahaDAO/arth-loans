@@ -4160,7 +4160,6 @@ contract('BorrowerOperations', async accounts => {
       const tx = await borrowerOperations.adjustTrove(th._100pct, 0, dec(100, 18), dec(1, 'ether'), true, alice, alice, { from: alice })
       const txFeeBN = BigNumber.from(th.getLUSDFeeFromLUSDBorrowingEvent(tx))
       assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
-      const txFeeBN = BigNumber.from(th.getLUSDFeeFromLUSDBorrowingEvent(tx))
       ecosystemFundBN = ecosystemFundBN.add(txFeeBN.div(2))
       front2EndBN = front2EndBN.add(txFeeBN.div(2))
       th.assertIsApproximatelyEqual((await lusdToken.balanceOf(ecosystemFund.address)).toString(), ecosystemFundBN.toString(), 10)
