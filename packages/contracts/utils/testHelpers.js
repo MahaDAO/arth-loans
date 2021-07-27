@@ -1,6 +1,5 @@
 
 const BN = require('bn.js')
-const ZERO_ADDR = '0x0000000000000000000000000000000000000000';
 const LockupContract = artifacts.require(("./LockupContract.sol"))
 const Destructible = artifacts.require("./TestContracts/Destructible.sol")
 
@@ -668,7 +667,6 @@ class TestHelper {
     extraLUSDAmount,
     upperHint,
     lowerHint,
-    frontEndTag = ZERO_ADDR,
     ICR,
     extraParams
   }) {
@@ -696,7 +694,7 @@ class TestHelper {
 
     await contracts.weth.deposit(extraParams)
     await contracts.weth.approve(contracts.borrowerOperations.address, extraParams.value, { from: extraParams.from })
-    const tx = await contracts.borrowerOperations.openTrove(maxFeePercentage, lusdAmount, extraParams.value, upperHint, lowerHint, frontEndTag, { from: extraParams.from })
+    const tx = await contracts.borrowerOperations.openTrove(maxFeePercentage, lusdAmount, extraParams.value, upperHint, lowerHint, { from: extraParams.from })
 
     return {
       lusdAmount,
