@@ -3682,7 +3682,7 @@ contract('BorrowerOperations', async accounts => {
       await weth.deposit({ from: alice, value: dec(100, 'ether') })
       await weth.approve(borrowerOperations.address, dec(100, 'ether'), { from: alice })
       const txAlice = await borrowerOperations.adjustTrove(th._100pct, 0, dec(50, 18), dec(100, 'ether'), true, alice, alice, { from: alice })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_1)
       assert.isTrue(txAlice.receipt.status)
 
       // Check emitted fee = 0
@@ -3898,7 +3898,7 @@ contract('BorrowerOperations', async accounts => {
       assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
       const txFeeBN = BigNumber.from(th.getLUSDFeeFromLUSDBorrowingEvent(tx))
       ecosystemFundBN = ecosystemFundBN.add(txFeeBN.div(2))
-      front1EndBN = front1EndBN.add(txFeeBN.div(2))
+      front2EndBN = front2EndBN.add(txFeeBN.div(2))
       th.assertIsApproximatelyEqual((await lusdToken.balanceOf(ecosystemFund.address)).toString(), ecosystemFundBN.toString(), 10)
       th.assertIsApproximatelyEqual((await lusdToken.balanceOf(frontEnd_1)).toString(), front1EndBN.toString(), 10)
       th.assertIsApproximatelyEqual((await lusdToken.balanceOf(frontEnd_2)).toString(), front2EndBN.toString(), 10)
@@ -3933,9 +3933,9 @@ contract('BorrowerOperations', async accounts => {
     })
 
     it("adjustTrove(): updates borrower's  debt and coll with coll increase, debt decrease", async () => {
-      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
+      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), frontEndTag: frontEnd_1, ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
       assert.equal((await troveManager.Troves(whale)).frontEndTag, frontEnd_1)
-      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: alice } })
+      await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), frontEndTag: frontEnd_2, ICR: toBN(dec(10, 18)), extraParams: { from: alice } })
       assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
 
       const debtBefore = await getTroveEntireDebt(alice)
@@ -4216,7 +4216,7 @@ contract('BorrowerOperations', async accounts => {
       await weth.deposit({ from: alice, value: dec(1, 'ether') })
       await weth.approve(borrowerOperations.address, dec(1, 'ether'), { from: alice })
       const tx = await borrowerOperations.adjustTrove(th._100pct, 0, await getNetBorrowingAmount(dec(100, 18)), dec(1, 'ether'), true, alice, alice, { from: alice })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
       const txFeeBN = BigNumber.from(th.getLUSDFeeFromLUSDBorrowingEvent(tx))
       ecosystemFundBN = ecosystemFundBN.add(txFeeBN.div(2))
       front2EndBN = front2EndBN.add(txFeeBN.div(2))
@@ -4227,7 +4227,6 @@ contract('BorrowerOperations', async accounts => {
       const activePool_LUSDDebt_After = await activePool.getLUSDDebt()
     
       th.assertIsApproximatelyEqual(activePool_LUSDDebt_After, activePool_LUSDDebt_Before.add(toBN(dec(100, 18))))
-      assert.equal((await lusdToken.balanceOf(ecosystemFund.address)).toString(), balance.add(txFeeBN).toString())
     })
 
     it("adjustTrove(): new coll = 0 and new debt = 0 is not allowed, as gas compensation still counts toward ICR", async () => {
@@ -4321,13 +4320,15 @@ contract('BorrowerOperations', async accounts => {
 
       // Requested coll withdrawal > coll in the trove
       await assertRevert(borrowerOperations.adjustTrove(th._100pct, aliceColl.add(toBN(1)), 0, 0, false, alice, alice, { from: alice }))
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_1)
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
+      assert.equal((await troveManager.Troves(whale)).frontEndTag, frontEnd_1)
       assert.equal((await lusdToken.balanceOf(ecosystemFund.address)).toString(), balance.toString())
       assert.equal((await lusdToken.balanceOf(frontEnd_1)).toString(), balanceFE1.toString())
       assert.equal((await lusdToken.balanceOf(frontEnd_2)).toString(), balanceFE2.toString())
 
       await assertRevert(borrowerOperations.adjustTrove(th._100pct, aliceColl.add(toBN(dec(37, 'ether'))), 0, 0, false, bob, bob, { from: bob }))
-      assert.equal((await troveManager.Troves(bob)).frontEndTag, frontEnd_2)
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
+      assert.equal((await troveManager.Troves(whale)).frontEndTag, frontEnd_1)
       assert.equal((await lusdToken.balanceOf(ecosystemFund.address)).toString(), balance.toString())
       assert.equal((await lusdToken.balanceOf(frontEnd_1)).toString(), balanceFE1.toString())
       assert.equal((await lusdToken.balanceOf(frontEnd_2)).toString(), balanceFE2.toString())
