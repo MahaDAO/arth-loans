@@ -3895,7 +3895,7 @@ contract('BorrowerOperations', async accounts => {
       await weth.deposit({ from: alice, value: dec(1, 'ether') })
       await weth.approve(borrowerOperations.address, dec(1, 'ether'), { from: alice })
       const tx = await borrowerOperations.adjustTrove(th._100pct, 0, await getNetBorrowingAmount(dec(50, 18)), dec(1, 'ether') , true, alice, alice, { from: alice })
-      assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
+      assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_2)
       const txFeeBN = BigNumber.from(th.getLUSDFeeFromLUSDBorrowingEvent(tx))
       ecosystemFundBN = ecosystemFundBN.add(txFeeBN.div(2))
       front1EndBN = front1EndBN.add(txFeeBN.div(2))
