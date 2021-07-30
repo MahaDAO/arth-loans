@@ -279,6 +279,7 @@ class MainnetDeploymentHelper {
         {gasPrice}
     ))
     await this.sendAndWaitForTransaction(contracts.arthController.addPool(contracts.controller.address, {gasPrice}))
+    await this.sendAndWaitForTransaction(contracts.lusdToken.setArthController(contracts.arthController.address, {gasPrice}))
     
     // set TroveManager addr in SortedTroves
     await this.isOwnershipRenounced(contracts.sortedTroves) ||
