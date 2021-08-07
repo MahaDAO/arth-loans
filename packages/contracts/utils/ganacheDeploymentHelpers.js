@@ -54,7 +54,7 @@ class DeploymentHelper {
   async deployLiquityCoreHardhat(deployer, timelock) {
     fs.existsSync('./output/development.json') && fs.unlinkSync('./output/development.json');
     const weth = await WETH.new()
-    this.saveDeployment("WMATIC", weth.address, 'WETH')
+    this.saveDeployment("WMATIC", weth.address, 'IWETH')
     this.saveDeployment("WETH_WRAPPER", weth.address, 'IWETH')
 
     const priceFeedTestnet = await PriceFeedTestnet.new()
