@@ -70,7 +70,7 @@ class DeploymentHelper {
     this.saveDeployment("ActivePool", activePool.address, 'ActivePool')
 
     const stabilityPool = await StabilityPool.new()
-    this.saveDeployment("StabiliyPool", stabilityPool.address, 'StabiliyPool')
+    this.saveDeployment("StabilityPool", stabilityPool.address, 'StabilityPool')
 
     const gasPool = await GasPool.new()
     this.saveDeployment("GasPool", gasPool.address, 'GasPool')
