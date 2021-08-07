@@ -17,6 +17,7 @@ import "./Interfaces/IGovernance.sol";
 import "./Interfaces/ILUSDToken.sol";
 import "./Interfaces/IController.sol";
 import "./Interfaces/IGasPool.sol";
+import "./Dependencies/ISimpleERCFund.sol";
 
 contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOperations {
     string public constant NAME = "BorrowerOperations";
@@ -30,9 +31,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     IGasPool public gasPool;
 
     ICollSurplusPool collSurplusPool;
-
-    ILQTYStaking public lqtyStaking;
-    address public lqtyStakingAddress;
 
     ILUSDToken public lusdToken;
     IERC20 public weth;
@@ -88,6 +86,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         adjustTrove
     }
 
+    mapping(address => bool) public frontEnds;
+
+    event FrontEndRegistered(address indexed _frontEnd, uint256 timestamp);
     event CoreControllerAddressChanged(address _coreControllerAddress);
     event TroveManagerAddressChanged(address _newTroveManagerAddress);
     event ActivePoolAddressChanged(address _activePoolAddress);
@@ -98,7 +99,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     event CollSurplusPoolAddressChanged(address _collSurplusPoolAddress);
     event SortedTrovesAddressChanged(address _sortedTrovesAddress);
     event LUSDTokenAddressChanged(address _lusdTokenAddress);
-    event LQTYStakingAddressChanged(address _lqtyStakingAddress);
 
     event TroveCreated(address indexed _borrower, uint256 arrayIndex);
     event TroveUpdated(
@@ -121,7 +121,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _collSurplusPoolAddress,
         address _sortedTrovesAddress,
         address _lusdTokenAddress,
-        address _lqtyStakingAddress,
         address _wethAddress,
         address _governanceAddress,
         address _coreControllerAddress
@@ -137,7 +136,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         checkContract(_collSurplusPoolAddress);
         checkContract(_sortedTrovesAddress);
         checkContract(_lusdTokenAddress);
-        checkContract(_lqtyStakingAddress);
         checkContract(_wethAddress);
         checkContract(_governanceAddress);
         checkContract(_coreControllerAddress);
@@ -150,8 +148,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         collSurplusPool = ICollSurplusPool(_collSurplusPoolAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
         lusdToken = ILUSDToken(_lusdTokenAddress);
-        lqtyStakingAddress = _lqtyStakingAddress;
-        lqtyStaking = ILQTYStaking(_lqtyStakingAddress);
         weth = IERC20(_wethAddress);
         governance = IGovernance(_governanceAddress);
         coreController = IController(_coreControllerAddress);
@@ -164,7 +160,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         emit CollSurplusPoolAddressChanged(_collSurplusPoolAddress);
         emit SortedTrovesAddressChanged(_sortedTrovesAddress);
         emit LUSDTokenAddressChanged(_lusdTokenAddress);
-        emit LQTYStakingAddressChanged(_lqtyStakingAddress);
         emit GovernanceAddressChanged(_governanceAddress);
         emit CoreControllerAddressChanged(_coreControllerAddress);
 
@@ -173,13 +168,24 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     // --- Borrower Trove Operations ---
 
+    function registerFrontEnd() external override {
+        _requireFrontEndNotRegistered(msg.sender);
+        _requireTroveisNotActive(troveManager, msg.sender);
+        frontEnds[msg.sender] = true;
+        emit FrontEndRegistered(msg.sender, block.timestamp);
+    }
+
     function openTrove(
         uint256 _maxFeePercentage,
         uint256 _LUSDAmount,
         uint256 _ETHAmount,
         address _upperHint,
-        address _lowerHint
+        address _lowerHint,
+        address _frontEndTag
     ) external override {
+        _requireFrontEndIsRegisteredOrZero(_frontEndTag);
+        _requireFrontEndNotRegistered(msg.sender);
+
         ContractsCache memory contractsCache = ContractsCache(troveManager, activePool, lusdToken, getPriceFeed(), gasPool);
         LocalVariables_openTrove memory vars;
 
@@ -197,7 +203,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
                 contractsCache.troveManager,
                 contractsCache.lusdToken,
                 _LUSDAmount,
-                _maxFeePercentage
+                _maxFeePercentage,
+                _frontEndTag
             );
             vars.netDebt = vars.netDebt.add(vars.LUSDFee);
         }
@@ -225,6 +232,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         }
 
         // Set the trove struct's properties
+        contractsCache.troveManager.setTroveFrontEndTag(msg.sender, _frontEndTag);
         contractsCache.troveManager.setTroveStatus(msg.sender, 1);
         contractsCache.troveManager.increaseTroveColl(msg.sender, _ETHAmount);
         contractsCache.troveManager.increaseTroveDebt(msg.sender, vars.compositeDebt);
@@ -379,11 +387,13 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
         // If the adjustment incorporates a debt increase and system is in Normal Mode, then trigger a borrowing fee
         if (_isDebtIncrease && !isRecoveryMode) {
+            address frontEndTag = contractsCache.troveManager.getTroveFrontEnd(_borrower);
             vars.LUSDFee = _triggerBorrowingFee(
                 contractsCache.troveManager,
                 contractsCache.lusdToken,
                 _LUSDChange,
-                _maxFeePercentage
+                _maxFeePercentage,
+                frontEndTag
             );
             vars.netDebtChange = vars.netDebtChange.add(vars.LUSDFee); // The raw debt change includes the fee
         }
@@ -504,18 +514,36 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         ITroveManager _troveManager,
         ILUSDToken _lusdToken,
         uint256 _LUSDAmount,
-        uint256 _maxFeePercentage
+        uint256 _maxFeePercentage,
+        address _frontEndTag
     ) internal returns (uint256) {
         _troveManager.decayBaseRateFromBorrowing(); // decay the baseRate state variable
         uint256 LUSDFee = _troveManager.getBorrowingFee(_LUSDAmount);
 
         _requireUserAcceptsFee(LUSDFee, _LUSDAmount, _maxFeePercentage);
-
-        // Send fee to LQTY staking contract
-        lqtyStaking.increaseF_LUSD(LUSDFee);
-        coreController.mint(lqtyStakingAddress, LUSDFee);
+        
+        // If fee > 0, send fee.
+        if (LUSDFee > 0) {
+            // If frontEndTag is not there then send entire fee to fund.
+            if (_frontEndTag == address(0)) {
+                _sendFeeToFund(_lusdToken, LUSDFee);
+            } else {
+                // Else split and send half to fund and half to frontend.
+                uint256 feeToFrontEnd = LUSDFee.mul(50).div(100);
+                uint256 remainingFee = LUSDFee.sub(feeToFrontEnd);
+                coreController.mint(_frontEndTag, feeToFrontEnd);  // send half to frontend.
+                _sendFeeToFund(_lusdToken, remainingFee);  // And reamining half to fund.
+            }
+        }
 
         return LUSDFee;
+    }
+
+    function _sendFeeToFund(ILUSDToken _lusdToken, uint256 _LUSDFeeToFund) internal {
+        // 1. Mint the fee tokens to governance.
+        coreController.mint(address(governance), _LUSDFeeToFund);
+        // 2. The governance nows has the fee tokens, and hence can be sent to funds by governance.
+        governance.sendToFund(address(_lusdToken), _LUSDFeeToFund, "Borrowing fee triggered");
     }
 
     function _getUSDValue(uint256 _coll, uint256 _price) internal pure returns (uint256) {
@@ -616,6 +644,20 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     // --- 'Require' wrapper functions ---
+
+    function _requireFrontEndNotRegistered(address _address) internal view {
+        require(
+            !frontEnds[_address],
+            "BorrowerOperations: must not already be a registered front end"
+        );
+    }
+
+    function _requireFrontEndIsRegisteredOrZero(address _address) internal view {
+        require(
+            frontEnds[_address] || _address == address(0),
+            "BorrowerOperations: Tag must be a registered front end, or the zero address"
+        );
+    }
 
     function _requireSingularCollChange(uint256 _ETHAmount, uint256 _collWithdrawal) internal pure {
         require(

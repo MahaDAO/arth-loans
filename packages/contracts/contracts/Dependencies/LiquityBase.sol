@@ -43,18 +43,6 @@ contract LiquityBase is BaseMath, ILiquityBase {
 
     // --- Gas compensation functions ---
 
-    // Maximum amount of debt that this deployment can have (used to limit exposure to volatile assets)
-    // set this according to how much ever debt we'd like to accumulate; default is infinity
-    function _getMaxDebt() internal view returns (uint256) {
-        return governance.getMaxDebtCeiling();
-    }
-
-    // if we should allow any kind of debt creation
-    function _allowMinting() internal view returns (bool) {
-        return governance.getAllowMinting();
-    }
-
-    // the price oracle
     function getPriceFeed() public view override returns (IPriceFeed) {
         return governance.getPriceFeed();
     }

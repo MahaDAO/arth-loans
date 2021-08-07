@@ -39,18 +39,20 @@ interface IBorrowerOperations {
         address _collSurplusPoolAddress,
         address _sortedTrovesAddress,
         address _lusdTokenAddress,
-        address _lqtyStakingAddress,
         address _wethAddress,
         address _governanceAddress,
         address _coreControllerAddress
     ) external;
+
+    function registerFrontEnd() external;
 
     function openTrove(
         uint256 _maxFee,
         uint256 _LUSDAmount,
         uint256 _ETHAmount,
         address _upperHint,
-        address _lowerHint
+        address _lowerHint,
+        address _frontEndTag
     ) external;
 
     function addColl(

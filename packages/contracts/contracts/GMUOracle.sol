@@ -3,9 +3,9 @@
 pragma solidity 0.6.11;
 
 import "./Interfaces/IOracle.sol";
-import "./Dependencies/Ownable.sol";
+import "./Dependencies/TransferableOwnable.sol";
 
-contract GMUOracle is Ownable, IOracle {
+contract GMUOracle is TransferableOwnable, IOracle {
     uint256 public price = 1e6;
     string constant public NAME = "GMU/USD Oracle";
 

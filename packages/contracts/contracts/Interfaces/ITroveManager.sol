@@ -23,7 +23,7 @@ interface ITroveManager is ILiquityBase {
     event CollSurplusPoolAddressChanged(address _collSurplusPoolAddress);
     event SortedTrovesAddressChanged(address _sortedTrovesAddress);
     event LQTYTokenAddressChanged(address _lqtyTokenAddress);
-    event LQTYStakingAddressChanged(address _lqtyStakingAddress);
+    event WETHAddressChanged(address _wethAddressChanged);
     event GovernanceAddressChanged(address _governanceAddress);
     event CoreControllerAddressChanged(address _coreControllerAddress);
 
@@ -93,8 +93,6 @@ interface ITroveManager is ILiquityBase {
     function lusdToken() external view returns (ILUSDToken);
 
     function lqtyToken() external view returns (ILQTYToken);
-
-    function lqtyStaking() external view returns (ILQTYStaking);
 
     function getTroveOwnersCount() external view returns (uint256);
 
@@ -172,9 +170,13 @@ interface ITroveManager is ILiquityBase {
 
     function getTroveDebt(address _borrower) external view returns (uint256);
 
+    function getTroveFrontEnd(address _borrower) external view returns (address);
+
     function getTroveColl(address _borrower) external view returns (uint256);
 
     function setTroveStatus(address _borrower, uint256 num) external;
+
+    function setTroveFrontEndTag(address _borrower, address _frontEndTag) external;
 
     function increaseTroveColl(address _borrower, uint256 _collIncrease) external returns (uint256);
 
