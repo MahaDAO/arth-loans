@@ -17,6 +17,7 @@ const Controller = artifacts.require("Controller")
 const Governance = artifacts.require("Governance")
 const MahaToken = artifacts.require("MockMaha")
 const MockUniswapOracle = artifacts.require("MockUniswapOracle")
+const MultiTroveGetter = artifacts.require("MultiTroveGetter")
 
 const WETH = artifacts.require("./WETH.sol")
 const LQTYStaking = artifacts.require("./LQTYStaking.sol")
@@ -102,6 +103,9 @@ class DeploymentHelper {
     const mahaMockUniswapOracle = await MockUniswapOracle.new()
     this.saveDeployment("UniswapPairOracle_ARTH_MAHA", mahaMockUniswapOracle.address, 'UniswapPairOracle')
 
+    const multiTroveGetter = await MultiTroveGetter.new(troveManager.address, sortedTroves.address);
+    this.saveDeployment("MultiTroveGetter", multiTroveGetter.address, 'MultiTroveGetter')
+
     const arthController = await ARTHController.new(
         lusdToken.address, 
         mahaToken.address,
@@ -138,7 +142,8 @@ class DeploymentHelper {
       hintHelpers,
       weth,
       mahaToken,
-      mahaMockUniswapOracle
+      mahaMockUniswapOracle,
+      multiTroveGetter
     }
 
     return coreContracts
