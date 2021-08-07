@@ -95,6 +95,9 @@ module.exports = {
             gas: 10000000,  // tx gas limit
             accounts: [getSecret('RINKEBY_DEPLOYER_PRIVATEKEY', '0x60ddfe7f579ab6867cbe7a2dc03853dc141d7a4ab6dbefc0dae2d2b1bd4e487f')]
         },
+        development: {
+            url: 'HTTP://127.0.0.1:8545',
+        }
     },
     abiExporter: {
         path: './output/abi',
