@@ -3,6 +3,7 @@ require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 require("solidity-coverage");
 require("hardhat-gas-reporter");
+require("hardhat-abi-exporter");
 
 const accounts = require("./hardhatAccountsList2k.js");
 const accountsList = accounts.accountsList
@@ -94,6 +95,13 @@ module.exports = {
             gas: 10000000,  // tx gas limit
             accounts: [getSecret('RINKEBY_DEPLOYER_PRIVATEKEY', '0x60ddfe7f579ab6867cbe7a2dc03853dc141d7a4ab6dbefc0dae2d2b1bd4e487f')]
         },
+    },
+    abiExporter: {
+        path: './output/abi',
+        clear: true,
+        flat: true,
+        // only: [':ERC20$'],
+        spacing: 2
     },
     etherscan: {
         apiKey: getSecret("ETHERSCAN_API_KEY")

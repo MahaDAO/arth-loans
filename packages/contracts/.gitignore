@@ -24,6 +24,7 @@
 /.coverage_contracts
 /coverage.json
 /coverage
+/output
 
 # eth-mutants
 /.eth-mutants
