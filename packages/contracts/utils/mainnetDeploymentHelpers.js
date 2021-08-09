@@ -163,8 +163,8 @@ class MainnetDeploymentHelper {
     )
     const lusdToken = await this.loadOrDeploy(
         this.lusdTokenFactory,
-        'LusdToken',
-        'LusdToken',
+        'LUSDToken',
+        'LUSDToken',
         deploymentState,
     )
     const mahaToken = await this.loadOrDeploy(
@@ -318,7 +318,7 @@ class MainnetDeploymentHelper {
     const collSurplusPool = await this.loadOrDeploy(
         this.collSurplusPoolFactory, 
         `${token}CollSurplusPool`, 
-        'collSurplusPool', 
+        'CollSurplusPool', 
         deploymentState
     )
 
