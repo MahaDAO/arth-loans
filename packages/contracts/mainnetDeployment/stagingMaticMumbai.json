@@ -1,0 +1,140 @@
+{
+  "EcosystemFund": {
+    "abi": "EcosystemFund",
+    "address": "0x0b79c07FCb15FCAA473A695b711004E2bceEBb30",
+    "txHash": "0x93df0c39bb524eb8424bddad9f8b360ef0c8a47a0265af1ff312d2e2a1c74e29",
+    "verification": "https://mumbai.polygonscan.com/address/0x0b79c07FCb15FCAA473A695b711004E2bceEBb30#code"
+  },
+  "LusdToken": {
+    "abi": "LusdToken",
+    "address": "0xeF8185dCcDA681D7b2e9c8f2906B1591ae375a3e",
+    "txHash": "0x781487fa35c13d00ff397ce6c23ec606700521abb353a215bf324443cea33498",
+    "verification": "https://mumbai.polygonscan.com/address/0xeF8185dCcDA681D7b2e9c8f2906B1591ae375a3e#code"
+  },
+  "MahaToken": {
+    "abi": "MahaToken",
+    "address": "0x216035e9848190465415f78890712Eae5c963039",
+    "txHash": "0xf048b292137ec49cb417d0c95dc13ff6d5435721530cfd2c09227013393a0cca",
+    "verification": "https://mumbai.polygonscan.com/address/0x216035e9848190465415f78890712Eae5c963039#code"
+  },
+  "UniswapPairOracle_ARTH_MAHA": {
+    "abi": "UniswapPairOracle",
+    "address": "0x6f7d2008b5F4abCBFd6b40b4De4175d55c65cbb7",
+    "txHash": "0x390cb9eb1885f9072358117db5192a7ab1222d29998633f436faaf5429035f2c",
+    "verification": "https://mumbai.polygonscan.com/address/0x6f7d2008b5F4abCBFd6b40b4De4175d55c65cbb7#code"
+  },
+  "ARTHController": {
+    "abi": "ARTHController",
+    "address": "0x733CFbEd6DF62c16112629bF9Cd0DF4a123F839C",
+    "txHash": "0x06ed744c0e84eb2cbf57b1586c32ddcee7a3822590cd9554c55a33726bad643f",
+    "verification": "https://mumbai.polygonscan.com/address/0x733CFbEd6DF62c16112629bF9Cd0DF4a123F839C#code"
+  },
+  "GMUOracle": {
+    "abi": "GMUOracle",
+    "address": "0xA7b58D6344dd3f87aE946a8928c42F1E2cAbbfb3",
+    "txHash": "0x314cef19c75acb12f49b80af3cea418c2651e940115d4b3fe451163ec5811da1",
+    "verification": "https://mumbai.polygonscan.com/address/0xA7b58D6344dd3f87aE946a8928c42F1E2cAbbfb3#code"
+  },
+  "WETHPriceFeed": {
+    "abi": "PriceFeed",
+    "address": "0x39e81A0757695e773C641081Ed32502ea6EAf934",
+    "txHash": "0xbe12e757735441937daf253ac05b1c3d959e4ef1be820ed34a88e1246fead1d3",
+    "verification": "https://mumbai.polygonscan.com/address/0x39e81A0757695e773C641081Ed32502ea6EAf934#code"
+  },
+  "WETHSortedTroves": {
+    "abi": "SortedTroves",
+    "address": "0xF7C7ee67351857BC74C3420e3C3FBc0C0a8f53F3",
+    "txHash": "0x71e8a12f22831bedbba4f7f753852bc338e0cada32e1291187e37fd716fd5fcb",
+    "verification": "https://mumbai.polygonscan.com/address/0xF7C7ee67351857BC74C3420e3C3FBc0C0a8f53F3#code"
+  },
+  "WETHTroveManager": {
+    "abi": "TroveManager",
+    "address": "0x257CDA54A74AB5be1679D43b5A9f5C2a1F722Ca5",
+    "txHash": "0x881284db0a4e4341ecbd5772e05e3904735de39e280081e63aa8c094bb0c1027",
+    "verification": "https://mumbai.polygonscan.com/address/0x257CDA54A74AB5be1679D43b5A9f5C2a1F722Ca5#code"
+  },
+  "WETHActivePool": {
+    "abi": "ActivePool",
+    "address": "0x6B047aC72a7b903Bd639D01Ee327cB4F7684DdF9",
+    "txHash": "0xdf0832a37dd1199edca10deb8c5621d7fb746d1a1bbe661cafacfdde90a0da4c",
+    "verification": "https://mumbai.polygonscan.com/address/0x6B047aC72a7b903Bd639D01Ee327cB4F7684DdF9#code"
+  },
+  "WETHStabilityPool": {
+    "abi": "StabilityPool",
+    "address": "0xEB80d04C7B642a0A574A5Ef6Ea5351E890E12F33",
+    "txHash": "0x2d53f54f4c75201ae8e2052a26d1890af353bb7ea7557e506405f4ed66825975",
+    "verification": "https://mumbai.polygonscan.com/address/0xEB80d04C7B642a0A574A5Ef6Ea5351E890E12F33#code"
+  },
+  "WETHGasPool": {
+    "abi": "GasPool",
+    "address": "0xCef9118B719f1A61AdE8777523017e30A774c7E7",
+    "txHash": "0x07ad2f9907a32f9d34039f414f7c9364fed23ede52d5b1f641b23d6bcb5abb13",
+    "verification": "https://mumbai.polygonscan.com/address/0xCef9118B719f1A61AdE8777523017e30A774c7E7#code"
+  },
+  "WETHDefaultPool": {
+    "abi": "DefaultPool",
+    "address": "0xa60d12a24feB5aB5Fc0707F74179f06d3f204298",
+    "txHash": "0x5a1fec6f9e3a6ebd8e3edde74ae48be7f6cb6d14c27e7aba141ae2612fb3a248",
+    "verification": "https://mumbai.polygonscan.com/address/0xa60d12a24feB5aB5Fc0707F74179f06d3f204298#code"
+  },
+  "WETHCollSurplusPool": {
+    "abi": "collSurplusPool",
+    "address": "0xEd4931f3333bDCe60C47B9E8218204aDFaa748eB",
+    "txHash": "0x53d816b61588ec9a559d97063b1aeae7e523a1463070a5d3b5a9d1ad2dd7604a",
+    "verification": "https://mumbai.polygonscan.com/address/0xEd4931f3333bDCe60C47B9E8218204aDFaa748eB#code"
+  },
+  "WETHBorrowerOperations": {
+    "abi": "BorrowerOperations",
+    "address": "0xC4363aB34401fe067063C65Cd134568d91696D9d",
+    "txHash": "0x77252feb510046685eebc0eb8b09c289a459edfbdd1153b021b40f82d8b4249a",
+    "verification": "https://mumbai.polygonscan.com/address/0xC4363aB34401fe067063C65Cd134568d91696D9d#code"
+  },
+  "WETHHintHelpers": {
+    "abi": "HintHelpers",
+    "address": "0x18cD439235298A1f6d553E3428017a211c539497",
+    "txHash": "0x72b0dbde9d22bec2a2182f35f9ac520f247b3e28e5a28c860c36d1de89f6009d",
+    "verification": "https://mumbai.polygonscan.com/address/0x18cD439235298A1f6d553E3428017a211c539497#code"
+  },
+  "WETHGovernance": {
+    "abi": "Governance",
+    "address": "0x84dCaCcf002b847130a99eB4543e547af39723d5",
+    "txHash": "0x0e2880fb0e6dc03ecd188437d4fa9d9ebaf8c7145a494c574d230d8a4dfd0365",
+    "verification": "https://mumbai.polygonscan.com/address/0x84dCaCcf002b847130a99eB4543e547af39723d5#code"
+  },
+  "WETHController": {
+    "abi": "Controller",
+    "address": "0x832bE88a71a9b2a2cF0035b998f8f97F090C3A52",
+    "txHash": "0x4ecf09c89d0bcbfb0c1324e0b3dcdf71e67fd8c407d6f20f440aac43f81a7bce",
+    "verification": "https://mumbai.polygonscan.com/address/0x832bE88a71a9b2a2cF0035b998f8f97F090C3A52#code"
+  },
+  "WETHMultiTroveGetter": {
+    "abi": "MultiTroveGetter",
+    "address": "0x42A6f625e727985ae6f5D99b57499c6636c5808f",
+    "txHash": "0x73abd5408fdb00d63565670fbfbc48f396e13c73393fba195776f74e1e95a396",
+    "verification": "https://mumbai.polygonscan.com/address/0x42A6f625e727985ae6f5D99b57499c6636c5808f#code"
+  },
+  "WETHLQTYStaking": {
+    "abi": "LQTYStaking",
+    "address": "0xcF351c76F3969E262Ab61a6cF4BbCF89F1700974",
+    "txHash": "0xf82209795bfd1e8bb16be9ffcd6655588d0a8ea3dfab18ec4f1cd194fccebc1a",
+    "verification": "https://mumbai.polygonscan.com/address/0xcF351c76F3969E262Ab61a6cF4BbCF89F1700974#code"
+  },
+  "WETHLockupContractFactory": {
+    "abi": "LockupContractFactory",
+    "address": "0x732D18648A69Ad06A9F02F72E0fadFaeaA97C2b2",
+    "txHash": "0xb55e7d6fa4bf13fae7c4fb7639ba0baaa3511e1d95cb41078d5d613770cc37e9",
+    "verification": "https://mumbai.polygonscan.com/address/0x732D18648A69Ad06A9F02F72E0fadFaeaA97C2b2#code"
+  },
+  "WETHCommunityIssuance": {
+    "abi": "CommunityIssuance",
+    "address": "0xF5Ea3f49C630C73711292F373Cbdd71065D01869",
+    "txHash": "0x7f59a6d6593bf17565f954005c8bebeb834c67f9562b6051fdec9f0d2ca9705d",
+    "verification": "https://mumbai.polygonscan.com/address/0xF5Ea3f49C630C73711292F373Cbdd71065D01869#code"
+  },
+  "WETHLQTYToken": {
+    "abi": "LQTYToken",
+    "address": "0x72c56CF0589Cd56c224D6D8227079FaEe579A822",
+    "txHash": "0xe5b26147b0f6d665869a65802d11f99eb37a4b1ce37f5e98b9a8ea3ac072cbdc",
+    "verification": "https://mumbai.polygonscan.com/address/0x72c56CF0589Cd56c224D6D8227079FaEe579A822#code"
+  }
+}
