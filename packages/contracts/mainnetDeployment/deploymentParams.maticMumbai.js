@@ -28,7 +28,6 @@ module.exports = {
     DEPLOYER_ADDRS,
     OUTPUT_FILE,
     waitFunction,
-    NETWORK_NAME,
     GAS_PRICE,
     TX_CONFIRMATIONS,
     ETHERSCAN_BASE_URL,

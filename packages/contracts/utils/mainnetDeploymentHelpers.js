@@ -1,5 +1,7 @@
 const fs = require('fs')
+const { assert } = require('console')
 const { BigNumber } = require('ethers')
+const { ethers } = require('hardhat')
 
 const maxBytes32 = '0x' + 'f'.repeat(64)
 const ZERO_ADDRESS = '0x' + '0'.repeat(40)
@@ -39,6 +41,12 @@ class MainnetDeploymentHelper {
     this.mahaARTHPairoracleFactory = await this.getFactory("MockUniswapOracle")
     this.borrowerOperationsFactory = await this.getFactory("BorrowerOperations")
     this.lockupContractFactoryFactory = await this.getFactory('LockupContractFactory')
+  }
+
+  isMainnet() {
+    return this.configParams.NETWORK_NAME == 'mainnet' || 
+        this.configParams.NETWORK_NAME == 'matic' ||
+        this.configParams.NETWORK_NAME == 'bsc'
   }
 
   loadPreviousDeployment() {
@@ -97,6 +105,23 @@ class MainnetDeploymentHelper {
 
     this.saveDeployment(deploymentState)
     return contract
+  }
+
+  async deployPriceFeedTestnet(deploymentState, token) {
+    if (this.isMainnet) throw Error('ERROR: !!! Using testnet price feeds on mainnet !!!');
+
+    const priceFeedTestnetFactory = await this.getFactory('PriceFeedTestnet');
+    const priceFeed = await this.loadOrDeploy(
+        priceFeedTestnetFactory, 
+        `${token}PriceFeed`, 
+        'PriceFeed', 
+        deploymentState
+    )
+    return priceFeed;
+  }
+
+  async deployTestnetCollateral() {
+    
   }
 
   async deploy(deploymentState) {
@@ -566,8 +591,8 @@ class MainnetDeploymentHelper {
 	    {gasPrice}
       ))
 
-    await this.isOwnershipRenounced(ARTHContracts.communityIssuance) ||
-      await this.sendAndWaitForTransaction(ARTHContracts.communityIssuance.setAddresses(
+    await this.isOwnershipRenounced(LQTYContracts.communityIssuance) ||
+      await this.sendAndWaitForTransaction(LQTYContracts.communityIssuance.setAddresses(
         LQTYContracts.lqtyToken.address,
         ARTHContracts.stabilityPool.address,
 	    {gasPrice}
