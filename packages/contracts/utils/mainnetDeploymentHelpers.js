@@ -1,7 +1,6 @@
 const fs = require('fs')
 const { assert } = require('console')
 const { BigNumber } = require('ethers')
-const { ethers } = require('hardhat')
 
 const maxBytes32 = '0x' + 'f'.repeat(64)
 const ZERO_ADDRESS = '0x' + '0'.repeat(40)
@@ -107,23 +106,6 @@ class MainnetDeploymentHelper {
     return contract
   }
 
-  async deployPriceFeedTestnet(deploymentState, token) {
-    if (this.isMainnet) throw Error('ERROR: !!! Using testnet price feeds on mainnet !!!');
-
-    const priceFeedTestnetFactory = await this.getFactory('PriceFeedTestnet');
-    const priceFeed = await this.loadOrDeploy(
-        priceFeedTestnetFactory, 
-        `${token}PriceFeed`, 
-        'PriceFeed', 
-        deploymentState
-    )
-    return priceFeed;
-  }
-
-  async deployTestnetCollateral() {
-    
-  }
-
   async deploy(deploymentState) {
     const deployments = {}
 
@@ -221,7 +203,34 @@ class MainnetDeploymentHelper {
     }
   }
 
+  async deployLiquityCoreTestnet(deploymentState, commonContracts, token) {
+    const contracts = deployLiquityCore(deploymentState, commonContracts, token);
+    if (this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
+
+    const priceFeedTestnetFactory = await this.getFactory('PriceFeedTestnet')
+    const priceFeed = await this.loadOrDeploy(
+        priceFeedTestnetFactory, 
+        `${token}PriceFeed`, 
+        'PriceFeed', 
+        deploymentState
+    )
+
+    if (!this.configParams.ETHERSCAN_BASE_URL) {
+        console.log('- No Etherscan Url defined, skipping verification')
+    } else {
+        await this.verifyContract(`${token}PriceFeed`, deploymentState)
+    }
+
+    return {
+        ...contracts,
+        priceFeed
+    }
+  }
+
   async deployLiquityCoreMainnet(deploymentState, commonContracts, token) {
+    const contracts = deployLiquityCore(deploymentState, commonContracts, token);
+    if (!this.isMainnet()) throw Error('ERROR: !!! Using testnet price feeds on mainnet !!!')
+
     const priceFeed = await this.loadOrDeploy(
         this.priceFeedFactory, 
         `${token}PriceFeed`, 
@@ -229,6 +238,19 @@ class MainnetDeploymentHelper {
         deploymentState
     )
 
+    if (!this.configParams.ETHERSCAN_BASE_URL) {
+        console.log('- No Etherscan Url defined, skipping verification')
+    } else {
+        await this.verifyContract(`${token}PriceFeed`, deploymentState)
+    }
+
+    return {
+        ...contracts,
+        priceFeed
+    }
+  }
+  
+  async deployLiquityCore(deploymentState, commonContracts, token) {
     const sortedTroves = await this.loadOrDeploy(
         this.sortedTrovesFactory, 
         `${token}SortedTroves`, 
@@ -331,7 +353,6 @@ class MainnetDeploymentHelper {
     if (!this.configParams.ETHERSCAN_BASE_URL) {
       console.log('- No Etherscan Url defined, skipping verification')
     } else {
-      await this.verifyContract(`${token}PriceFeed`, deploymentState)
       await this.verifyContract(`${token}SortedTroves`, deploymentState)
       await this.verifyContract(`${token}TroveManager`, deploymentState)
       await this.verifyContract(`${token}ActivePool`, deploymentState)
@@ -348,7 +369,6 @@ class MainnetDeploymentHelper {
     }
 
     return {
-      priceFeed,
       governance,
       sortedTroves,
       troveManager,
@@ -424,16 +444,44 @@ class MainnetDeploymentHelper {
     return owner == ZERO_ADDRESS
   }
   
-  async connectCoreContractsMainnet(commonContracts, ARTHContracts, LQTYContracts) {
+  async connectCoreContractsTestnet(commonContracts, ARTHContracts, LQTYContracts, token) {
+    if (this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
+
+    const mockERC20Factory = await this.getFactory('ERC20Mock')
+    const erc20 = await this.loadOrDeploy(
+        mockERC20Factory,
+        `${token}`,
+        'IERC20',
+        deploymentState,
+        [
+            token,
+            token,
+            this.deployerWallet.address,
+            BigNumber.from(10).pow(18).mul(1e8),
+        ]
+    )
+
+    await this.connectCoreContracts(commonContracts, ARTHContracts, LQTYContracts, erc20.address);
+  }
+
+  async connectCoreContractsMainnet(commonContracts, ARTHContracts, LQTYContracts, token) {
+    if (!this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
+
+    const gasPrice = this.configParams.GAS_PRICE
+
+    await this.isOwnershipRenounced(ARTHContracts.priceFeed) ||
+    await this.sendAndWaitForTransaction(ARTHContracts.priceFeed.setAddresses(
+        this.configParams.EXTERNAL_ADDRS[`CHAINLINK_${token}_USD`], 
+        commonContracts.gmuOracle.address, 
+        {gasPrice})
+      )
+
+    await this.connectCoreContracts(commonContracts, ARTHContracts, LQTYContracts, this.configParams.EXTERNAL_ADDRS[token]);
+  }
+
+  async connectCoreContracts(commonContracts, ARTHContracts, LQTYContracts, tokenAddress) {
     const gasPrice = this.configParams.GAS_PRICE
     
-    await this.isOwnershipRenounced(ARTHContracts.priceFeed) ||
-      await this.sendAndWaitForTransaction(ARTHContracts.priceFeed.setAddresses(
-          this.configParams.EXTERNAL_ADDRS.CHAINLINK_WMATIC_USD, 
-          commonContracts.gmuOracle.address, 
-          {gasPrice})
-        )
-
     await this.sendAndWaitForTransaction(
         ARTHContracts.governance.setPriceFeed(ARTHContracts.priceFeed.address, {gasPrice})
     )
@@ -480,7 +528,7 @@ class MainnetDeploymentHelper {
         ARTHContracts.sortedTroves.address,
         ARTHContracts.governance.address,
         ARTHContracts.controller.address,
-        this.configParams.EXTERNAL_ADDRS.WMATIC,
+        tokenAddress,
 	    {gasPrice}
       ))
 
@@ -495,7 +543,7 @@ class MainnetDeploymentHelper {
         ARTHContracts.collSurplusPool.address,
         ARTHContracts.sortedTroves.address,
         commonContracts.lusdToken.address,
-        this.configParams.EXTERNAL_ADDRS.WMATIC,
+        tokenAddress,
         ARTHContracts.governance.address,
         ARTHContracts.controller.address,
 	    {gasPrice}
@@ -510,7 +558,7 @@ class MainnetDeploymentHelper {
         commonContracts.lusdToken.address,
         ARTHContracts.sortedTroves.address,
         LQTYContracts.communityIssuance.address,
-        this.configParams.EXTERNAL_ADDRS.WMATIC,
+        tokenAddress,
         ARTHContracts.governance.address,
         ARTHContracts.controller.address,
 	    {gasPrice}
@@ -524,7 +572,7 @@ class MainnetDeploymentHelper {
         ARTHContracts.stabilityPool.address,
         ARTHContracts.defaultPool.address,
         ARTHContracts.collSurplusPool.address,
-        this.configParams.EXTERNAL_ADDRS.WMATIC,
+        tokenAddress,
 	    {gasPrice}
       ))
 
@@ -533,7 +581,7 @@ class MainnetDeploymentHelper {
       await this.sendAndWaitForTransaction(ARTHContracts.defaultPool.setAddresses(
         ARTHContracts.troveManager.address,
         ARTHContracts.activePool.address,
-        this.configParams.EXTERNAL_ADDRS.WMATIC,
+        tokenAddress,
 	    {gasPrice}
       ))
 
@@ -543,7 +591,7 @@ class MainnetDeploymentHelper {
         ARTHContracts.borrowerOperations.address,
         ARTHContracts.troveManager.address,
         ARTHContracts.activePool.address,
-        this.configParams.EXTERNAL_ADDRS.WMATIC,
+        tokenAddress,
 	    {gasPrice}
       ))
 
