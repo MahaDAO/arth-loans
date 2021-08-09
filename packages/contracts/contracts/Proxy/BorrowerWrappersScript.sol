@@ -30,7 +30,8 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
     constructor(
         address _borrowerOperationsAddress,
         address _troveManagerAddress,
-        address _lqtyStakingAddress
+        address _lqtyStakingAddress,
+        address _lqtyTokenAddress
     )
         public
         BorrowerOperationsScript(IBorrowerOperations(_borrowerOperationsAddress))
@@ -48,9 +49,8 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
         checkContract(lusdTokenCached);
         lusdToken = IERC20(lusdTokenCached);
 
-        address lqtyTokenCached = address(troveManagerCached.lqtyToken());
-        checkContract(lqtyTokenCached);
-        lqtyToken = IERC20(lqtyTokenCached);
+        checkContract(_lqtyTokenAddress);
+        lqtyToken = IERC20(_lqtyTokenAddress);
         lqtyStaking = ILQTYStaking(_lqtyStakingAddress);
     }
 
