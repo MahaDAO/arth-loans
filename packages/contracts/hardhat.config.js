@@ -76,7 +76,7 @@ module.exports = {
             // }
         },
         maticMumbai: {
-            url: 'https://rpc-mumbai.matic.today',
+            url: 'https://matic-mumbai.chainstacklabs.com',
             gasPrice: 250000000000,
             gas: 10000000,  // tx gas limit
             accounts: [
