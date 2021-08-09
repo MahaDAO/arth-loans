@@ -43,6 +43,8 @@ contract Governance is TransferableOwnable, IGovernance {
 
     uint256 private maxDebtCeiling = uint256(-1); // infinity
     uint256 private stabilityFee = 10000000000000000; // 1%
+    
+    uint256 private immutable DEPLOYMENT_START_TIME;
 
     event AllowMintingChanged(bool oldFlag, bool newFlag, uint256 timestamp);
     event StabilityFeeChanged(uint256 oldValue, uint256 newValue, uint256 timestamp);
@@ -57,6 +59,7 @@ contract Governance is TransferableOwnable, IGovernance {
     constructor(address _troveManagerAddress, address _borrowerOperationAddress) public {
         troveManagerAddress = _troveManagerAddress;
         borrowerOperationAddress = _borrowerOperationAddress;
+        DEPLOYMENT_START_TIME = block.timestamp;
     }
 
     function setMaxDebtCeiling(uint256 _value) public onlyOwner {
@@ -97,6 +100,10 @@ contract Governance is TransferableOwnable, IGovernance {
         oldAddress = address(stabilityTokenPairOracle);
         stabilityTokenPairOracle = oracle;
         emit StabilityTokenPairOracleChanged(oldAddress, address(oracle), block.timestamp);
+    }
+
+    function getDeploymentStartTime() external view override returns (uint256) {
+        return DEPLOYMENT_START_TIME;
     }
 
     function getMaxDebtCeiling() external view override returns (uint256) {
