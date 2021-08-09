@@ -406,7 +406,6 @@ class DeploymentHelper {
       contracts.collSurplusPool.address,
       contracts.lusdToken.address,
       contracts.sortedTroves.address,
-      LQTYContracts.lqtyToken.address,
       contracts.governance.address,
       contracts.controller.address,
       contracts.weth.address
