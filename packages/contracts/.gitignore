@@ -16,7 +16,7 @@
 /secrets.js
 
 /.vscode
-
+/output
 
 # solidity-coverage
 /.coverage_artifacts

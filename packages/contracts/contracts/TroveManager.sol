@@ -6,7 +6,6 @@ import "./Interfaces/ITroveManager.sol";
 import "./Interfaces/IStabilityPool.sol";
 import "./Interfaces/ICollSurplusPool.sol";
 import "./Interfaces/ISortedTroves.sol";
-import "./Interfaces/ILQTYToken.sol";
 import "./Dependencies/LiquityBase.sol";
 import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
@@ -26,7 +25,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     IGasPool gasPool;
     ICollSurplusPool collSurplusPool;
     ILUSDToken public override lusdToken;
-    ILQTYToken public override lqtyToken;
     IController public coreController;
 
     // A doubly linked list of Troves, sorted by their sorted by their collateral ratios
@@ -207,7 +205,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     event GasPoolAddressChanged(address _gasPoolAddress);
     event CollSurplusPoolAddressChanged(address _collSurplusPoolAddress);
     event SortedTrovesAddressChanged(address _sortedTrovesAddress);
-    event LQTYTokenAddressChanged(address _lqtyTokenAddress);
     event GovernanceAddressChanged(address _governanceAddress);
     event CoreControllerChanged(address _coreControllerAddress);
     event WETHAddressChanged(address _wethAddress);
@@ -265,7 +262,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         address _collSurplusPoolAddress,
         address _lusdTokenAddress,
         address _sortedTrovesAddress,
-        address _lqtyTokenAddress,
         address _governanceAddress,
         address _coreControllerAddress,
         address _wethAddress
@@ -278,7 +274,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         checkContract(_collSurplusPoolAddress);
         checkContract(_lusdTokenAddress);
         checkContract(_sortedTrovesAddress);
-        checkContract(_lqtyTokenAddress);
         checkContract(_governanceAddress);
         checkContract(_coreControllerAddress);
         checkContract(_wethAddress);
@@ -292,7 +287,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         collSurplusPool = ICollSurplusPool(_collSurplusPoolAddress);
         lusdToken = ILUSDToken(_lusdTokenAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
-        lqtyToken = ILQTYToken(_lqtyTokenAddress);
         governance = IGovernance(_governanceAddress);
         coreController = IController(_coreControllerAddress);
 
@@ -306,7 +300,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         emit CollSurplusPoolAddressChanged(_collSurplusPoolAddress);
         emit LUSDTokenAddressChanged(_lusdTokenAddress);
         emit SortedTrovesAddressChanged(_sortedTrovesAddress);
-        emit LQTYTokenAddressChanged(_lqtyTokenAddress);
         emit CoreControllerChanged(_coreControllerAddress);
 
         _renounceOwnership();
@@ -1843,7 +1836,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     }
 
     function _requireAfterBootstrapPeriod() internal view {
-        uint256 systemDeploymentTime = lqtyToken.getDeploymentStartTime();
+        uint256 systemDeploymentTime = governance.getDeploymentStartTime();
         require(
             block.timestamp >= systemDeploymentTime.add(BOOTSTRAP_PERIOD),
             "TroveManager: Redemptions are not allowed during bootstrap phase"
