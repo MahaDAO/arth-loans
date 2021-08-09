@@ -76,7 +76,9 @@ module.exports = {
             // }
         },
         maticMumbai: {
-            url: 'https://matic-mumbai.chainstacklabs.com',
+            url: 'https://rpc-mainnet.maticvigil.com',
+            gasPrice: 150000000000,
+            gas: 10000000,  // tx gas limit
             accounts: [
                 getSecret('DEPLOYER_PRIVATEKEY', '0x60ddfe7f579ab6867cbe7a2dc03853dc141d7a4ab6dbefc0dae2d2b1bd4e487f'),
                 getSecret('ACCOUNT2_PRIVATEKEY', '0x3ec7cedbafd0cb9ec05bf9f7ccfa1e8b42b3e3a02c75addfccbfeb328d1b383b')
@@ -93,7 +95,10 @@ module.exports = {
         rinkeby: {
             url: alchemyUrlRinkeby(),
             gas: 10000000,  // tx gas limit
-            accounts: [getSecret('RINKEBY_DEPLOYER_PRIVATEKEY', '0x60ddfe7f579ab6867cbe7a2dc03853dc141d7a4ab6dbefc0dae2d2b1bd4e487f')]
+            accounts: [
+                getSecret('DEPLOYER_PRIVATEKEY', '0x60ddfe7f579ab6867cbe7a2dc03853dc141d7a4ab6dbefc0dae2d2b1bd4e487f'),
+                getSecret('ACCOUNT2_PRIVATEKEY', '0x3ec7cedbafd0cb9ec05bf9f7ccfa1e8b42b3e3a02c75addfccbfeb328d1b383b')
+            ]
         },
         development: {
             url: 'HTTP://127.0.0.1:8545',

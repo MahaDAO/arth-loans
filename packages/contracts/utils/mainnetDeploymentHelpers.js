@@ -408,7 +408,7 @@ class MainnetDeploymentHelper {
           commonContracts.gmuOracle.address, 
           {gasPrice})
         )
-    
+
     await this.sendAndWaitForTransaction(
         ARTHContracts.governance.setPriceFeed(ARTHContracts.priceFeed.address, {gasPrice})
     )
@@ -418,21 +418,21 @@ class MainnetDeploymentHelper {
         commonContracts.mahaARTHPairOracle.address,
         {gasPrice}
     ))
-
+    
     await this.sendAndWaitForTransaction(ARTHContracts.governance.setFund(
         commonContracts.ecosystemFund.address,
         {gasPrice}
     ))
-
-    // console.log('\n111111111\n')
-    // await this.sendAndWaitForTransaction(
-    //     commonContracts.arthController.addPool(ARTHContracts.controller.address, {gasPrice})
-    // )
-
+    
+    await this.sendAndWaitForTransaction(commonContracts.arthController.addPool(
+        ARTHContracts.controller.address, 
+        {gasPrice}
+    ))
+   
     await this.sendAndWaitForTransaction(
         commonContracts.lusdToken.setArthController(commonContracts.arthController.address, {gasPrice})
     )
-
+   
     // set TroveManager addr in Sorted Troves.
     await this.isOwnershipRenounced(ARTHContracts.sortedTroves) ||
       await this.sendAndWaitForTransaction(ARTHContracts.sortedTroves.setParams(
@@ -441,7 +441,7 @@ class MainnetDeploymentHelper {
         ARTHContracts.borrowerOperations.address, 
 	    {gasPrice}
       ))
-    
+      
     // set TroveManager addr in TroveManager.
     await this.isOwnershipRenounced(ARTHContracts.troveManager) ||
       await this.sendAndWaitForTransaction(ARTHContracts.troveManager.setAddresses(
@@ -490,7 +490,7 @@ class MainnetDeploymentHelper {
         ARTHContracts.controller.address,
 	    {gasPrice}
       ))
-    
+
     // Set contracts in ActivePool.
     await this.isOwnershipRenounced(ARTHContracts.activePool) ||
       await this.sendAndWaitForTransaction(ARTHContracts.activePool.setAddresses(
@@ -502,7 +502,7 @@ class MainnetDeploymentHelper {
         this.configParams.EXTERNAL_ADDRS.WMATIC,
 	    {gasPrice}
       ))
-    
+
     // Set contracts in DefaultPool.
     await this.isOwnershipRenounced(ARTHContracts.defaultPool) ||
       await this.sendAndWaitForTransaction(ARTHContracts.defaultPool.setAddresses(
@@ -511,7 +511,7 @@ class MainnetDeploymentHelper {
         this.configParams.EXTERNAL_ADDRS.WMATIC,
 	    {gasPrice}
       ))
-    
+
     // Set contracts in CollSurplusPool.
     await this.isOwnershipRenounced(ARTHContracts.collSurplusPool) ||
       await this.sendAndWaitForTransaction(ARTHContracts.collSurplusPool.setAddresses(
@@ -521,7 +521,7 @@ class MainnetDeploymentHelper {
         this.configParams.EXTERNAL_ADDRS.WMATIC,
 	    {gasPrice}
       ))
-    
+
     // Set contracts in GasPool.
     await this.isOwnershipRenounced(ARTHContracts.gasPool) ||
       await this.sendAndWaitForTransaction(ARTHContracts.gasPool.setAddresses(
@@ -531,7 +531,7 @@ class MainnetDeploymentHelper {
         ARTHContracts.controller.address,
 	    {gasPrice}
       ))
-    
+
     // Set contracts in HintHelpers.
     await this.isOwnershipRenounced(ARTHContracts.hintHelpers) ||
       await this.sendAndWaitForTransaction(ARTHContracts.hintHelpers.setAddresses(
