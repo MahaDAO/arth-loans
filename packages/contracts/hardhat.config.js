@@ -76,8 +76,8 @@ module.exports = {
             // }
         },
         maticMumbai: {
-            url: 'https://rpc-mainnet.maticvigil.com',
-            gasPrice: 150000000000,
+            url: 'https://rpc-mumbai.matic.today',
+            gasPrice: 250000000000,
             gas: 10000000,  // tx gas limit
             accounts: [
                 getSecret('DEPLOYER_PRIVATEKEY', '0x60ddfe7f579ab6867cbe7a2dc03853dc141d7a4ab6dbefc0dae2d2b1bd4e487f'),

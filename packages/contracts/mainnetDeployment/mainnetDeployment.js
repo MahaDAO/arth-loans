@@ -19,7 +19,7 @@ async function mainnetDeploy(configParams) {
   console.log(`Deployer ETH balance before: ${deployerETHBalance}`)
 
   // Deploy core logic contracts.
-  await mdh.deploy(deploymentState)
+  await mdh.deployTestnet(deploymentState)
 
   deployerETHBalance = await ethers.provider.getBalance(deployerWallet.address)
   console.log(`Deployer's ETH balance after deployments: ${deployerETHBalance}`)

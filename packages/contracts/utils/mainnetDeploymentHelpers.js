@@ -82,7 +82,7 @@ class MainnetDeploymentHelper {
 
   async loadOrDeploy(factory, name, abiName, deploymentState, params=[]) {
     if (deploymentState[name] && deploymentState[name].address) {
-      console.log(` - Using previously deployed ${name} contract at address ${deploymentState[name].address}`)
+      console.log(`- Using previously deployed ${name} contract at address ${deploymentState[name].address}`)
       return new ethers.Contract(
         deploymentState[name].address,
         factory.interface,
@@ -106,11 +106,10 @@ class MainnetDeploymentHelper {
     return contract
   }
 
-  async deploy(deploymentState) {
-    const deployments = {}
+  async deployMainnet(deploymentState) {
+    if (!this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
 
     const commonContracts = await this.deployCommonMainnet(deploymentState)
-    deployments['common'] = commonContracts
     
     for (const token of this.configParams.COLLATERLAS) {
         console.log()
@@ -119,7 +118,30 @@ class MainnetDeploymentHelper {
         console.log(`- Done deploying ARTH contracts`)
         const LQTYContracts = await this.deployLQTYContractsMainnet(deploymentState, token)
         console.log(`- Done deploying LQTY contracts`)
-        await this.connectCoreContractsMainnet(commonContracts, coreContracts, LQTYContracts)
+        await this.connectCoreContractsMainnet(commonContracts, coreContracts, LQTYContracts, token)
+        console.log(`- Done connecting ARTH contracts`)
+        await this.connectLQTYContractsMainnet(LQTYContracts)
+        console.log(`- Done connecting LQTY contracts`)
+        await this.connectLQTYContractsToCoreMainnet(LQTYContracts, coreContracts, commonContracts)
+        console.log(`- Done connecting ARTH & LQTY contracts`)
+        console.log(`------ Done deploying contracts for ${token} collateral ------`)
+        console.log()
+    }
+  }
+
+  async deployTestnet(deploymentState) {
+    if (this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
+
+    const commonContracts = await this.deployCommonMainnet(deploymentState)
+    
+    for (const token of this.configParams.COLLATERLAS) {
+        console.log()
+        console.log(`------ Deploying contracts for ${token} collateral ------`)
+        const coreContracts = await this.deployLiquityCoreTestnet(deploymentState, commonContracts, token)
+        console.log(`- Done deploying ARTH contracts`)
+        const LQTYContracts = await this.deployLQTYContractsMainnet(deploymentState, token)
+        console.log(`- Done deploying LQTY contracts`)
+        await this.connectCoreContractsTestnet(commonContracts, coreContracts, LQTYContracts, token, deploymentState)
         console.log(`- Done connecting ARTH contracts`)
         await this.connectLQTYContractsMainnet(LQTYContracts)
         console.log(`- Done connecting LQTY contracts`)
@@ -180,7 +202,7 @@ class MainnetDeploymentHelper {
     )
 
     if (!this.configParams.ETHERSCAN_BASE_URL) {
-        console.log(' - No Etherscan Url defined, skipping verification')
+        console.log('- No Etherscan Url defined, skipping verification')
     } else {
         await this.verifyContract(`GMUOracle`, deploymentState)
         await this.verifyContract(`MahaToken`, deploymentState)
@@ -204,7 +226,7 @@ class MainnetDeploymentHelper {
   }
 
   async deployLiquityCoreTestnet(deploymentState, commonContracts, token) {
-    const contracts = deployLiquityCore(deploymentState, commonContracts, token);
+    const contracts = await this.deployLiquityCore(deploymentState, commonContracts, token);
     if (this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
 
     const priceFeedTestnetFactory = await this.getFactory('PriceFeedTestnet')
@@ -228,7 +250,7 @@ class MainnetDeploymentHelper {
   }
 
   async deployLiquityCoreMainnet(deploymentState, commonContracts, token) {
-    const contracts = deployLiquityCore(deploymentState, commonContracts, token);
+    const contracts = await this.deployLiquityCore(deploymentState, commonContracts, token);
     if (!this.isMainnet()) throw Error('ERROR: !!! Using testnet price feeds on mainnet !!!')
 
     const priceFeed = await this.loadOrDeploy(
@@ -444,7 +466,7 @@ class MainnetDeploymentHelper {
     return owner == ZERO_ADDRESS
   }
   
-  async connectCoreContractsTestnet(commonContracts, ARTHContracts, LQTYContracts, token) {
+  async connectCoreContractsTestnet(commonContracts, ARTHContracts, LQTYContracts, token, deploymentState) {
     if (this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
 
     const mockERC20Factory = await this.getFactory('ERC20Mock')
@@ -680,12 +702,12 @@ class MainnetDeploymentHelper {
   
   async verifyContract(name, deploymentState, constructorArguments=[]) {
     if (!deploymentState[name] || !deploymentState[name].address) {
-      console.error(` - No deployment state for contract ${name}!!`)
+      console.error(`- No deployment state for contract ${name}!!`)
       return
     }
 
     if (deploymentState[name].verification) {
-      console.log(` - Contract ${name} already verified`)
+      console.log(`- Contract ${name} already verified`)
       return
     }
 
@@ -696,7 +718,7 @@ class MainnetDeploymentHelper {
       })
     } catch (error) {
       if (error.name != 'NomicLabsHardhatPluginError') {
-        console.error(` - Error verifying: ${error.name}`)
+        console.error(`- Error verifying: ${error.name}`)
         console.error(error)
         return
       }
@@ -711,7 +733,7 @@ class MainnetDeploymentHelper {
   async logContractObjects (contracts) {
     console.log(`- Contract objects addresses:`)
     for ( const contractName of Object.keys(contracts)) {
-      console.log(` - Contract: ${contractName}: ${contracts[contractName].address}`);
+      console.log(`- Contract: ${contractName}: ${contracts[contractName].address}`);
     }
   }
 }
