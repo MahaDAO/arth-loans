@@ -35,4 +35,3 @@ module.exports = {
     ETHERSCAN_BASE_URL,
     NETWORK_NAME
 };
-  

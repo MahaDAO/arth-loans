@@ -1,5 +1,5 @@
-const { mainnetDeploy } = require('./mainnetDeployment.js')
-const configParams = require("./deploymentParams.localFork.js")
+const { mainnetDeploy } = require('./deployer.js')
+const configParams = require("./params/localFork.js")
 
 const ETH_WHALE = "0x53d284357ec70ce289d6d64134dfac8e511c8a3d"
 //const TEST_DEPLOYER_PRIVATEKEY = '0xbbfbee4961061d506ffbb11dfea64eba16355cbf1d9c29613126ba7fec0aed5d'
@@ -15,7 +15,7 @@ async function main() {
   })
   console.log(`whale address from import: ${ETH_WHALE}`)
 
-  // Get the ETH whale signer 
+  // Get the ETH whale signer
   const whale = await ethers.provider.getSigner(ETH_WHALE)
   console.log(`whale addr : ${await whale.getAddress()}`)
   console.log(`whale ETH balance: ${ await ethers.provider.getBalance(whale.getAddress())}`)
