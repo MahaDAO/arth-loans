@@ -169,6 +169,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     // --- Borrower Trove Operations ---
 
     function registerFrontEnd() external override {
+        // should move this to a registry and have the control given to governance
         _requireFrontEndNotRegistered(msg.sender);
         _requireTroveisNotActive(troveManager, msg.sender);
         frontEnds[msg.sender] = true;
@@ -186,7 +187,13 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         _requireFrontEndIsRegisteredOrZero(_frontEndTag);
         _requireFrontEndNotRegistered(msg.sender);
 
-        ContractsCache memory contractsCache = ContractsCache(troveManager, activePool, lusdToken, getPriceFeed(), gasPool);
+        ContractsCache memory contractsCache = ContractsCache(
+            troveManager,
+            activePool,
+            lusdToken,
+            getPriceFeed(),
+            gasPool
+        );
         LocalVariables_openTrove memory vars;
 
         vars.price = contractsCache.priceFeed.fetchPrice();
@@ -358,7 +365,13 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _lowerHint,
         uint256 _maxFeePercentage
     ) internal {
-        ContractsCache memory contractsCache = ContractsCache(troveManager, activePool, lusdToken, getPriceFeed(), gasPool);
+        ContractsCache memory contractsCache = ContractsCache(
+            troveManager,
+            activePool,
+            lusdToken,
+            getPriceFeed(),
+            gasPool
+        );
         LocalVariables_adjustTrove memory vars;
 
         vars.price = contractsCache.priceFeed.fetchPrice();
@@ -521,7 +534,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 LUSDFee = _troveManager.getBorrowingFee(_LUSDAmount);
 
         _requireUserAcceptsFee(LUSDFee, _LUSDAmount, _maxFeePercentage);
-        
+
         // If fee > 0, send fee.
         if (LUSDFee > 0) {
             // If frontEndTag is not there then send entire fee to fund.
@@ -531,8 +544,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
                 // Else split and send half to fund and half to frontend.
                 uint256 feeToFrontEnd = LUSDFee.mul(50).div(100);
                 uint256 remainingFee = LUSDFee.sub(feeToFrontEnd);
-                coreController.mint(_frontEndTag, feeToFrontEnd);  // send half to frontend.
-                _sendFeeToFund(_lusdToken, remainingFee);  // And reamining half to fund.
+                coreController.mint(_frontEndTag, feeToFrontEnd); // send half to frontend.
+                _sendFeeToFund(_lusdToken, remainingFee); // And reamining half to fund.
             }
         }
 
@@ -637,7 +650,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         if (_account == address(gasPool)) {
             gasPool.burnLUSD(_LUSD);
         } else {
-            // Should be approved from UI, approval should be given to 
+            // Should be approved from UI, approval should be given to
             // contorller since that is the function calling the poolBurnFrom on ARTH.
             coreController.burn(_account, _LUSD);
         }
