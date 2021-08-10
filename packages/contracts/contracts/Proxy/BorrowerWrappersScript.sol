@@ -30,7 +30,8 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
     constructor(
         address _borrowerOperationsAddress,
         address _troveManagerAddress,
-        address _lqtyStakingAddress
+        address _lqtyStakingAddress,
+        address _lqtyTokenAddress
     )
         public
         BorrowerOperationsScript(IBorrowerOperations(_borrowerOperationsAddress))
@@ -48,16 +49,9 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
         checkContract(lusdTokenCached);
         lusdToken = IERC20(lusdTokenCached);
 
-        address lqtyTokenCached = address(troveManagerCached.lqtyToken());
-        checkContract(lqtyTokenCached);
-        lqtyToken = IERC20(lqtyTokenCached);
-
-        ILQTYStaking lqtyStakingCached = troveManagerCached.lqtyStaking();
-        require(
-            _lqtyStakingAddress == address(lqtyStakingCached),
-            "BorrowerWrappersScript: Wrong LQTYStaking address"
-        );
-        lqtyStaking = lqtyStakingCached;
+        checkContract(_lqtyTokenAddress);
+        lqtyToken = IERC20(_lqtyTokenAddress);
+        lqtyStaking = ILQTYStaking(_lqtyStakingAddress);
     }
 
     function claimCollateralAndOpenTrove(
@@ -65,7 +59,8 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
         uint256 _LUSDAmount,
         uint256 _ETHAmount,
         address _upperHint,
-        address _lowerHint
+        address _lowerHint,
+        address _frontEndTag
     ) external payable {
         uint256 balanceBefore = address(this).balance;
 
@@ -80,7 +75,7 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
         uint256 totalCollateral = balanceAfter.sub(balanceBefore).add(_ETHAmount);
 
         // Open trove with obtained collateral, plus collateral sent by user
-        borrowerOperations.openTrove(_maxFee, _LUSDAmount, totalCollateral, _upperHint, _lowerHint);
+        borrowerOperations.openTrove(_maxFee, _LUSDAmount, totalCollateral, _upperHint, _lowerHint, _frontEndTag);
     }
 
     function claimSPRewardsAndRecycle(

@@ -5,9 +5,10 @@ pragma solidity 0.6.11;
 import "./Dependencies/IERC20.sol";
 import "./Dependencies/IUniswapPairOracle.sol";
 import "./Dependencies/LiquityMath.sol";
-import "./Dependencies/Ownable.sol";
+import "./Dependencies/TransferableOwnable.sol";
 import "./Interfaces/IBurnableERC20.sol";
 import "./Interfaces/IGovernance.sol";
+import "./Dependencies/ISimpleERCFund.sol";
 
 /*
  * The Default Pool holds the ETH and LUSD debt (but not LUSD tokens) from liquidations that have been redistributed
@@ -16,13 +17,14 @@ import "./Interfaces/IGovernance.sol";
  * When a trove makes an operation that applies its pending ETH and LUSD debt, its pending ETH and LUSD debt is moved
  * from the Default Pool to the Active Pool.
  */
-contract Governance is Ownable, IGovernance {
+contract Governance is TransferableOwnable, IGovernance {
     using SafeMath for uint256;
 
     string public constant NAME = "Governance";
     uint256 public constant _100pct = 1000000000000000000; // 1e18 == 100%
 
     address public immutable troveManagerAddress;
+    address public immutable borrowerOperationAddress;
 
     // Maximum amount of debt that this deployment can have (used to limit exposure to volatile assets)
     // set this according to how much ever debt we'd like to accumulate; default is infinity
@@ -34,10 +36,15 @@ contract Governance is Ownable, IGovernance {
     // price feed
     IPriceFeed private priceFeed;
 
+    // The fund which recieves all the fees.
+    ISimpleERCFund private fund;
+
     IUniswapPairOracle private stabilityTokenPairOracle;
 
     uint256 private maxDebtCeiling = uint256(-1); // infinity
     uint256 private stabilityFee = 10000000000000000; // 1%
+    
+    uint256 private immutable DEPLOYMENT_START_TIME;
 
     event AllowMintingChanged(bool oldFlag, bool newFlag, uint256 timestamp);
     event StabilityFeeChanged(uint256 oldValue, uint256 newValue, uint256 timestamp);
@@ -46,15 +53,25 @@ contract Governance is Ownable, IGovernance {
     event StabilityFeeTokenChanged(address oldAddress, address newAddress, uint256 timestamp);
     event StabilityTokenPairOracleChanged(address oldAddress, address newAddress, uint256 timestamp);
     event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
+    event FundAddressChanged(address oldAddress, address newAddress, uint256 timestamp);
+    event SentToFund(address token, uint256 amount, uint256 timestamp, string reason);
 
-    constructor(address _troveManagerAddress) public {
+    constructor(address _troveManagerAddress, address _borrowerOperationAddress) public {
         troveManagerAddress = _troveManagerAddress;
+        borrowerOperationAddress = _borrowerOperationAddress;
+        DEPLOYMENT_START_TIME = block.timestamp;
     }
 
     function setMaxDebtCeiling(uint256 _value) public onlyOwner {
         uint256 oldValue = maxDebtCeiling;
         maxDebtCeiling = _value;
         emit MaxDebtCeilingChanged(oldValue, _value, block.timestamp);
+    }
+
+    function setFund(address _newFund) public onlyOwner {
+        address oldAddress = address(fund);
+        fund = ISimpleERCFund(_newFund);
+        emit FundAddressChanged(oldAddress, _newFund, block.timestamp);
     }
 
     function setPriceFeed(address _feed) public onlyOwner {
@@ -85,8 +102,16 @@ contract Governance is Ownable, IGovernance {
         emit StabilityTokenPairOracleChanged(oldAddress, address(oracle), block.timestamp);
     }
 
+    function getDeploymentStartTime() external view override returns (uint256) {
+        return DEPLOYMENT_START_TIME;
+    }
+
     function getMaxDebtCeiling() external view override returns (uint256) {
         return maxDebtCeiling;
+    }
+
+    function getFund() external view override returns (ISimpleERCFund) {
+        return fund;
     }
 
     function getStabilityFee() external view override returns (uint256) {
@@ -125,7 +150,23 @@ contract Governance is Ownable, IGovernance {
         }
     }
 
+    // Amount of tokens have to be transferred to this addr before calling this func.
+    function sendToFund(address token, uint256 amount, string memory reason) external override {
+        _requireCallerIsBOorTroveM();
+
+        IERC20(token).approve(address(fund), amount);
+        fund.deposit(token, amount, reason);
+        emit SentToFund(token, amount, block.timestamp, reason);
+    }
+
     function _requireCallerIsTroveManager() internal view {
         require(msg.sender == troveManagerAddress, "Governance: Caller is not TroveManager");
+    }
+
+    function _requireCallerIsBOorTroveM() internal view {
+        require(
+            msg.sender == borrowerOperationAddress || msg.sender == troveManagerAddress,
+            "Governance: Caller is neither BorrowerOperations nor TroveManager"
+        );
     }
 }

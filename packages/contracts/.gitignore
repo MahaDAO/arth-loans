@@ -18,7 +18,6 @@
 /.vscode
 /output
 
-
 # solidity-coverage
 /.coverage_artifacts
 /.coverage_cache

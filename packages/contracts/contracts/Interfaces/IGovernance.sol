@@ -4,9 +4,12 @@ pragma solidity 0.6.11;
 
 import "../Dependencies/IERC20.sol";
 import "./IPriceFeed.sol";
+import "../Dependencies/ISimpleERCFund.sol";
 import "../Dependencies/IUniswapPairOracle.sol";
 
 interface IGovernance {
+    function getDeploymentStartTime() external view returns (uint256);
+
     function getMaxDebtCeiling() external view returns (uint256);
 
     function getAllowMinting() external view returns (bool);
@@ -19,5 +22,9 @@ interface IGovernance {
 
     function getStabilityTokenPairOracle() external view returns (IUniswapPairOracle);
 
+    function getFund() external view returns (ISimpleERCFund);
+
     function chargeStabilityFee(address who, uint256 LUSDAmount) external;
+
+    function sendToFund(address token, uint256 amount, string memory reason) external;
 }

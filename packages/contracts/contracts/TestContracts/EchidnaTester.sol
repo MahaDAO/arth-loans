@@ -58,7 +58,7 @@ contract EchidnaTester {
         stabilityPool = new StabilityPool();
         gasPool = new GasPool();
         lusdToken = new LUSDToken();
-        governance = new Governance(address(troveManager));
+        governance = new Governance(address(troveManager), address(borrowerOperations));
         controller = new Controller(
             address(troveManager),
             address(stabilityPool),
@@ -90,10 +90,9 @@ contract EchidnaTester {
             address(collSurplusPool),
             address(lusdToken),
             address(sortedTroves),
-            address(0),
-            address(0),
             address(governance),
-            address(controller)
+            address(controller),
+            address(weth)
         );
 
         borrowerOperations.setAddresses(
@@ -105,7 +104,6 @@ contract EchidnaTester {
             address(collSurplusPool),
             address(sortedTroves),
             address(lusdToken),
-            address(0),
             address(weth),
             address(governance),
             address(controller)
@@ -248,7 +246,7 @@ contract EchidnaTester {
         //console.log('ETH', ETH);
         //console.log('LUSDAmount', LUSDAmount);
 
-        echidnaProxy.openTrovePrx(ETH, LUSDAmount, address(0), address(0), 0);
+        echidnaProxy.openTrovePrx(ETH, LUSDAmount, address(0), address(0), 0, address(0));
 
         numberOfTroves = troveManager.getTroveOwnersCount();
         assert(numberOfTroves > 0);
@@ -262,10 +260,11 @@ contract EchidnaTester {
         uint256 _LUSDAmount,
         address _upperHint,
         address _lowerHint,
-        uint256 _maxFee
+        uint256 _maxFee,
+        address _frontEndTag
     ) public payable {
         uint256 actor = _i % NUMBER_OF_ACTORS;
-        echidnaProxies[actor].openTrovePrx(_ETH, _LUSDAmount, _upperHint, _lowerHint, _maxFee);
+        echidnaProxies[actor].openTrovePrx(_ETH, _LUSDAmount, _upperHint, _lowerHint, _maxFee, _frontEndTag);
     }
 
     function addCollExt(uint256 _i, uint256 _ETH) external payable {

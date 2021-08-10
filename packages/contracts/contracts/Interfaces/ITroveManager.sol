@@ -3,8 +3,6 @@
 pragma solidity 0.6.11;
 
 import "./IStabilityPool.sol";
-import "./ILQTYToken.sol";
-import "./ILQTYStaking.sol";
 import "./ILiquityBase.sol";
 import "../Interfaces/ILUSDToken.sol";
 
@@ -22,8 +20,7 @@ interface ITroveManager is ILiquityBase {
     event GasPoolAddressChanged(address _gasPoolAddress);
     event CollSurplusPoolAddressChanged(address _collSurplusPoolAddress);
     event SortedTrovesAddressChanged(address _sortedTrovesAddress);
-    event LQTYTokenAddressChanged(address _lqtyTokenAddress);
-    event LQTYStakingAddressChanged(address _lqtyStakingAddress);
+    event WETHAddressChanged(address _wethAddressChanged);
     event GovernanceAddressChanged(address _governanceAddress);
     event CoreControllerAddressChanged(address _coreControllerAddress);
 
@@ -82,19 +79,14 @@ interface ITroveManager is ILiquityBase {
         address _collSurplusPoolAddress,
         address _lusdTokenAddress,
         address _sortedTrovesAddress,
-        address _lqtyTokenAddress,
-        address _lqtyStakingAddress,
         address _governanceAddress,
-        address _coreControllerAddress
+        address _coreControllerAddress,
+        address _wethAddress
     ) external;
 
     function stabilityPool() external view returns (IStabilityPool);
 
     function lusdToken() external view returns (ILUSDToken);
-
-    function lqtyToken() external view returns (ILQTYToken);
-
-    function lqtyStaking() external view returns (ILQTYStaking);
 
     function getTroveOwnersCount() external view returns (uint256);
 
@@ -172,9 +164,13 @@ interface ITroveManager is ILiquityBase {
 
     function getTroveDebt(address _borrower) external view returns (uint256);
 
+    function getTroveFrontEnd(address _borrower) external view returns (address);
+
     function getTroveColl(address _borrower) external view returns (uint256);
 
     function setTroveStatus(address _borrower, uint256 num) external;
+
+    function setTroveFrontEndTag(address _borrower, address _frontEndTag) external;
 
     function increaseTroveColl(address _borrower, uint256 _collIncrease) external returns (uint256);
 

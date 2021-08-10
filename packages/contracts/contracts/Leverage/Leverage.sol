@@ -32,6 +32,7 @@ contract Leverage is FlashLoanReceiverBase {
         address upperHint;
         address lowerHint;
         uint256 totalLusdAmount;  // LUSD to be minted after leverage collateral is given.
+        address frontEndTag;
     }
 
     event FlashLoanInitiated(address from, uint256 amount, uint256 timestamp);
@@ -62,7 +63,8 @@ contract Leverage is FlashLoanReceiverBase {
         uint256 maxFee,
         address upperHint,
         address lowerHint,
-        uint256 totalLusdAmount  // LUSD minted after givin ownerCollAmount + loanedCollAmount.
+        uint256 totalLusdAmount,  // LUSD minted after givin ownerCollAmount + loanedCollAmount.
+        address fronEndTag
     ) external {
         LeverageAndTroveDetails memory troveDetails = LeverageAndTroveDetails(
             ownerCollAmount, 
@@ -71,7 +73,8 @@ contract Leverage is FlashLoanReceiverBase {
             maxFee, 
             upperHint, 
             lowerHint,
-            totalLusdAmount
+            totalLusdAmount,
+            fronEndTag
         );
         
         bytes memory paramsData = abi.encode(troveDetails);
@@ -174,7 +177,8 @@ contract Leverage is FlashLoanReceiverBase {
             expectedTotalLUSDMint,
             troveDetails.totalCollAmount,
             troveDetails.upperHint, 
-            troveDetails.lowerHint
+            troveDetails.lowerHint,
+            troveDetails.frontEndTag
         );
 
         // 5. Note the balance of LUSD after opening the trove.
