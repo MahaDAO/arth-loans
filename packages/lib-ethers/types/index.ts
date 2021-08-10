@@ -33,7 +33,6 @@ interface ActivePoolTransactions {
   receiveETH(_amount: BigNumberish, _overrides?: Overrides): Promise<void>;
   sendETH(_account: string, _amount: BigNumberish, _overrides?: Overrides): Promise<void>;
   setAddresses(_borrowerOperationsAddress: string, _troveManagerAddress: string, _stabilityPoolAddress: string, _defaultPoolAddress: string, _collSurplusPoolAddress: string, _wethAddress: string, _overrides?: Overrides): Promise<void>;
-  transferOwnership(newOwner: string, _overrides?: Overrides): Promise<void>;
 }
 
 export interface ActivePool
@@ -77,6 +76,7 @@ interface BorrowerOperationsCalls {
   activePool(_overrides?: CallOverrides): Promise<string>;
   coreController(_overrides?: CallOverrides): Promise<string>;
   defaultPool(_overrides?: CallOverrides): Promise<string>;
+  frontEnds(arg0: string, _overrides?: CallOverrides): Promise<boolean>;
   gasPool(_overrides?: CallOverrides): Promise<string>;
   getCompositeDebt(_debt: BigNumberish, _overrides?: CallOverrides): Promise<BigNumber>;
   getEntireSystemColl(_overrides?: CallOverrides): Promise<BigNumber>;
@@ -84,8 +84,6 @@ interface BorrowerOperationsCalls {
   getPriceFeed(_overrides?: CallOverrides): Promise<string>;
   governance(_overrides?: CallOverrides): Promise<string>;
   isOwner(_overrides?: CallOverrides): Promise<boolean>;
-  lqtyStaking(_overrides?: CallOverrides): Promise<string>;
-  lqtyStakingAddress(_overrides?: CallOverrides): Promise<string>;
   lusdToken(_overrides?: CallOverrides): Promise<string>;
   owner(_overrides?: CallOverrides): Promise<string>;
   sortedTroves(_overrides?: CallOverrides): Promise<string>;
@@ -99,10 +97,10 @@ interface BorrowerOperationsTransactions {
   claimCollateral(_overrides?: Overrides): Promise<void>;
   closeTrove(_overrides?: Overrides): Promise<void>;
   moveETHGainToTrove(_ETHAmount: BigNumberish, _borrower: string, _upperHint: string, _lowerHint: string, _overrides?: Overrides): Promise<void>;
-  openTrove(_maxFeePercentage: BigNumberish, _LUSDAmount: BigNumberish, _ETHAmount: BigNumberish, _upperHint: string, _lowerHint: string, _overrides?: Overrides): Promise<void>;
+  openTrove(_maxFeePercentage: BigNumberish, _LUSDAmount: BigNumberish, _ETHAmount: BigNumberish, _upperHint: string, _lowerHint: string, _frontEndTag: string, _overrides?: Overrides): Promise<void>;
+  registerFrontEnd(_overrides?: Overrides): Promise<void>;
   repayLUSD(_LUSDAmount: BigNumberish, _upperHint: string, _lowerHint: string, _overrides?: Overrides): Promise<void>;
-  setAddresses(_troveManagerAddress: string, _activePoolAddress: string, _defaultPoolAddress: string, _stabilityPoolAddress: string, _gasPoolAddress: string, _collSurplusPoolAddress: string, _sortedTrovesAddress: string, _lusdTokenAddress: string, _lqtyStakingAddress: string, _wethAddress: string, _governanceAddress: string, _coreControllerAddress: string, _overrides?: Overrides): Promise<void>;
-  transferOwnership(newOwner: string, _overrides?: Overrides): Promise<void>;
+  setAddresses(_troveManagerAddress: string, _activePoolAddress: string, _defaultPoolAddress: string, _stabilityPoolAddress: string, _gasPoolAddress: string, _collSurplusPoolAddress: string, _sortedTrovesAddress: string, _lusdTokenAddress: string, _wethAddress: string, _governanceAddress: string, _coreControllerAddress: string, _overrides?: Overrides): Promise<void>;
   withdrawColl(_collWithdrawal: BigNumberish, _upperHint: string, _lowerHint: string, _overrides?: Overrides): Promise<void>;
   withdrawLUSD(_maxFeePercentage: BigNumberish, _LUSDAmount: BigNumberish, _upperHint: string, _lowerHint: string, _overrides?: Overrides): Promise<void>;
 }
@@ -114,6 +112,7 @@ export interface BorrowerOperations
     CollSurplusPoolAddressChanged(_collSurplusPoolAddress?: null): EventFilter;
     CoreControllerAddressChanged(_coreControllerAddress?: null): EventFilter;
     DefaultPoolAddressChanged(_defaultPoolAddress?: null): EventFilter;
+    FrontEndRegistered(_frontEnd?: string | null, timestamp?: null): EventFilter;
     GasPoolAddressChanged(_gasPoolAddress?: null): EventFilter;
     GovernanceAddressChanged(_governanceAddress?: null): EventFilter;
     LQTYStakingAddressChanged(_lqtyStakingAddress?: null): EventFilter;
@@ -130,6 +129,7 @@ export interface BorrowerOperations
   extractEvents(logs: Log[], name: "CollSurplusPoolAddressChanged"): _TypedLogDescription<{ _collSurplusPoolAddress: string }>[];
   extractEvents(logs: Log[], name: "CoreControllerAddressChanged"): _TypedLogDescription<{ _coreControllerAddress: string }>[];
   extractEvents(logs: Log[], name: "DefaultPoolAddressChanged"): _TypedLogDescription<{ _defaultPoolAddress: string }>[];
+  extractEvents(logs: Log[], name: "FrontEndRegistered"): _TypedLogDescription<{ _frontEnd: string; timestamp: BigNumber }>[];
   extractEvents(logs: Log[], name: "GasPoolAddressChanged"): _TypedLogDescription<{ _gasPoolAddress: string }>[];
   extractEvents(logs: Log[], name: "GovernanceAddressChanged"): _TypedLogDescription<{ _governanceAddress: string }>[];
   extractEvents(logs: Log[], name: "LQTYStakingAddressChanged"): _TypedLogDescription<{ _lqtyStakingAddress: string }>[];
@@ -161,7 +161,6 @@ interface CollSurplusPoolTransactions {
   claimColl(_account: string, _overrides?: Overrides): Promise<void>;
   receiveETH(_amount: BigNumberish, _overrides?: Overrides): Promise<void>;
   setAddresses(_borrowerOperationsAddress: string, _troveManagerAddress: string, _activePoolAddress: string, _wethAddress: string, _overrides?: Overrides): Promise<void>;
-  transferOwnership(newOwner: string, _overrides?: Overrides): Promise<void>;
 }
 
 export interface CollSurplusPool
@@ -200,7 +199,6 @@ interface CommunityIssuanceTransactions {
   issueLQTY(_overrides?: Overrides): Promise<BigNumber>;
   sendLQTY(_account: string, _LQTYamount: BigNumberish, _overrides?: Overrides): Promise<void>;
   setAddresses(_lqtyTokenAddress: string, _stabilityPoolAddress: string, _overrides?: Overrides): Promise<void>;
-  transferOwnership(newOwner: string, _overrides?: Overrides): Promise<void>;
 }
 
 export interface CommunityIssuance
@@ -234,7 +232,6 @@ interface DefaultPoolTransactions {
   receiveETH(_amount: BigNumberish, _overrides?: Overrides): Promise<void>;
   sendETHToActivePool(_amount: BigNumberish, _overrides?: Overrides): Promise<void>;
   setAddresses(_troveManagerAddress: string, _activePoolAddress: string, _wethAddress: string, _overrides?: Overrides): Promise<void>;
-  transferOwnership(newOwner: string, _overrides?: Overrides): Promise<void>;
 }
 
 export interface DefaultPool
@@ -308,7 +305,6 @@ interface GasPoolTransactions {
   burnLUSD(_amount: BigNumberish, _overrides?: Overrides): Promise<void>;
   returnToLiquidator(_account: string, amount: BigNumberish, _overrides?: Overrides): Promise<void>;
   setAddresses(_troveManagerAddress: string, _lusdTokenAddress: string, _borrowerOperationsAddress: string, _coreControllerAddress: string, _overrides?: Overrides): Promise<void>;
-  transferOwnership(newOwner: string, _overrides?: Overrides): Promise<void>;
 }
 
 export interface GasPool
@@ -359,7 +355,6 @@ interface HintHelpersCalls {
 
 interface HintHelpersTransactions {
   setAddresses(_sortedTrovesAddress: string, _troveManagerAddress: string, _overrides?: Overrides): Promise<void>;
-  transferOwnership(newOwner: string, _overrides?: Overrides): Promise<void>;
 }
 
 export interface HintHelpers
@@ -409,7 +404,6 @@ interface LockupContractFactoryCalls {
 interface LockupContractFactoryTransactions {
   deployLockupContract(_beneficiary: string, _unlockTime: BigNumberish, _overrides?: Overrides): Promise<void>;
   setLQTYTokenAddress(_lqtyTokenAddress: string, _overrides?: Overrides): Promise<void>;
-  transferOwnership(newOwner: string, _overrides?: Overrides): Promise<void>;
 }
 
 export interface LockupContractFactory
@@ -535,7 +529,6 @@ interface LQTYStakingTransactions {
   increaseF_LUSD(_LUSDFee: BigNumberish, _overrides?: Overrides): Promise<void>;
   setAddresses(_lqtyTokenAddress: string, _lusdTokenAddress: string, _troveManagerAddress: string, _borrowerOperationsAddress: string, _activePoolAddress: string, _wethAddress: string, _overrides?: Overrides): Promise<void>;
   stake(_LQTYamount: BigNumberish, _overrides?: Overrides): Promise<void>;
-  transferOwnership(newOwner: string, _overrides?: Overrides): Promise<void>;
   unstake(_LQTYamount: BigNumberish, _overrides?: Overrides): Promise<void>;
 }
 
@@ -645,7 +638,6 @@ interface PriceFeedCalls {
 interface PriceFeedTransactions {
   fetchPrice(_overrides?: Overrides): Promise<BigNumber>;
   setAddresses(_priceAggregatorAddress: string, _gmuOracle: string, _overrides?: Overrides): Promise<void>;
-  transferOwnership(newOwner: string, _overrides?: Overrides): Promise<void>;
 }
 
 export interface PriceFeed
@@ -701,7 +693,6 @@ interface SortedTrovesTransactions {
   reInsert(_id: string, _newNICR: BigNumberish, _prevId: string, _nextId: string, _overrides?: Overrides): Promise<void>;
   remove(_id: string, _overrides?: Overrides): Promise<void>;
   setParams(_size: BigNumberish, _troveManagerAddress: string, _borrowerOperationsAddress: string, _overrides?: Overrides): Promise<void>;
-  transferOwnership(newOwner: string, _overrides?: Overrides): Promise<void>;
 }
 
 export interface SortedTroves
@@ -780,7 +771,6 @@ interface StabilityPoolTransactions {
   receiveETH(_amount: BigNumberish, _overrides?: Overrides): Promise<void>;
   registerFrontEnd(_kickbackRate: BigNumberish, _overrides?: Overrides): Promise<void>;
   setAddresses(_borrowerOperationsAddress: string, _troveManagerAddress: string, _activePoolAddress: string, _lusdTokenAddress: string, _sortedTrovesAddress: string, _communityIssuanceAddress: string, _wethAddress: string, _governanceAddress: string, _coreControllerAddress: string, _overrides?: Overrides): Promise<void>;
-  transferOwnership(newOwner: string, _overrides?: Overrides): Promise<void>;
   withdrawETHGainToTrove(_upperHint: string, _lowerHint: string, _overrides?: Overrides): Promise<void>;
   withdrawFromSP(_amount: BigNumberish, _overrides?: Overrides): Promise<void>;
 }
@@ -863,7 +853,7 @@ interface TroveManagerCalls {
   REDEMPTION_FEE_FLOOR(_overrides?: CallOverrides): Promise<BigNumber>;
   SECONDS_IN_ONE_MINUTE(_overrides?: CallOverrides): Promise<BigNumber>;
   TroveOwners(arg0: BigNumberish, _overrides?: CallOverrides): Promise<string>;
-  Troves(arg0: string, _overrides?: CallOverrides): Promise<{ debt: BigNumber; coll: BigNumber; stake: BigNumber; status: number; arrayIndex: BigNumber }>;
+  Troves(arg0: string, _overrides?: CallOverrides): Promise<{ debt: BigNumber; coll: BigNumber; stake: BigNumber; status: number; arrayIndex: BigNumber; frontEndTag: string }>;
   _100pct(_overrides?: CallOverrides): Promise<BigNumber>;
   activePool(_overrides?: CallOverrides): Promise<string>;
   baseRate(_overrides?: CallOverrides): Promise<BigNumber>;
@@ -890,6 +880,7 @@ interface TroveManagerCalls {
   getTroveColl(_borrower: string, _overrides?: CallOverrides): Promise<BigNumber>;
   getTroveDebt(_borrower: string, _overrides?: CallOverrides): Promise<BigNumber>;
   getTroveFromTroveOwnersArray(_index: BigNumberish, _overrides?: CallOverrides): Promise<string>;
+  getTroveFrontEnd(_borrower: string, _overrides?: CallOverrides): Promise<string>;
   getTroveOwnersCount(_overrides?: CallOverrides): Promise<BigNumber>;
   getTroveStake(_borrower: string, _overrides?: CallOverrides): Promise<BigNumber>;
   getTroveStatus(_borrower: string, _overrides?: CallOverrides): Promise<BigNumber>;
@@ -899,8 +890,6 @@ interface TroveManagerCalls {
   lastETHError_Redistribution(_overrides?: CallOverrides): Promise<BigNumber>;
   lastFeeOperationTime(_overrides?: CallOverrides): Promise<BigNumber>;
   lastLUSDDebtError_Redistribution(_overrides?: CallOverrides): Promise<BigNumber>;
-  lqtyStaking(_overrides?: CallOverrides): Promise<string>;
-  lqtyToken(_overrides?: CallOverrides): Promise<string>;
   lusdToken(_overrides?: CallOverrides): Promise<string>;
   owner(_overrides?: CallOverrides): Promise<string>;
   rewardSnapshots(arg0: string, _overrides?: CallOverrides): Promise<{ ETH: BigNumber; LUSDDebt: BigNumber }>;
@@ -909,6 +898,7 @@ interface TroveManagerCalls {
   totalCollateralSnapshot(_overrides?: CallOverrides): Promise<BigNumber>;
   totalStakes(_overrides?: CallOverrides): Promise<BigNumber>;
   totalStakesSnapshot(_overrides?: CallOverrides): Promise<BigNumber>;
+  wethAddress(_overrides?: CallOverrides): Promise<string>;
 }
 
 interface TroveManagerTransactions {
@@ -926,9 +916,9 @@ interface TroveManagerTransactions {
   moveTrove(dest: string, _overrides?: Overrides): Promise<void>;
   redeemCollateral(_LUSDamount: BigNumberish, _firstRedemptionHint: string, _upperPartialRedemptionHint: string, _lowerPartialRedemptionHint: string, _partialRedemptionHintNICR: BigNumberish, _maxIterations: BigNumberish, _maxFeePercentage: BigNumberish, _overrides?: Overrides): Promise<void>;
   removeStake(_borrower: string, _overrides?: Overrides): Promise<void>;
-  setAddresses(_borrowerOperationsAddress: string, _activePoolAddress: string, _defaultPoolAddress: string, _stabilityPoolAddress: string, _gasPoolAddress: string, _collSurplusPoolAddress: string, _lusdTokenAddress: string, _sortedTrovesAddress: string, _lqtyTokenAddress: string, _lqtyStakingAddress: string, _governanceAddress: string, _coreControllerAddress: string, _overrides?: Overrides): Promise<void>;
+  setAddresses(_borrowerOperationsAddress: string, _activePoolAddress: string, _defaultPoolAddress: string, _stabilityPoolAddress: string, _gasPoolAddress: string, _collSurplusPoolAddress: string, _lusdTokenAddress: string, _sortedTrovesAddress: string, _governanceAddress: string, _coreControllerAddress: string, _wethAddress: string, _overrides?: Overrides): Promise<void>;
+  setTroveFrontEndTag(_borrower: string, _frontEndTag: string, _overrides?: Overrides): Promise<void>;
   setTroveStatus(_borrower: string, _num: BigNumberish, _overrides?: Overrides): Promise<void>;
-  transferOwnership(newOwner: string, _overrides?: Overrides): Promise<void>;
   updateStakeAndTotalStakes(_borrower: string, _overrides?: Overrides): Promise<BigNumber>;
   updateTroveRewardSnapshots(_borrower: string, _overrides?: Overrides): Promise<void>;
 }
@@ -945,8 +935,6 @@ export interface TroveManager
     DefaultPoolAddressChanged(_defaultPoolAddress?: null): EventFilter;
     GasPoolAddressChanged(_gasPoolAddress?: null): EventFilter;
     GovernanceAddressChanged(_governanceAddress?: null): EventFilter;
-    LQTYStakingAddressChanged(_lqtyStakingAddress?: null): EventFilter;
-    LQTYTokenAddressChanged(_lqtyTokenAddress?: null): EventFilter;
     LTermsUpdated(_L_ETH?: null, _L_LUSDDebt?: null): EventFilter;
     LUSDTokenAddressChanged(_newLUSDTokenAddress?: null): EventFilter;
     LastFeeOpTimeUpdated(_lastFeeOpTime?: null): EventFilter;
@@ -965,6 +953,7 @@ export interface TroveManager
     TroveOwnersUpdated(owner?: null, newOwner?: null, idx?: null, timestamp?: null): EventFilter;
     TroveSnapshotsUpdated(_L_ETH?: null, _L_LUSDDebt?: null): EventFilter;
     TroveUpdated(_borrower?: string | null, _debt?: null, _coll?: null, _stake?: null, _operation?: null): EventFilter;
+    WETHAddressChanged(_wethAddress?: null): EventFilter;
   };
   extractEvents(logs: Log[], name: "ActivePoolAddressChanged"): _TypedLogDescription<{ _activePoolAddress: string }>[];
   extractEvents(logs: Log[], name: "BaseRateUpdated"): _TypedLogDescription<{ _baseRate: BigNumber }>[];
@@ -975,8 +964,6 @@ export interface TroveManager
   extractEvents(logs: Log[], name: "DefaultPoolAddressChanged"): _TypedLogDescription<{ _defaultPoolAddress: string }>[];
   extractEvents(logs: Log[], name: "GasPoolAddressChanged"): _TypedLogDescription<{ _gasPoolAddress: string }>[];
   extractEvents(logs: Log[], name: "GovernanceAddressChanged"): _TypedLogDescription<{ _governanceAddress: string }>[];
-  extractEvents(logs: Log[], name: "LQTYStakingAddressChanged"): _TypedLogDescription<{ _lqtyStakingAddress: string }>[];
-  extractEvents(logs: Log[], name: "LQTYTokenAddressChanged"): _TypedLogDescription<{ _lqtyTokenAddress: string }>[];
   extractEvents(logs: Log[], name: "LTermsUpdated"): _TypedLogDescription<{ _L_ETH: BigNumber; _L_LUSDDebt: BigNumber }>[];
   extractEvents(logs: Log[], name: "LUSDTokenAddressChanged"): _TypedLogDescription<{ _newLUSDTokenAddress: string }>[];
   extractEvents(logs: Log[], name: "LastFeeOpTimeUpdated"): _TypedLogDescription<{ _lastFeeOpTime: BigNumber }>[];
@@ -995,6 +982,7 @@ export interface TroveManager
   extractEvents(logs: Log[], name: "TroveOwnersUpdated"): _TypedLogDescription<{ owner: string; newOwner: string; idx: BigNumber; timestamp: BigNumber }>[];
   extractEvents(logs: Log[], name: "TroveSnapshotsUpdated"): _TypedLogDescription<{ _L_ETH: BigNumber; _L_LUSDDebt: BigNumber }>[];
   extractEvents(logs: Log[], name: "TroveUpdated"): _TypedLogDescription<{ _borrower: string; _debt: BigNumber; _coll: BigNumber; _stake: BigNumber; _operation: number }>[];
+  extractEvents(logs: Log[], name: "WETHAddressChanged"): _TypedLogDescription<{ _wethAddress: string }>[];
 }
 
 interface UnipoolCalls {
@@ -1021,7 +1009,6 @@ interface UnipoolTransactions {
   claimReward(_overrides?: Overrides): Promise<void>;
   setParams(_lqtyTokenAddress: string, _uniTokenAddress: string, _duration: BigNumberish, _overrides?: Overrides): Promise<void>;
   stake(amount: BigNumberish, _overrides?: Overrides): Promise<void>;
-  transferOwnership(newOwner: string, _overrides?: Overrides): Promise<void>;
   withdraw(amount: BigNumberish, _overrides?: Overrides): Promise<void>;
   withdrawAndClaim(_overrides?: Overrides): Promise<void>;
 }
