@@ -21,7 +21,7 @@ const TX_CONFIRMATIONS = 1
 const GAS_PRICE = 2000000000  // 1 Gwei
 const NETWORK_NAME = 'maticMumbai'
 const COLLATERLAS = ['WETH', 'DAI', 'WMATIC']
-const OUTPUT_FILE = './mainnetDeployment/stagingMaticMumbai.json'
+const OUTPUT_FILE = './output/stagingMaticMumbai.json'
 const ETHERSCAN_BASE_URL = 'https://mumbai.polygonscan.com/address'
 
 module.exports = {
