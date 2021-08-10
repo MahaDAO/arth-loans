@@ -37,7 +37,6 @@ class MainnetDeploymentHelper {
     this.collSurplusPoolFactory = await this.getFactory("CollSurplusPool")
     this.multiTroveGetterFactory = await this.getFactory("MultiTroveGetter")
     this.communityIssuanceFactory = await this.getFactory("CommunityIssuance")
-    this.mahaARTHPairoracleFactory = await this.getFactory("MockUniswapOracle")
     this.borrowerOperationsFactory = await this.getFactory("BorrowerOperations")
     this.lockupContractFactoryFactory = await this.getFactory('LockupContractFactory')
   }
@@ -109,7 +108,8 @@ class MainnetDeploymentHelper {
   async deployMainnet(deploymentState) {
     if (!this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
 
-    const commonContracts = await this.deployCommonMainnet(deploymentState)
+    throw Error('ERROR: !!! We sill need to make minor fixes for mainnet deployment !!! ')
+    const commonContracts = await this.deployCommonTestnet(deploymentState)
     
     for (const token of this.configParams.COLLATERLAS) {
         console.log()
@@ -132,7 +132,7 @@ class MainnetDeploymentHelper {
   async deployTestnet(deploymentState) {
     if (this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
 
-    const commonContracts = await this.deployCommonMainnet(deploymentState)
+    const commonContracts = await this.deployCommonTestnet(deploymentState)
     
     for (const token of this.configParams.COLLATERLAS) {
         console.log()
@@ -150,9 +150,30 @@ class MainnetDeploymentHelper {
         console.log(`------ Done deploying contracts for ${token} collateral ------`)
         console.log()
     }
+
+    const collateralTokens = []
+
+    const mahaToken = deploymentState['MahaToken'].address
+    collateralTokens.push(mahaToken)
+    for (const token of this.configParams.COLLATERLAS) {
+        collateralTokens.push(deploymentState[token].address)
+    }
+
+    console.log()
+    console.log(`------ Deploying faucet for collaterals ------`)
+    const faucetFactory = await this.getFactory('Faucet')
+    await this.loadOrDeploy(
+        faucetFactory,
+        'Faucet',
+        'Faucet',
+        deploymentState,
+        [collateralTokens]
+    )
+    console.log()
+    console.log(`------ Done deploying faucet for collaterals ------`)
   }
 
-  async deployCommonMainnet(deploymentState) {
+  async deployCommonTestnet(deploymentState) {
     console.log()
     console.log(`------ Deploying common contracts ------`)
     const ecosystemFund = await this.loadOrDeploy(
@@ -167,14 +188,17 @@ class MainnetDeploymentHelper {
         'LUSDToken',
         deploymentState,
     )
+
+    const mahaTokenFactory = await this.getFactory("MockMaha")
     const mahaToken = await this.loadOrDeploy(
-        this.mahaTokenFactory, 
+        mahaTokenFactory, 
         `MahaToken`, 
         'MahaToken', 
         deploymentState
     )
+    const mahaARTHPairoracleFactory = await this.getFactory("MockUniswapOracle")
     const mahaARTHPairOracle = await this.loadOrDeploy(
-        this.mahaARTHPairoracleFactory, 
+        mahaARTHPairoracleFactory, 
         'UniswapPairOracle_ARTH_MAHA', 
         'UniswapPairOracle', 
         deploymentState
