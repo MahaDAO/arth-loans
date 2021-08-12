@@ -20,12 +20,18 @@ async function main() {
 
     console.log('\nSetting frontend for', token, '\n');
 
-    const instance = await ethers.getContractAt(
+    const boInstance = await ethers.getContractAt(
         'BorrowerOperations',
         deployements[`${token}BorrowerOperations`].address
     );
 
-    await instance.registerFrontEnd({ gasPrice });
+    const spInstance = await ethers.getContractAt(
+        'StabilityPool',
+        deployements[`${token}StabilityPool`].address
+    );
+
+    await spInstance.registerFrontEnd(utils.parseEther('1').mul(90).div(100), { gasPrice })
+    await boInstance.registerFrontEnd({ gasPrice });
   }
 }
 
