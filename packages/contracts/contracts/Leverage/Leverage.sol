@@ -201,6 +201,6 @@ contract Leverage is FlashLoanReceiverBase {
     function _moveTrove(
         address newOwner
     ) internal {
-        troveManager.moveTrove(newOwner);
+        // troveManager.moveTrove(newOwner);
     }
 }
