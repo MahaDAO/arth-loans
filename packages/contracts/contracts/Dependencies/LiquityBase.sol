@@ -27,7 +27,7 @@ contract LiquityBase is BaseMath, ILiquityBase {
     uint256 public constant CCR = 1500000000000000000; // 150%
 
     // Amount of LUSD to be locked in gas pool on opening troves
-    uint256 public constant LUSD_GAS_COMPENSATION = 200e18;
+    uint256 public constant LUSD_GAS_COMPENSATION = 5e18;
 
     // Minimum amount of net LUSD debt a trove must have
     uint256 public constant MIN_NET_DEBT = 1800e18;
