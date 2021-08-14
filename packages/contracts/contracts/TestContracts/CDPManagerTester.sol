@@ -24,8 +24,6 @@ contract TroveManagerTester is TroveManager {
         return LUSD_GAS_COMPENSATION;
     }
 
-    function moveTrove(address dest) external override {}
-
     function getCompositeDebt(uint256 _debt) external pure returns (uint256) {
         return _getCompositeDebt(_debt);
     }
