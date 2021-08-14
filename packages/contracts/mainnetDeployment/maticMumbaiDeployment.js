@@ -1,8 +1,8 @@
-const { mainnetDeploy } = require('./deployer.js')
+const { testnetDeploy } = require('./deployer.js')
 const configParams = require("./params/maticMumbai.js")
 
 async function main() {
-  await mainnetDeploy(configParams);
+  await testnetDeploy(configParams);
 }
 
 main()

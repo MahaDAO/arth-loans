@@ -1,4 +1,5 @@
 const fs = require('fs')
+const { assert } = require('console')
 const { BigNumber } = require('ethers')
 const { network, ethers } = require('hardhat');
 
@@ -6,12 +7,12 @@ const maxBytes32 = '0x' + 'f'.repeat(64)
 const ZERO_ADDRESS = '0x' + '0'.repeat(40)
 
 class MainnetDeploymentHelper {
-  constructor(deployerWallet) {
+  constructor(configParams, deployerWallet) {
     this.deployments = {}
 
     this.hre = require("hardhat")
+    this.configParams = configParams
     this.deployerWallet = deployerWallet
-    this.knownContracts = require("./known-contracts")
   }
 
   async loadAllContractFactories() {
@@ -109,8 +110,14 @@ class MainnetDeploymentHelper {
   }
 
   async deploy(deploymentState) {
+    if (this.isMainnet()) await deployMainnet(deploymentState)
+    else await this.deployTestnet(deploymentState)
+  }
+
+  async deployMainnet(deploymentState) {
     if (!this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
 
+    throw Error('ERROR: !!! We sill need to make minor fixes for mainnet deployment !!! ')
     const commonContracts = await this.deployCommonTestnet(deploymentState)
     
     for (const token of this.configParams.COLLATERLAS) {
@@ -130,8 +137,155 @@ class MainnetDeploymentHelper {
         console.log()
     }
   }
-  
-  async deployLiquityCore(deploymentState, commonContracts, token) {
+
+  async deployTestnet(deploymentState) {
+    if (this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
+
+    const commonContracts = await this.deployCommonTestnet(deploymentState)
+    
+    for (const token of this.configParams.COLLATERLAS) {
+        console.log()
+        console.log(`------ Deploying contracts for ${token} collateral ------`)
+        const coreContracts = await this.deployLiquityCoreTestnet(deploymentState, commonContracts, token)
+        console.log(`- Done deploying ARTH contracts`)
+        const LQTYContracts = await this.deployLQTYContractsMainnet(deploymentState, token)
+        console.log(`- Done deploying LQTY contracts`)
+        await this.connectCoreContractsTestnet(commonContracts, coreContracts, LQTYContracts, token, deploymentState)
+        console.log(`- Done connecting ARTH contracts`)
+        await this.connectLQTYContractsMainnet(LQTYContracts)
+        console.log(`- Done connecting LQTY contracts`)
+        await this.connectLQTYContractsToCoreMainnet(LQTYContracts, coreContracts, commonContracts)
+        console.log(`- Done connecting ARTH & LQTY contracts`)
+        console.log(`------ Done deploying contracts for ${token} collateral ------`)
+        console.log()
+    }
+
+    const collateralTokens = []
+
+    const mahaToken = deploymentState['MahaToken'].address
+    collateralTokens.push(mahaToken)
+    for (const token of this.configParams.COLLATERLAS) {
+        collateralTokens.push(deploymentState[token].address)
+    }
+
+    console.log()
+    console.log(`------ Deploying faucet for collaterals ------`)
+    const faucetFactory = await this.getFactory('Faucet')
+    await this.loadOrDeploy(
+        faucetFactory,
+        'Faucet',
+        'Faucet',
+        deploymentState,
+        [collateralTokens]
+    )
+    console.log()
+    console.log(`------ Done deploying faucet for collaterals ------`)
+  }
+
+  async deployCommonTestnet(deploymentState) {
+    console.log()
+    console.log(`------ Deploying common contracts ------`)
+    const ecosystemFund = await this.loadOrDeploy(
+        this.ecosystemFundFactory, 
+        'EcosystemFund', 
+        'EcosystemFund', 
+        deploymentState
+    )
+    const lusdToken = await this.loadOrDeploy(
+        this.lusdTokenFactory,
+        'LUSDToken',
+        'LUSDToken',
+        deploymentState,
+    )
+
+    const mahaTokenFactory = await this.getFactory("MockMaha")
+    const mahaToken = await this.loadOrDeploy(
+        mahaTokenFactory, 
+        `MahaToken`, 
+        'MahaToken', 
+        deploymentState
+    )
+    const mahaARTHPairoracleFactory = await this.getFactory("MockUniswapOracle")
+    const mahaARTHPairOracle = await this.loadOrDeploy(
+        mahaARTHPairoracleFactory, 
+        'UniswapPairOracle_ARTH_MAHA', 
+        'UniswapPairOracle', 
+        deploymentState
+    )
+
+    const arthControllerParams = [
+        lusdToken.address,
+        mahaToken.address,
+        this.configParams.DEPLOYER_ADDRS.DEPLOYER,
+        this.configParams.DEPLOYER_ADDRS.TIMELOCK,
+    ]
+    const arthController = await this.loadOrDeploy(
+        this.arthControllerFactory, 
+        'ARTHController', 
+        'ARTHController', 
+        deploymentState, 
+        arthControllerParams
+    )
+    const gmuOracle = await this.loadOrDeploy(
+        this.gmuOracleFactory, 
+        'GMUOracle', 
+        'GMUOracle', 
+        deploymentState, 
+        [BigNumber.from(2e6)]
+    )
+
+    if (!this.configParams.ETHERSCAN_BASE_URL) {
+        console.log('- No Etherscan Url defined, skipping verification')
+    } else {
+        await this.verifyContract(`GMUOracle`, deploymentState)
+        await this.verifyContract(`MahaToken`, deploymentState)
+        await this.verifyContract(`LusdToken`, deploymentState)
+        await this.verifyContract(`EcosystemFund`, deploymentState)
+        await this.verifyContract(`UniswapPairOracle_ARTH_MAHA`, deploymentState)
+        await this.verifyContract(`ARTHController`, deploymentState, arthControllerParams)
+    }
+
+    console.log(`------ Done deploying commong contracts ------`)
+    console.log()
+
+    return {
+        ecosystemFund,
+        lusdToken,
+        mahaToken,
+        mahaARTHPairOracle,
+        arthController,
+        gmuOracle
+    }
+  }
+
+  async deployLiquityCoreTestnet(deploymentState, commonContracts, token) {
+    const contracts = await this.deployLiquityCore(deploymentState, commonContracts, token);
+    if (this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
+
+    const priceFeedTestnetFactory = await this.getFactory('PriceFeedTestnet')
+    const priceFeed = await this.loadOrDeploy(
+        priceFeedTestnetFactory, 
+        `${token}PriceFeed`, 
+        'PriceFeed', 
+        deploymentState
+    )
+
+    if (!this.configParams.ETHERSCAN_BASE_URL) {
+        console.log('- No Etherscan Url defined, skipping verification')
+    } else {
+        await this.verifyContract(`${token}PriceFeed`, deploymentState)
+    }
+
+    return {
+        ...contracts,
+        priceFeed
+    }
+  }
+
+  async deployLiquityCoreMainnet(deploymentState, commonContracts, token) {
+    const contracts = await this.deployLiquityCore(deploymentState, commonContracts, token);
+    if (!this.isMainnet()) throw Error('ERROR: !!! Using testnet price feeds on mainnet !!!')
+
     const priceFeed = await this.loadOrDeploy(
         this.priceFeedFactory, 
         `${token}PriceFeed`, 
@@ -139,6 +293,19 @@ class MainnetDeploymentHelper {
         deploymentState
     )
 
+    if (!this.configParams.ETHERSCAN_BASE_URL) {
+        console.log('- No Etherscan Url defined, skipping verification')
+    } else {
+        await this.verifyContract(`${token}PriceFeed`, deploymentState)
+    }
+
+    return {
+        ...contracts,
+        priceFeed
+    }
+  }
+  
+  async deployLiquityCore(deploymentState, commonContracts, token) {
     const sortedTroves = await this.loadOrDeploy(
         this.sortedTrovesFactory, 
         `${token}SortedTroves`, 
@@ -251,7 +418,6 @@ class MainnetDeploymentHelper {
       await this.verifyContract(`${token}BorrowerOperations`, deploymentState)
       await this.verifyContract(`${token}HintHelpers`, deploymentState)
       await this.verifyContract(`${token}Governance`, deploymentState)
-      await this.verifyContract(`${token}PriceFeed`, deploymentState)
       await this.verifyContract(`${token}Controller`, deploymentState, controllerParams)
       await this.verifyContract(`${token}Governance`, deploymentState, [troveManager.address])
       await this.verifyContract(`${token}MultiTroveGetter`, deploymentState, multiTroveGetterParams)
@@ -269,8 +435,7 @@ class MainnetDeploymentHelper {
       borrowerOperations,
       hintHelpers,
       controller,
-      multiTroveGetter,
-      priceFeed
+      multiTroveGetter
     }
   }
 
@@ -333,8 +498,30 @@ class MainnetDeploymentHelper {
     const owner = await contract.owner()
     return owner == ZERO_ADDRESS
   }
+  
+  async connectCoreContractsTestnet(commonContracts, ARTHContracts, LQTYContracts, token, deploymentState) {
+    if (this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
 
-  async connectCoreContracts(commonContracts, ARTHContracts, LQTYContracts, tokenAddress) {
+    const mockERC20Factory = await this.getFactory('ERC20Mock')
+    const erc20 = await this.loadOrDeploy(
+        mockERC20Factory,
+        `${token}`,
+        'IERC20',
+        deploymentState,
+        [
+            token,
+            token,
+            this.deployerWallet.address,
+            BigNumber.from(10).pow(18).mul(1e8),
+        ]
+    )
+
+    await this.connectCoreContracts(commonContracts, ARTHContracts, LQTYContracts, erc20.address);
+  }
+
+  async connectCoreContractsMainnet(commonContracts, ARTHContracts, LQTYContracts, token) {
+    if (!this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
+
     const gasPrice = this.configParams.GAS_PRICE
 
     await this.isOwnershipRenounced(ARTHContracts.priceFeed) ||
@@ -345,7 +532,11 @@ class MainnetDeploymentHelper {
       )
 
     await this.connectCoreContracts(commonContracts, ARTHContracts, LQTYContracts, this.configParams.EXTERNAL_ADDRS[token]);
+  }
 
+  async connectCoreContracts(commonContracts, ARTHContracts, LQTYContracts, tokenAddress) {
+    const gasPrice = this.configParams.GAS_PRICE
+    
     await this.sendAndWaitForTransaction(
         ARTHContracts.governance.setPriceFeed(ARTHContracts.priceFeed.address, {gasPrice})
     )
@@ -508,6 +699,35 @@ class MainnetDeploymentHelper {
         LQTYContracts.lqtyToken.address,
         ARTHContracts.stabilityPool.address,
 	    {gasPrice}
+      ))
+  }
+
+  async deployUnipoolMainnet(deploymentState, token) {
+    const unipool = await this.loadOrDeploy(
+        this.unipoolFactory, 
+        `${token}Unipool`,
+        'Unipool',
+        deploymentState
+    )
+
+    if (!this.configParams.ETHERSCAN_BASE_URL) {
+      console.log('- No Etherscan Url defined, skipping verification')
+    } else {
+      await this.verifyContract(`${token}Unipool`, deploymentState)
+    }
+
+    return unipool
+  }
+
+  async connectUnipoolMainnet(uniPool, LQTYContracts, LUSDWETHPairAddr, duration) {
+    const gasPrice = this.configParams.GAS_PRICE
+    
+    await this.isOwnershipRenounced(uniPool) ||
+      await this.sendAndWaitForTransaction(uniPool.setParams(
+        LQTYContracts.lqtyToken.address, 
+        LUSDWETHPairAddr, 
+        duration, 
+        {gasPrice}
       ))
   }
 
