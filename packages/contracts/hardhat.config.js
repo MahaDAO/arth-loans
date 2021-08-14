@@ -103,7 +103,7 @@ module.exports = {
         },
     },
     etherscan: {
-        apiKey: getSecret("ETHERSCAN_API_KEY")
+        apiKey: getSecret("ETHERSCAN_API_KEY", "U33K9PU3E6NWK3FIW1A8SINM29S3RJW1SW")
     },
     mocha: { timeout: 12000000 },
     rpc: {

@@ -129,6 +129,19 @@ class MainnetDeploymentHelper {
   }
   
   async deployLiquityCore(deploymentState, token) {
+    const arthController = await this.loadOrDeploy(
+        this.arthControllerFactory,
+        'ARTHController',
+        'ARTHController',
+        deploymentState,
+        [
+            this.configParams.EXTERNAL_ADDRS.ARTH,
+            this.configParams.EXTERNAL_ADDRS.MahaToken,
+            this.configParams.DEPLOYER,
+            this.configParams.TIMELOCK
+        ]
+    )
+
     const priceFeed = await this.loadOrDeploy(
         this.priceFeedFactory, 
         `${token}PriceFeed`, 
@@ -199,12 +212,16 @@ class MainnetDeploymentHelper {
         deploymentState
     )
 
+    const governanceParams = [
+        troveManager.address, 
+        borrowerOperations.address
+    ]
     const governance = await this.loadOrDeploy(
         this.governanceFactory, 
         `${token}Governance`, 
         'Governance', 
         deploymentState, 
-        [troveManager.address, borrowerOperations.address]
+        governanceParams
     )
     
     const controllerParams = [
@@ -250,11 +267,12 @@ class MainnetDeploymentHelper {
       await this.verifyContract(`${token}Governance`, deploymentState)
       await this.verifyContract(`${token}PriceFeed`, deploymentState)
       await this.verifyContract(`${token}Controller`, deploymentState, controllerParams)
-      await this.verifyContract(`${token}Governance`, deploymentState, [troveManager.address, borrowerOperations.address])
+      await this.verifyContract(`${token}Governance`, deploymentState, governanceParams)
       await this.verifyContract(`${token}MultiTroveGetter`, deploymentState, multiTroveGetterParams)
     }
 
     return {
+      arthController,
       governance,
       sortedTroves,
       troveManager,
@@ -356,12 +374,11 @@ class MainnetDeploymentHelper {
         {gasPrice}
     ))
         
-    // TODO: after deploying arth controller manually.
-    // await this.sendAndWaitForTransaction(commonContracts.arthController.addPool(
-    //     ARTHContracts.controller.address, 
-    //     {gasPrice}
-    // ))
-        
+    await this.sendAndWaitForTransaction(ARTHContracts.arthController.addPool(
+        ARTHContracts.controller.address, 
+        {gasPrice}
+    ))
+    
     // TODO: manually.
     // await this.sendAndWaitForTransaction(
     //     commonContracts.lusdToken.setArthController(commonContracts.arthController.address, {gasPrice})
@@ -527,6 +544,7 @@ class MainnetDeploymentHelper {
         constructorArguments,
       })
     } catch (error) {
+      console.log(error)
       if (error.name != 'NomicLabsHardhatPluginError') {
         console.error(`- Error verifying: ${error.name}`)
         console.error(error)
