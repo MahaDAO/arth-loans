@@ -199,6 +199,7 @@ contract('StabilityPool', async accounts => {
       const G_Before = (await stabilityPool.epochToScaleToG(0, 0))
       assert.isTrue(P_Before.gt(toBN('0')))
       assert.isTrue(S_Before.gt(toBN('0')))
+      assert.isTrue(G_Before.eq(toBN('0')))
 
       // Check 'Before' snapshots
       const alice_snapshot_Before = await stabilityPool.depositSnapshots(alice)
@@ -624,7 +625,7 @@ contract('StabilityPool', async accounts => {
     })
 
     // --- LQTY functionality ---
-    it("provideToSP(), new deposit: when SP > 0, triggers LQTY reward event - increases the sum G", async () => {
+    it("provideToSP(), new deposit: when SP > 0, doesn't triggers LQTY reward event - doesn't increases the sum G", async () => {
       await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: whale, value: dec(50, 'ether') } })
 
       // A, B, C open troves and make Stability Pool deposits
@@ -638,6 +639,7 @@ contract('StabilityPool', async accounts => {
       let currentEpoch = await stabilityPool.currentEpoch()
       let currentScale = await stabilityPool.currentScale()
       const G_Before = await stabilityPool.epochToScaleToG(currentEpoch, currentScale)
+      assert.equal(G_Before.toString(), '0')
 
       await th.fastForwardTime(timeValues.SECONDS_IN_ONE_HOUR, web3.currentProvider)
 
@@ -647,9 +649,10 @@ contract('StabilityPool', async accounts => {
       currentEpoch = await stabilityPool.currentEpoch()
       currentScale = await stabilityPool.currentScale()
       const G_After = await stabilityPool.epochToScaleToG(currentEpoch, currentScale)
+      assert.equal(G_After.toString(), '0')
 
       // Expect G has increased from the LQTY reward event triggered
-      assert.isTrue(G_After.gt(G_Before))
+      assert.isTrue(G_After.eq(G_Before))
     })
 
     it("provideToSP(), new deposit: when SP is empty, doesn't update G", async () => {
@@ -671,12 +674,11 @@ contract('StabilityPool', async accounts => {
       // Check SP is empty
       assert.equal((await stabilityPool.getTotalLUSDDeposits()), '0')
 
-      // Check G is non-zero
+      // Check G is zero
       let currentEpoch = await stabilityPool.currentEpoch()
       let currentScale = await stabilityPool.currentScale()
       const G_Before = await stabilityPool.epochToScaleToG(currentEpoch, currentScale)
-
-      assert.isTrue(G_Before.gt(toBN('0')))
+      assert.isTrue(G_Before.eq(toBN('0')))
 
       await th.fastForwardTime(timeValues.SECONDS_IN_ONE_HOUR, web3.currentProvider)
 
@@ -686,6 +688,7 @@ contract('StabilityPool', async accounts => {
       currentEpoch = await stabilityPool.currentEpoch()
       currentScale = await stabilityPool.currentScale()
       const G_After = await stabilityPool.epochToScaleToG(currentEpoch, currentScale)
+      assert.isTrue(G_After.eq(toBN('0')))
 
       // Expect G has not changed
       assert.isTrue(G_After.eq(G_Before))
@@ -801,8 +804,8 @@ contract('StabilityPool', async accounts => {
       // Get A, B, C LQTY balances before and confirm they're non-zero
       const A_LQTYBalance_Before = await lqtyToken.balanceOf(A)
       const B_LQTYBalance_Before = await lqtyToken.balanceOf(B)
-      assert.isTrue(A_LQTYBalance_Before.gt(toBN('0')))
-      assert.isTrue(B_LQTYBalance_Before.gt(toBN('0')))
+      assert.isTrue(A_LQTYBalance_Before.eq(toBN('0')))
+      assert.isTrue(B_LQTYBalance_Before.eq(toBN('0')))
 
       await th.fastForwardTime(timeValues.SECONDS_IN_ONE_HOUR, web3.currentProvider)
 
@@ -818,7 +821,7 @@ contract('StabilityPool', async accounts => {
       assert.isTrue(B_LQTYBalance_After.eq(B_LQTYBalance_Before))
     })
 
-    it("provideToSP(), new eligible deposit: tagged front end receives LQTY rewards", async () => {
+    it("provideToSP(), new eligible deposit: tagged front end doesn't receives LQTY rewards", async () => {
       await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
 
       // A, B, C, open troves 
@@ -863,9 +866,9 @@ contract('StabilityPool', async accounts => {
       const frontEnd_2_LQTYBalance_After = await lqtyToken.balanceOf(frontEnd_2)
       const frontEnd_3_LQTYBalance_After = await lqtyToken.balanceOf(frontEnd_3)
 
-      assert.isTrue(frontEnd_1_LQTYBalance_After.gt(frontEnd_1_LQTYBalance_Before))
-      assert.isTrue(frontEnd_2_LQTYBalance_After.gt(frontEnd_2_LQTYBalance_Before))
-      assert.isTrue(frontEnd_3_LQTYBalance_After.gt(frontEnd_3_LQTYBalance_Before))
+      assert.isTrue(frontEnd_1_LQTYBalance_After.eq(frontEnd_1_LQTYBalance_Before))
+      assert.isTrue(frontEnd_2_LQTYBalance_After.eq(frontEnd_2_LQTYBalance_Before))
+      assert.isTrue(frontEnd_3_LQTYBalance_After.eq(frontEnd_3_LQTYBalance_Before))
     })
 
     it("provideToSP(), new eligible deposit: tagged front end's stake increases", async () => {
@@ -943,7 +946,7 @@ contract('StabilityPool', async accounts => {
       assert.isTrue(P_Before.gt(toBN('0')) && P_Before.lt(toBN(dec(1, 18))))
       // Confirm S, G are both > 0
       assert.isTrue(S_Before.gt(toBN('0')))
-      assert.isTrue(G_Before.gt(toBN('0')))
+      assert.isTrue(G_Before.eq(toBN('0')))
 
       // Get front ends' snapshots before
       for (frontEnd of [frontEnd_1, frontEnd_2, frontEnd_3]) {
@@ -985,7 +988,7 @@ contract('StabilityPool', async accounts => {
         // Check snapshots are the expected values
         assert.equal(snapshot[0], '0')  // S (should always be 0 for front ends)
         assert.isTrue(snapshot[1].eq(P_Before))  // P 
-        assert.isTrue(snapshot[2].eq(G))  // G
+        assert.isTrue(snapshot[2].eq(ZERO))  // G
         assert.equal(snapshot[3], '0')  // scale
         assert.equal(snapshot[4], '0')  // epoch
       }
@@ -1097,7 +1100,7 @@ contract('StabilityPool', async accounts => {
       assert.equal(D_ETHBalance_After.toString(), D_ETHBalance_Before.toString())
     })
 
-    it("provideToSP(), topup: triggers LQTY reward event - increases the sum G", async () => {
+    it("provideToSP(), topup: doesn't triggers LQTY reward event - doesn't increases the sum G", async () => {
       await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
 
       // A, B, C open troves 
@@ -1113,7 +1116,7 @@ contract('StabilityPool', async accounts => {
       await th.fastForwardTime(timeValues.SECONDS_IN_ONE_HOUR, web3.currentProvider)
 
       const G_Before = await stabilityPool.epochToScaleToG(0, 0)
-
+      assert.equal(G_Before.toString(), toBN('0').toString())
       await th.fastForwardTime(timeValues.SECONDS_IN_ONE_HOUR, web3.currentProvider)
 
       // B tops up
@@ -1122,7 +1125,7 @@ contract('StabilityPool', async accounts => {
       const G_After = await stabilityPool.epochToScaleToG(0, 0)
 
       // Expect G has increased from the LQTY reward event triggered by B's topup
-      assert.isTrue(G_After.gt(G_Before))
+      assert.isTrue(G_After.eq(G_Before))
     })
 
     it("provideToSP(), topup from different front end: doesn't change the front end tag", async () => {
@@ -1168,7 +1171,7 @@ contract('StabilityPool', async accounts => {
       assert.equal(frontEndTag_E, ZERO_ADDRESS)
     })
 
-    it("provideToSP(), topup: depositor receives LQTY rewards", async () => {
+    it("provideToSP(), topup: depositor doesn't receives LQTY rewards", async () => {
       await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
 
       // A, B, C open troves 
@@ -1187,6 +1190,9 @@ contract('StabilityPool', async accounts => {
       const A_LQTYBalance_Before = await lqtyToken.balanceOf(A)
       const B_LQTYBalance_Before = await lqtyToken.balanceOf(B)
       const C_LQTYBalance_Before = await lqtyToken.balanceOf(C)
+      assert.equal(A_LQTYBalance_Before.toString(), '0')
+      assert.equal(B_LQTYBalance_Before.toString(), '0')
+      assert.equal(C_LQTYBalance_Before.toString(), '0')
 
       // A, B, C top up
       await stabilityPool.provideToSP(dec(10, 18), frontEnd_1, { from: A })
@@ -1199,9 +1205,9 @@ contract('StabilityPool', async accounts => {
       const C_LQTYBalance_After = await lqtyToken.balanceOf(C)
 
       // Check LQTY Balance of A, B, C has increased
-      assert.isTrue(A_LQTYBalance_After.gt(A_LQTYBalance_Before))
-      assert.isTrue(B_LQTYBalance_After.gt(B_LQTYBalance_Before))
-      assert.isTrue(C_LQTYBalance_After.gt(C_LQTYBalance_Before))
+      assert.isTrue(A_LQTYBalance_After.eq(A_LQTYBalance_Before))
+      assert.isTrue(B_LQTYBalance_After.eq(B_LQTYBalance_Before))
+      assert.isTrue(C_LQTYBalance_After.eq(C_LQTYBalance_Before))
     })
 
     it("provideToSP(), topup: tagged front end receives LQTY rewards", async () => {
@@ -1228,16 +1234,19 @@ contract('StabilityPool', async accounts => {
       await stabilityPool.provideToSP(dec(10, 18), ZERO_ADDRESS, { from: A })  // provides no front end param
       await stabilityPool.provideToSP(dec(20, 18), frontEnd_1, { from: B })  // provides front end that doesn't match his tag
       await stabilityPool.provideToSP(dec(30, 18), frontEnd_3, { from: C }) // provides front end that matches his tag
-
+      assert.equal(F1_LQTYBalance_Before.toString(), '0')
+      assert.equal(F2_LQTYBalance_Before.toString(), '0')
+      assert.equal(F3_LQTYBalance_Before.toString(), '0')
+      
       // Get front ends' LQTY balance after
       const F1_LQTYBalance_After = await lqtyToken.balanceOf(A)
       const F2_LQTYBalance_After = await lqtyToken.balanceOf(B)
       const F3_LQTYBalance_After = await lqtyToken.balanceOf(C)
 
       // Check LQTY Balance of front ends has increased
-      assert.isTrue(F1_LQTYBalance_After.gt(F1_LQTYBalance_Before))
-      assert.isTrue(F2_LQTYBalance_After.gt(F2_LQTYBalance_Before))
-      assert.isTrue(F3_LQTYBalance_After.gt(F3_LQTYBalance_Before))
+      assert.isTrue(F1_LQTYBalance_After.eq(F1_LQTYBalance_Before))
+      assert.isTrue(F2_LQTYBalance_After.eq(F2_LQTYBalance_Before))
+      assert.isTrue(F3_LQTYBalance_After.eq(F3_LQTYBalance_Before))
     })
 
     it("provideToSP(), topup: tagged front end's stake increases", async () => {
@@ -1328,7 +1337,7 @@ contract('StabilityPool', async accounts => {
       assert.isTrue(P_Before.gt(toBN('0')) && P_Before.lt(toBN(dec(1, 18))))
       // Confirm S, G are both > 0
       assert.isTrue(S_Before.gt(toBN('0')))
-      assert.isTrue(G_Before.gt(toBN('0')))
+      assert.isTrue(G_Before.eq(toBN('0')))
 
       // Get front ends' snapshots before
       for (frontEnd of [frontEnd_1, frontEnd_2, frontEnd_3]) {
@@ -1367,7 +1376,7 @@ contract('StabilityPool', async accounts => {
         // Check snapshots are the expected values
         assert.equal(snapshot[0], '0')  // S (should always be 0 for front ends)
         assert.isTrue(snapshot[1].eq(P_Before))  // P 
-        assert.isTrue(snapshot[2].eq(G))  // G
+        assert.isTrue(snapshot[2].eq(ZERO))  // G
         assert.equal(snapshot[3], '0')  // scale
         assert.equal(snapshot[4], '0')  // epoch
       }
@@ -2064,7 +2073,7 @@ contract('StabilityPool', async accounts => {
       const A_pendingETHGain = await stabilityPool.getDepositorETHGain(A)
       const A_pendingLQTYGain = await stabilityPool.getDepositorLQTYGain(A)
       assert.isTrue(A_pendingETHGain.gt(toBN('0')))
-      assert.isTrue(A_pendingLQTYGain.gt(toBN('0')))
+      assert.isTrue(A_pendingLQTYGain.eq(toBN('0')))
 
       // Check withdrawal of 0 succeeds
       const tx = await stabilityPool.withdrawFromSP(0, { from: A, gasPrice: 0 })
@@ -2433,7 +2442,7 @@ contract('StabilityPool', async accounts => {
     })
 
     // --- LQTY functionality ---
-    it("withdrawFromSP(): triggers LQTY reward event - increases the sum G", async () => {
+    it("withdrawFromSP(): triggers LQTY reward event - doesn't increases the sum G", async () => {
       await openTrove({ extraLUSDAmount: toBN(dec(1, 24)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
 
       // A, B, C open troves
@@ -2446,6 +2455,7 @@ contract('StabilityPool', async accounts => {
       await stabilityPool.provideToSP(dec(10000, 18), ZERO_ADDRESS, { from: B })
 
       const G_Before = await stabilityPool.epochToScaleToG(0, 0)
+      assert.isTrue(G_Before.eq(toBN('0')))
 
       await th.fastForwardTime(timeValues.SECONDS_IN_ONE_HOUR, web3.currentProvider)
 
@@ -2453,9 +2463,10 @@ contract('StabilityPool', async accounts => {
       await stabilityPool.withdrawFromSP(dec(5000, 18), { from: A })
 
       const G_1 = await stabilityPool.epochToScaleToG(0, 0)
+      assert.isTrue(G_1.eq(toBN('0')))
 
       // Expect G has increased from the LQTY reward event triggered
-      assert.isTrue(G_1.gt(G_Before))
+      assert.isTrue(G_1.eq(G_Before))
 
       await th.fastForwardTime(timeValues.SECONDS_IN_ONE_HOUR, web3.currentProvider)
 
@@ -2465,7 +2476,7 @@ contract('StabilityPool', async accounts => {
       const G_2 = await stabilityPool.epochToScaleToG(0, 0)
 
       // Expect G has increased from the LQTY reward event triggered
-      assert.isTrue(G_2.gt(G_1))
+      assert.isTrue(G_2.eq(G_1))
     })
 
     it("withdrawFromSP(), partial withdrawal: doesn't change the front end tag", async () => {
@@ -2510,7 +2521,7 @@ contract('StabilityPool', async accounts => {
       assert.equal(frontEndTag_E, ZERO_ADDRESS)
     })
 
-    it("withdrawFromSP(), partial withdrawal: depositor receives LQTY rewards", async () => {
+    it("withdrawFromSP(), partial withdrawal: depositor doesn't receives LQTY rewards", async () => {
       await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
 
       // A, B, C open troves
@@ -2541,12 +2552,12 @@ contract('StabilityPool', async accounts => {
       const C_LQTYBalance_After = await lqtyToken.balanceOf(C)
 
       // Check LQTY Balance of A, B, C has increased
-      assert.isTrue(A_LQTYBalance_After.gt(A_LQTYBalance_Before))
-      assert.isTrue(B_LQTYBalance_After.gt(B_LQTYBalance_Before))
-      assert.isTrue(C_LQTYBalance_After.gt(C_LQTYBalance_Before))
+      assert.isTrue(A_LQTYBalance_After.eq(A_LQTYBalance_Before))
+      assert.isTrue(B_LQTYBalance_After.eq(B_LQTYBalance_Before))
+      assert.isTrue(C_LQTYBalance_After.eq(C_LQTYBalance_Before))
     })
 
-    it("withdrawFromSP(), partial withdrawal: tagged front end receives LQTY rewards", async () => {
+    it("withdrawFromSP(), partial withdrawal: tagged front end doesn't receives LQTY rewards", async () => {
       await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
 
       // A, B, C open troves
@@ -2577,9 +2588,9 @@ contract('StabilityPool', async accounts => {
       const F3_LQTYBalance_After = await lqtyToken.balanceOf(C)
 
       // Check LQTY Balance of front ends has increased
-      assert.isTrue(F1_LQTYBalance_After.gt(F1_LQTYBalance_Before))
-      assert.isTrue(F2_LQTYBalance_After.gt(F2_LQTYBalance_Before))
-      assert.isTrue(F3_LQTYBalance_After.gt(F3_LQTYBalance_Before))
+      assert.isTrue(F1_LQTYBalance_After.eq(F1_LQTYBalance_Before))
+      assert.isTrue(F2_LQTYBalance_After.eq(F2_LQTYBalance_Before))
+      assert.isTrue(F3_LQTYBalance_After.eq(F3_LQTYBalance_Before))
     })
 
     it("withdrawFromSP(), partial withdrawal: tagged front end's stake decreases", async () => {
@@ -2670,7 +2681,7 @@ contract('StabilityPool', async accounts => {
       assert.isTrue(P_Before.gt(toBN('0')) && P_Before.lt(toBN(dec(1, 18))))
       // Confirm S, G are both > 0
       assert.isTrue(S_Before.gt(toBN('0')))
-      assert.isTrue(G_Before.gt(toBN('0')))
+      assert.isTrue(G_Before.eq(toBN('0')))
 
       // Get front ends' snapshots before
       for (frontEnd of [frontEnd_1, frontEnd_2, frontEnd_3]) {
@@ -2711,7 +2722,7 @@ contract('StabilityPool', async accounts => {
         // Check snapshots are the expected values
         assert.equal(snapshot[0], '0')  // S (should always be 0 for front ends)
         assert.isTrue(snapshot[1].eq(P_Before))  // P 
-        assert.isTrue(snapshot[2].eq(G))  // G
+        assert.isTrue(snapshot[2].eq(ZERO))  // G
         assert.equal(snapshot[3], '0')  // scale
         assert.equal(snapshot[4], '0')  // epoch
       }
@@ -2795,7 +2806,7 @@ contract('StabilityPool', async accounts => {
       assert.isTrue(P_Before.gt(toBN('0')) && P_Before.lt(toBN(dec(1, 18))))
       // Confirm S, G are both > 0
       assert.isTrue(S_Before.gt(toBN('0')))
-      assert.isTrue(G_Before.gt(toBN('0')))
+      assert.isTrue(G_Before.eq(toBN('0')))
 
       // --- TEST ---
 
@@ -2824,7 +2835,7 @@ contract('StabilityPool', async accounts => {
         // Check S,P, G snapshots are non-zero
         assert.isTrue(snapshot[0].eq(S_Before))  // S 
         assert.isTrue(snapshot[1].eq(P_Before))  // P 
-        assert.isTrue(snapshot[2].gt(ZERO))  // GL increases a bit between each depositor op, so just check it is non-zero
+        assert.isTrue(snapshot[2].eq(ZERO))  // GL increases a bit between each depositor op, so just check it is non-zero
         assert.equal(snapshot[3], '0')  // scale
         assert.equal(snapshot[4], '0')  // epoch
       }
@@ -2880,7 +2891,7 @@ contract('StabilityPool', async accounts => {
       assert.isTrue(P_Before.gt(toBN('0')) && P_Before.lt(toBN(dec(1, 18))))
       // Confirm S, G are both > 0
       assert.isTrue(S_Before.gt(toBN('0')))
-      assert.isTrue(G_Before.gt(toBN('0')))
+      assert.isTrue(G_Before.eq(toBN('0')))
 
       // --- TEST ---
 
@@ -2900,7 +2911,7 @@ contract('StabilityPool', async accounts => {
         // Check S,P, G snapshots are non-zero
         assert.equal(snapshot[0], '0')  // S  (always zero for front-end)
         assert.isTrue(snapshot[1].eq(P_Before))  // P 
-        assert.isTrue(snapshot[2].gt(ZERO))  // GL increases a bit between each depositor op, so just check it is non-zero
+        assert.isTrue(snapshot[2].eq(ZERO))  // GL increases a bit between each depositor op, so just check it is non-zero
         assert.equal(snapshot[3], '0')  // scale
         assert.equal(snapshot[4], '0')  // epoch
       }
@@ -3387,6 +3398,7 @@ contract('StabilityPool', async accounts => {
       assert.isFalse(await sortedTroves.contains(defaulter_1))
 
       const G_Before = await stabilityPool.epochToScaleToG(0, 0)
+      assert.equal(G_Before.toString(), toBN('0').toString())
 
       await th.fastForwardTime(timeValues.SECONDS_IN_ONE_HOUR, web3.currentProvider)
 
@@ -3398,7 +3410,7 @@ contract('StabilityPool', async accounts => {
       const G_1 = await stabilityPool.epochToScaleToG(0, 0)
 
       // Expect G has increased from the LQTY reward event triggered
-      assert.isTrue(G_1.gt(G_Before))
+      assert.isTrue(G_1.eq(G_Before))
 
       await th.fastForwardTime(timeValues.SECONDS_IN_ONE_HOUR, web3.currentProvider)
 
@@ -3411,7 +3423,7 @@ contract('StabilityPool', async accounts => {
       const G_2 = await stabilityPool.epochToScaleToG(0, 0)
 
       // Expect G has increased from the LQTY reward event triggered
-      assert.isTrue(G_2.gt(G_1))
+      assert.isTrue(G_2.eq(G_1))
     })
 
     it("withdrawETHGainToTrove(), partial withdrawal: doesn't change the front end tag", async () => {
@@ -3458,7 +3470,7 @@ contract('StabilityPool', async accounts => {
       assert.equal(frontEndTag_C, ZERO_ADDRESS)
     })
 
-    it("withdrawETHGainToTrove(), eligible deposit: depositor receives LQTY rewards", async () => {
+    it("withdrawETHGainToTrove(), eligible deposit: doesn't depositor receives LQTY rewards", async () => {
       await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
 
        // A, B, C open troves 
@@ -3503,12 +3515,12 @@ contract('StabilityPool', async accounts => {
       const C_LQTYBalance_After = await lqtyToken.balanceOf(C)
 
       // Check LQTY Balance of A, B, C has increased
-      assert.isTrue(A_LQTYBalance_After.gt(A_LQTYBalance_Before))
-      assert.isTrue(B_LQTYBalance_After.gt(B_LQTYBalance_Before))
-      assert.isTrue(C_LQTYBalance_After.gt(C_LQTYBalance_Before))
+      assert.isTrue(A_LQTYBalance_After.eq(A_LQTYBalance_Before))
+      assert.isTrue(B_LQTYBalance_After.eq(B_LQTYBalance_Before))
+      assert.isTrue(C_LQTYBalance_After.eq(C_LQTYBalance_Before))
     })
 
-    it("withdrawETHGainToTrove(), eligible deposit: tagged front end receives LQTY rewards", async () => {
+    it("withdrawETHGainToTrove(), eligible deposit: tagged front end doesn't receives LQTY rewards", async () => {
       await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
 
      // A, B, C open troves 
@@ -3553,9 +3565,9 @@ contract('StabilityPool', async accounts => {
       const F3_LQTYBalance_After = await lqtyToken.balanceOf(frontEnd_3)
 
       // Check LQTY Balance of front ends has increased
-      assert.isTrue(F1_LQTYBalance_After.gt(F1_LQTYBalance_Before))
-      assert.isTrue(F2_LQTYBalance_After.gt(F2_LQTYBalance_Before))
-      assert.isTrue(F3_LQTYBalance_After.gt(F3_LQTYBalance_Before))
+      assert.isTrue(F1_LQTYBalance_After.eq(F1_LQTYBalance_Before))
+      assert.isTrue(F2_LQTYBalance_After.eq(F2_LQTYBalance_Before))
+      assert.isTrue(F3_LQTYBalance_After.eq(F3_LQTYBalance_Before))
     })
 
     it("withdrawETHGainToTrove(), eligible deposit: tagged front end's stake decreases", async () => {
@@ -3660,7 +3672,7 @@ contract('StabilityPool', async accounts => {
       assert.isTrue(P_Before.gt(toBN('0')) && P_Before.lt(toBN(dec(1, 18))))
       // Confirm S, G are both > 0
       assert.isTrue(S_Before.gt(toBN('0')))
-      assert.isTrue(G_Before.gt(toBN('0')))
+      assert.isTrue(G_Before.eq(toBN('0')))
 
       // Get front ends' snapshots before
       for (frontEnd of [frontEnd_1, frontEnd_2, frontEnd_3]) {
@@ -3706,7 +3718,7 @@ contract('StabilityPool', async accounts => {
         // Check snapshots are the expected values
         assert.equal(snapshot[0], '0')  // S (should always be 0 for front ends)
         assert.isTrue(snapshot[1].eq(P_Before))  // P 
-        assert.isTrue(snapshot[2].eq(G))  // G
+        assert.isTrue(snapshot[2].eq(toBN(0)))  // G
         assert.equal(snapshot[3], '0')  // scale
         assert.equal(snapshot[4], '0')  // epoch
       }
