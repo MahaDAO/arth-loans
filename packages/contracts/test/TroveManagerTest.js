@@ -1017,7 +1017,8 @@ contract('TroveManager', async accounts => {
     const G_After = await stabilityPool.epochToScaleToG(0, 0)
 
     // Expect G has increased from the LQTY reward event triggered
-    assert.isTrue(G_After.gt(G_Before))
+    assert.isTrue(G_After.eq(G_Before))
+    assert.isTrue(G_After.eq(toBN('0')))
   })
 
   it("liquidate(): when SP is empty, doesn't update G", async () => {
@@ -1043,7 +1044,7 @@ contract('TroveManager', async accounts => {
 
     // Check G is non-zero
     const G_Before = await stabilityPool.epochToScaleToG(0, 0)
-    assert.isTrue(G_Before.gt(toBN('0')))
+    assert.isTrue(G_Before.eq(toBN('0')))
 
     await th.fastForwardTime(timeValues.SECONDS_IN_ONE_HOUR, web3.currentProvider)
 
@@ -1753,7 +1754,7 @@ contract('TroveManager', async accounts => {
     const G_After = await stabilityPool.epochToScaleToG(0, 0)
 
     // Expect G has increased from the LQTY reward event triggered
-    assert.isTrue(G_After.gt(G_Before))
+    assert.isTrue(G_After.eq(G_Before))
   })
 
   it("liquidateTroves(): when SP is empty, doesn't update G", async () => {
@@ -1780,7 +1781,7 @@ contract('TroveManager', async accounts => {
 
     // Check G is non-zero
     const G_Before = await stabilityPool.epochToScaleToG(0, 0)
-    assert.isTrue(G_Before.gt(toBN('0')))
+    assert.isTrue(G_Before.eq(toBN('0')))
 
     await th.fastForwardTime(timeValues.SECONDS_IN_ONE_HOUR, web3.currentProvider)
 
@@ -2254,7 +2255,7 @@ contract('TroveManager', async accounts => {
     const G_After = await stabilityPool.epochToScaleToG(0, 0)
 
     // Expect G has increased from the LQTY reward event triggered
-    assert.isTrue(G_After.gt(G_Before))
+    assert.isTrue(G_After.eq(G_Before))
   })
 
   it("batchLiquidateTroves(): when SP is empty, doesn't update G", async () => {
@@ -2281,7 +2282,7 @@ contract('TroveManager', async accounts => {
 
     // Check G is non-zero
     const G_Before = await stabilityPool.epochToScaleToG(0, 0)
-    assert.isTrue(G_Before.gt(toBN('0')))
+    assert.isTrue(G_Before.eq(toBN('0')))
 
     await th.fastForwardTime(timeValues.SECONDS_IN_ONE_HOUR, web3.currentProvider)
 
