@@ -218,29 +218,6 @@ contract SortedTroves is Ownable, CheckContract, ISortedTroves {
         NodeRemoved(_id);
     }
 
-    function moveNodeOwner(address id, address newId) external override {
-        _requireCallerIsTroveManager();
-
-        require(contains(id), "SortedTroves: List does not contain the id");
-        require(!contains(newId), "SortedTroves: List already contains the id");
-
-        return _moveNodeOwner(id, newId);
-    }
-
-    function _moveNodeOwner(address id, address newId) internal {
-        // 1. Copy the nodes details into mapping in the name of new owner.
-        data.nodes[newId] = data.nodes[id];
-
-        // 2. Verify that details are copied.
-        require(data.nodes[newId].exists == data.nodes[id].exists, "SortedTroves: Node owner migration failed");
-        require(data.nodes[newId].nextId == data.nodes[id].nextId, "SortedTroves: Node owner migration failed");
-        require(data.nodes[newId].prevId == data.nodes[id].prevId, "SortedTroves: Node owner migration failed");
-
-        // 3. Delete the old owner details.
-        delete data.nodes[id];
-        emit NodeOwnerUpdated(id, newId, block.timestamp);
-    }
-
     /*
      * @dev Re-insert the node at a new position, based on its new NICR
      * @param _id Node's id

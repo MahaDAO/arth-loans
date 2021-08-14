@@ -156,8 +156,6 @@ interface ITroveManager is ILiquityBase {
 
     function decayBaseRateFromBorrowing() external;
 
-    function moveTrove(address dest) external;
-
     function getTroveStatus(address _borrower) external view returns (uint256);
 
     function getTroveStake(address _borrower) external view returns (uint256);

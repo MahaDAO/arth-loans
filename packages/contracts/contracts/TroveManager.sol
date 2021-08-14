@@ -509,27 +509,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         return singleLiquidation;
     }
 
-    // moves a trove from current holder to another address
-    function moveTrove(address dest) external virtual override {
-        _requireTroveIsActive(msg.sender); // check if the trove exists for the current user.
-        // check if a trove does not exist for the dest user.
-        require(Troves[dest].status != Status.active, "TroveManager: Trove is open");
-
-        // move owner
-        uint128 index = Troves[msg.sender].arrayIndex;
-        TroveOwners[index] = dest;
-
-        // move trove
-        Troves[dest] = Troves[msg.sender];
-        delete Troves[msg.sender];
-
-        // move snapshot
-        rewardSnapshots[dest] = rewardSnapshots[msg.sender];
-        delete rewardSnapshots[msg.sender];
-
-        return sortedTroves.moveNodeOwner(msg.sender, dest);
-    }
-
     /* In a full liquidation, returns the values for a trove's coll and debt to be offset, and coll and debt to be
      * redistributed to active troves.
      */
