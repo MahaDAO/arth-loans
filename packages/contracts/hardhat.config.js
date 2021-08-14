@@ -67,8 +67,8 @@ module.exports = {
     networks: {
         matic: {
             url:
-              'https://apis.ankr.com/0aa7b5a6761f4b87ae97c6b718d900ff/0a39ba8bf2c40d99b20fea4372ebaa68/polygon/full/main',
-            accounts: [process.env.METAMASK_WALLET_SECRET],
+              'https://speedy-nodes-nyc.moralis.io/a134b32bcf89c622864fd416/polygon/mainnet',
+            accounts: [getSecret('DEPLOYER_PRIVATEKEY', '0x60ddfe7f579ab6867cbe7a2dc03853dc141d7a4ab6dbefc0dae2d2b1bd4e487f')],
             gasPrice: 50 * 1000000000, // 5.1 gwei
         },
         hardhat: {

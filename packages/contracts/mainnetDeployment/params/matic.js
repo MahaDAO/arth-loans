@@ -21,7 +21,7 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 const waitFunction = async () => delay(90000) // Wait 90s.
 
 const TX_CONFIRMATIONS = 1
-const GAS_PRICE = 1500000000  // 1.5 Gwei
+const GAS_PRICE = 50 * 1000000000 // 5.1 gwei
 const NETWORK_NAME = 'matic'
 const COLLATERLAS = ['WETH', 'DAI', 'WMATIC']
 const OUTPUT_FILE = './output/matic.json'

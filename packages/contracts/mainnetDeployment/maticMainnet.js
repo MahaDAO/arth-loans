@@ -1,7 +1,7 @@
 const configParams = require("./params/matic.js")
 const MainnetDeploymentHelper = require("../utils/maticMainnetDeploymentHelper.js")
 
-async function mainnetDeploy() {
+async function main() {
     const date = new Date()
     const gasPrice = configParams.GAS_PRICE
   
@@ -20,7 +20,7 @@ async function mainnetDeploy() {
     console.log(`Deployer ETH balance before: ${deployerETHBalance}`)
   
     // Deploy core logic contracts.
-    await mdh.deployTestnet(deploymentState)
+    await mdh.deploy(deploymentState)
   
     deployerETHBalance = await ethers.provider.getBalance(deployerWallet.address)
     console.log(`Deployer's ETH balance after deployments: ${deployerETHBalance}`)
