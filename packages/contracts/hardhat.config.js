@@ -3,6 +3,7 @@ require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 require("solidity-coverage");
 require("hardhat-gas-reporter");
+require('hardhat-abi-exporter');
 
 const accounts = require("./hardhatAccountsList2k.js");
 const accountsList = accounts.accountsList
@@ -64,6 +65,12 @@ module.exports = {
         ]
     },
     networks: {
+        matic: {
+            url:
+              'https://speedy-nodes-nyc.moralis.io/a134b32bcf89c622864fd416/polygon/mainnet',
+            accounts: [getSecret('DEPLOYER_PRIVATEKEY', '0x60ddfe7f579ab6867cbe7a2dc03853dc141d7a4ab6dbefc0dae2d2b1bd4e487f')],
+            gasPrice: 50 * 1000000000, // 5.1 gwei
+        },
         hardhat: {
             accounts: accountsList,
             gas: 10000000,  // tx gas limit
@@ -96,12 +103,18 @@ module.exports = {
         },
     },
     etherscan: {
-        apiKey: getSecret("ETHERSCAN_API_KEY")
+        apiKey: getSecret("ETHERSCAN_API_KEY", "U33K9PU3E6NWK3FIW1A8SINM29S3RJW1SW")
     },
     mocha: { timeout: 12000000 },
     rpc: {
         host: "localhost",
         port: 8545
+    },
+    abiExporter: {
+        path: './output/abi',
+        clear: true,
+        flat: true,
+        spacing: 2
     },
     gasReporter: {
         enabled: (process.env.REPORT_GAS) ? true : false
