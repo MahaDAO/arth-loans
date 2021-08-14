@@ -350,7 +350,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
         ICommunityIssuance communityIssuanceCached = communityIssuance;
 
-        _triggerLQTYIssuance(communityIssuanceCached);
+        // _triggerLQTYIssuance(communityIssuanceCached);
 
         if (initialDeposit == 0) {
             _setFrontEndTag(msg.sender, _frontEndTag);
@@ -361,7 +361,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
         // First pay out any LQTY gains
         address frontEnd = deposits[msg.sender].frontEndTag;
-        _payOutLQTYGains(communityIssuanceCached, msg.sender, frontEnd);
+        // _payOutLQTYGains(communityIssuanceCached, msg.sender, frontEnd);
 
         // Update front end stake
         uint256 compoundedFrontEndStake = getCompoundedFrontEndStake(frontEnd);
@@ -399,7 +399,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
         ICommunityIssuance communityIssuanceCached = communityIssuance;
 
-        _triggerLQTYIssuance(communityIssuanceCached);
+        // _triggerLQTYIssuance(communityIssuanceCached);
 
         uint256 depositorETHGain = getDepositorETHGain(msg.sender);
 
@@ -409,7 +409,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
         // First pay out any LQTY gains
         address frontEnd = deposits[msg.sender].frontEndTag;
-        _payOutLQTYGains(communityIssuanceCached, msg.sender, frontEnd);
+        // _payOutLQTYGains(communityIssuanceCached, msg.sender, frontEnd);
 
         // Update front end stake
         uint256 compoundedFrontEndStake = getCompoundedFrontEndStake(frontEnd);
@@ -444,7 +444,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
         ICommunityIssuance communityIssuanceCached = communityIssuance;
 
-        _triggerLQTYIssuance(communityIssuanceCached);
+        // _triggerLQTYIssuance(communityIssuanceCached);
 
         uint256 depositorETHGain = getDepositorETHGain(msg.sender);
 
@@ -453,7 +453,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
         // First pay out any LQTY gains
         address frontEnd = deposits[msg.sender].frontEndTag;
-        _payOutLQTYGains(communityIssuanceCached, msg.sender, frontEnd);
+        // _payOutLQTYGains(communityIssuanceCached, msg.sender, frontEnd);
 
         // Update front end stake
         uint256 compoundedFrontEndStake = getCompoundedFrontEndStake(frontEnd);
@@ -542,7 +542,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
             return;
         }
 
-        _triggerLQTYIssuance(communityIssuance);
+        // _triggerLQTYIssuance(communityIssuance);
 
         (uint256 ETHGainPerUnitStaked, uint256 LUSDLossPerUnitStaked) = _computeRewardsPerUnitStaked(
             _collToAdd,
