@@ -271,7 +271,6 @@ class MainnetDeploymentHelper {
       await this.verifyContract(`${token}CollSurplusPool`, deploymentState)
       await this.verifyContract(`${token}BorrowerOperations`, deploymentState)
       await this.verifyContract(`${token}HintHelpers`, deploymentState)
-      await this.verifyContract(`${token}Governance`, deploymentState)
       await this.verifyContract(`${token}PriceFeed`, deploymentState)
       await this.verifyContract(`${token}Controller`, deploymentState, controllerParams)
       await this.verifyContract(`${token}Governance`, deploymentState, governanceParams)
