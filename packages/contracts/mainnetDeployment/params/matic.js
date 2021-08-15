@@ -13,8 +13,8 @@ const EXTERNAL_ADDRS  = {
 };
 
 const DEPLOYER_ADDRS = {
-    DEPLOYER: "0x459438151b1f97880732cde20950523987EC6e91",  // TODO; change this addr
-    TIMELOCK: "0x459438151b1f97880732cde20950523987EC6e91" // TODO; change this addr
+    DEPLOYER: "0xc3c1f5e3C94b7a05B3bB314c187d1df0f45c814F",  // TODO; change this addr
+    TIMELOCK: "0xc3c1f5e3C94b7a05B3bB314c187d1df0f45c814F" // TODO; change this addr
 };
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -23,7 +23,7 @@ const waitFunction = async () => delay(90000); // Wait 90s.
 const TX_CONFIRMATIONS = 1;
 const GAS_PRICE = 50 * 1000000000; // 5.1 gwei
 const NETWORK_NAME = 'matic';
-const COLLATERLAS = ['WETH', 'DAI', 'WMATIC'];
+const COLLATERLAS = ['WETH'];
 const OUTPUT_FILE = './output/matic.json';
 const ETHERSCAN_BASE_URL = 'https://polygonscan.com/address';
 
