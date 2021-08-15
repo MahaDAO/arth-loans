@@ -4,4 +4,6 @@ pragma solidity 0.6.11;
 
 import "../PriceFeed.sol";
 
-contract PriceFeedTester is PriceFeed {}
+contract PriceFeedTester is PriceFeed {
+    string name = "tester";
+}
