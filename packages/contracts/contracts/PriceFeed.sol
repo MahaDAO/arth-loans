@@ -78,7 +78,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
         uint256 chainlinkPrice = _fetchChainlinkPrice();
 
         uint256 gmuPrice = gmuOracle.getPrice();
-        uint256 gmuPricePrecision = gmuOracle.getDecimalPrecision();
+        uint256 gmuPricePrecision = gmuOracle.getDecimalPercision();
 
         return (chainlinkPrice.mul(10**gmuPricePrecision).div(gmuPrice));
     }
