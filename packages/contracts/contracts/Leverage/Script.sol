@@ -128,40 +128,20 @@ contract LeverageScript is CheckContract {
         // Approve controller to burn this debt.
         lusdToken.approve(coreControllerAddress, debt);
 
-        uint256 collateralBalanceBefore = wethToken.balanceOf(address(this));
+        uint256 wethBalanceBefore = wethToken.balanceOf(address(this));
         borrowerOperations.closeTrove();
-        uint256 collateralBalanceAfter = wethToken.balanceOf(address(this));
+        uint256 wethBalanceAfter = wethToken.balanceOf(address(this));
 
         // Transfer back the collateral to user's wallet.
-        wethToken.transfer(msg.sender, collateralBalanceAfter.sub(collateralBalanceBefore));
-    }
-
-    function adjustTrove(
-        uint256 _maxFee,
-        uint256 _collWithdrawal,
-        uint256 _debtChange,
-        uint256 _ETHAmount,
-        bool isDebtIncrease,
-        address _upperHint,
-        address _lowerHint
-    ) external payable {
-        borrowerOperations.adjustTrove(
-            _maxFee,
-            _collWithdrawal,
-            _debtChange,
-            _ETHAmount,
-            isDebtIncrease,
-            _upperHint,
-            _lowerHint
-        );
+        wethToken.transfer(msg.sender, wethBalanceAfter.sub(wethBalanceBefore));
     }
 
     function claimCollateral() external {
-        uint256 collateralBalanceBefore = wethToken.balanceOf(address(this));
+        uint256 wethBalanceBefore = wethToken.balanceOf(address(this));
         borrowerOperations.claimCollateral();
-        uint256 collateralBalanceAfter = wethToken.balanceOf(address(this));
+        uint256 wethBalanceAfter = wethToken.balanceOf(address(this));
 
         // Transfer back the collateral to user's wallet.
-        wethToken.transfer(msg.sender, collateralBalanceAfter.sub(collateralBalanceBefore));
+        wethToken.transfer(msg.sender, wethBalanceAfter.sub(wethBalanceBefore));
     }
 }
