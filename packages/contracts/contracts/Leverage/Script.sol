@@ -9,7 +9,7 @@ import "../Interfaces/ITroveManager.sol";
 import "../Dependencies/CheckContract.sol";
 import "../Interfaces/IBorrowerOperations.sol";
 
-contract BorrowerOperationsScript is CheckContract {
+contract LeverageScript is CheckContract {
     using SafeMath for uint256;
 
     ITroveManager immutable troveManager;
