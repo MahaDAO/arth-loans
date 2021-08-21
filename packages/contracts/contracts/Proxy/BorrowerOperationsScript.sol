@@ -67,6 +67,31 @@ contract BorrowerOperationsScript is CheckContract {
         lusdToken.transfer(msg.sender, lusdBalanceAfter.sub(lusdBalanceBefore));
     }
 
+    function openTroveAndAddColl(
+        uint256 _maxFee,
+        uint256 _LUSDAmount,
+        uint256 _ETHAmount,
+        address _upperHint,
+        address _lowerHint,
+        address _frontEndTag,
+        address _addCollUpperHint,
+        address _addCollLowerHint,
+    ) external {
+        // Take collateral from user.
+        wethToken.transferFrom(msg.sender, address(this), _ETHAmount);
+        // Approve BO to spend user's collateral.
+        wethToken.approve(address(borrowerOperations), _ETHAmount);
+
+        uint256 lusdBalanceBefore = lusdToken.balanceOf(address(this));
+        borrowerOperations.openTrove(_maxFee, _LUSDAmount, _ETHAmount, _upperHint, _lowerHint, _frontEndTag);
+        uint256 lusdBalanceAfter = lusdToken.balanceOf(address(this));
+
+        // TODO: implement a swap on the borrowed LUSD to get collateral.
+
+        // Add collateral to the trove to get leverage.
+        borrowerOperations.addColl(_ETHAmount, _addCollUpperHint, _addCollLowerHint);
+    }
+
     function addColl(
         uint256 _ETHAmount,
         address _upperHint,
