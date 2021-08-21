@@ -8,27 +8,31 @@ import "../Interfaces/IController.sol";
 import "../Interfaces/ITroveManager.sol";
 import "../Dependencies/CheckContract.sol";
 import "../Interfaces/IBorrowerOperations.sol";
+import "../Dependencies/IUniswapV2Router02.sol";
 
 contract BorrowerOperationsScript is CheckContract {
     using SafeMath for uint256;
 
-    ITroveManager immutable troveManager;
-    IBorrowerOperations immutable borrowerOperations;
-
     IERC20 immutable wethToken;
     IERC20 immutable lusdToken;
 
-    address public immutable coreControllerAddress;
+    IUniswapV2Router02 immutable router;
+    ITroveManager immutable troveManager;
+    IBorrowerOperations immutable borrowerOperations;
 
-    // Amount of LUSD to be locked in gas pool on opening troves
+    address public immutable coreControllerAddress;
+    address[] public immutable lusdToCollateralPath;
+
     uint256 public constant LUSD_GAS_COMPENSATION = 5e18;
 
     constructor(
-        ITroveManager _troveManager,
-        IBorrowerOperations _borrowerOperations,
         IERC20 _wethToken,
         IERC20 _lusdToken,
-        address _coreControllerAddress
+        IUniswapV2Router02 _router,
+        ITroveManager _troveManager,
+        IBorrowerOperations _borrowerOperations,
+        address _coreControllerAddress,
+        address[] _lusdToCollateralPath
     ) public {
         checkContract(address(_borrowerOperations));
         borrowerOperations = _borrowerOperations;
@@ -44,6 +48,11 @@ contract BorrowerOperationsScript is CheckContract {
 
         checkContract(address(_troveManager));
         troveManager = _troveManager;
+
+        CheckContract(address(_router));
+        router =  _router;
+
+        lusdToCollateralPath = _lusdToCollateralPath;
     }
 
     function openTrove(
@@ -54,17 +63,12 @@ contract BorrowerOperationsScript is CheckContract {
         address _lowerHint,
         address _frontEndTag
     ) external {
-        // Take collateral from user.
         wethToken.transferFrom(msg.sender, address(this), _ETHAmount);
-        // Approve BO to spend user's collateral.
         wethToken.approve(address(borrowerOperations), _ETHAmount);
-
-        uint256 lusdBalanceBefore = lusdToken.balanceOf(address(this));
+        
         borrowerOperations.openTrove(_maxFee, _LUSDAmount, _ETHAmount, _upperHint, _lowerHint, _frontEndTag);
-        uint256 lusdBalanceAfter = lusdToken.balanceOf(address(this));
-
-        // Moves the LUSD debt amount to user's wallet.
-        lusdToken.transfer(msg.sender, lusdBalanceAfter.sub(lusdBalanceBefore));
+        
+        lusdToken.transfer(msg.sender, _LUSDAmount);
     }
 
     function openTroveAndAddColl(
@@ -77,19 +81,26 @@ contract BorrowerOperationsScript is CheckContract {
         address _addCollUpperHint,
         address _addCollLowerHint,
     ) external {
-        // Take collateral from user.
         wethToken.transferFrom(msg.sender, address(this), _ETHAmount);
-        // Approve BO to spend user's collateral.
         wethToken.approve(address(borrowerOperations), _ETHAmount);
-
-        uint256 lusdBalanceBefore = lusdToken.balanceOf(address(this));
+        
         borrowerOperations.openTrove(_maxFee, _LUSDAmount, _ETHAmount, _upperHint, _lowerHint, _frontEndTag);
-        uint256 lusdBalanceAfter = lusdToken.balanceOf(address(this));
 
-        // TODO: implement a swap on the borrowed LUSD to get collateral.
+        lusdToken.approve(address(router), _LUSDAmount);
+        uint256 expectedAmountOuts = router.getAmountsOut(_LUSDAmount, lusdToCollateralPath);
+        uint256 expectedETHTopupAmount = expectedAmountOuts[expectedAmountOuts.length - 1];
+        uint256 amountOuts = router.swapExactTokensForTokens(
+            _LUSDAmount,
+            expectedETHTopupAmount,
+            lusdToCollateralPath,
+            address(this),
+            block.timestamp
+        );
+        uint256 _ETHTopupAmount = amountOuts[amountOuts.length -1];
+        require(_ETHTopupAmount >= expectedETHTopupAmount, 'Tx: swap failed');
 
-        // Add collateral to the trove to get leverage.
-        borrowerOperations.addColl(_ETHAmount, _addCollUpperHint, _addCollLowerHint);
+        wethToken.approve(address(borrowerOperations), _ETHTopupAmount);
+        borrowerOperations.addColl(_ETHTopupAmount, _addCollUpperHint, _addCollLowerHint);
     }
 
     function addColl(
@@ -97,9 +108,7 @@ contract BorrowerOperationsScript is CheckContract {
         address _upperHint,
         address _lowerHint
     ) external {
-        // Take collateral from user.
         wethToken.transferFrom(msg.sender, address(this), _ETHAmount);
-        // Approve BO to spend user's collateral.
         wethToken.approve(address(borrowerOperations), _ETHAmount);
 
         borrowerOperations.addColl(_ETHAmount, _upperHint, _lowerHint);
@@ -110,12 +119,8 @@ contract BorrowerOperationsScript is CheckContract {
         address _upperHint,
         address _lowerHint
     ) external {
-        uint256 wethBalanceBefore = wethToken.balanceOf(address(this));
         borrowerOperations.withdrawColl(_amount, _upperHint, _lowerHint);
-        uint256 wethBalanceAfter = wethToken.balanceOf(address(this));
-
-        // Move the withdrawn weth to user's wallet.
-        wethToken.transfer(msg.sender, wethBalanceAfter.sub(wethBalanceBefore));
+        wethToken.transfer(msg.sender, _amount);
     }
 
     function withdrawLUSD(
@@ -124,12 +129,8 @@ contract BorrowerOperationsScript is CheckContract {
         address _upperHint,
         address _lowerHint
     ) external {
-        uint256 lusdBalanceBefore = lusdToken.balanceOf(address(this));
         borrowerOperations.withdrawLUSD(_maxFee, _amount, _upperHint, _lowerHint);
-        uint256 lusdBalanceAfter = lusdToken.balanceOf(address(this));
-
-        // Moves the LUSD debt amount to user's wallet.
-        lusdToken.transfer(msg.sender, lusdBalanceAfter.sub(lusdBalanceBefore));
+        lusdToken.transfer(msg.sender, _amount);
     }
 
     function repayLUSD(
@@ -144,21 +145,16 @@ contract BorrowerOperationsScript is CheckContract {
     }
 
     function closeTrove() external {
-        // Get the trove debt.
+        uint256 troveColl = troveManager.getTroveColl(address(this));
         uint256 troveDebt = troveManager.getTroveDebt(address(this));
-        uint256 debt = troveDebt.sub(LUSD_GAS_COMPENSATION);
+        uint256 netDebt = troveDebt.sub(LUSD_GAS_COMPENSATION);
 
-        // Get the debt tokens from user.
-        lusdToken.transferFrom(msg.sender, address(this), debt);
-        // Approve controller to burn this debt.
-        lusdToken.approve(coreControllerAddress, debt);
+        lusdToken.transferFrom(msg.sender, address(this), netDebt);
+        lusdToken.approve(coreControllerAddress, netDebt);
 
-        uint256 wethBalanceBefore = wethToken.balanceOf(address(this));
         borrowerOperations.closeTrove();
-        uint256 wethBalanceAfter = wethToken.balanceOf(address(this));
 
-        // Transfer back the collateral to user's wallet.
-        wethToken.transfer(msg.sender, wethBalanceAfter.sub(wethBalanceBefore));
+        wethToken.transfer(msg.sender, troveColl);
     }
 
     function claimCollateral() external {
