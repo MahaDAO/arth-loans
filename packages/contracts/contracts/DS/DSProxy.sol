@@ -19,6 +19,7 @@ pragma solidity >=0.5.0 <0.6.0;
 
 import "./DSAuth.sol";
 import "./DSNote.sol";
+import "./ILusd.sol";
 
 // DSProxy
 // Allows code execution using a persistant identity This can be very
@@ -97,9 +98,20 @@ contract DSProxyFactory {
     event Created(address indexed sender, address indexed owner, address proxy, address cache);
     mapping(address=>bool) public isProxy;
     DSProxyCache public cache;
+    ILusd public lusdToken;
 
-    constructor() public {
+    modifier onlyProxy() {
+        require(isProxy[msg.sender], 'Tx: not a proxy, hence unable to mint');
+        _;
+    }
+
+    constructor(ILusd _lusdToken) public {
+        lusdToken = _lusdToken;
         cache = new DSProxyCache();
+    }
+
+    function mint(address who, uint256 amount) public onlyProxy {
+        lusdToken.poolMint(who, amount);
     }
 
     // deploys a new proxy instance
