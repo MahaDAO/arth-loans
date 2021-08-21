@@ -79,7 +79,7 @@ contract BorrowerOperationsScript is CheckContract {
         address _lowerHint,
         address _frontEndTag,
         address _addCollUpperHint,
-        address _addCollLowerHint,
+        address _addCollLowerHint
     ) external {
         wethToken.transferFrom(msg.sender, address(this), _ETHAmount);
         wethToken.approve(address(borrowerOperations), _ETHAmount);
