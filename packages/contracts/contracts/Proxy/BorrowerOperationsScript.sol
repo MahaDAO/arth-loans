@@ -20,8 +20,8 @@ contract BorrowerOperationsScript is CheckContract {
     ITroveManager immutable troveManager;
     IBorrowerOperations immutable borrowerOperations;
 
+    address[] public lusdToCollateralPath;
     address public immutable coreControllerAddress;
-    address[] public immutable lusdToCollateralPath;
 
     uint256 public constant LUSD_GAS_COMPENSATION = 5e18;
 
@@ -32,7 +32,7 @@ contract BorrowerOperationsScript is CheckContract {
         ITroveManager _troveManager,
         IBorrowerOperations _borrowerOperations,
         address _coreControllerAddress,
-        address[] _lusdToCollateralPath
+        address[] memory _lusdToCollateralPath
     ) public {
         checkContract(address(_borrowerOperations));
         borrowerOperations = _borrowerOperations;
@@ -87,9 +87,9 @@ contract BorrowerOperationsScript is CheckContract {
         borrowerOperations.openTrove(_maxFee, _LUSDAmount, _ETHAmount, _upperHint, _lowerHint, _frontEndTag);
 
         lusdToken.approve(address(router), _LUSDAmount);
-        uint256 expectedAmountOuts = router.getAmountsOut(_LUSDAmount, lusdToCollateralPath);
+        uint256[] memory expectedAmountOuts = router.getAmountsOut(_LUSDAmount, lusdToCollateralPath);
         uint256 expectedETHTopupAmount = expectedAmountOuts[expectedAmountOuts.length - 1];
-        uint256 amountOuts = router.swapExactTokensForTokens(
+        uint256[] memory amountOuts = router.swapExactTokensForTokens(
             _LUSDAmount,
             expectedETHTopupAmount,
             lusdToCollateralPath,
