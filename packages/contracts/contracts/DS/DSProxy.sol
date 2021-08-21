@@ -28,13 +28,14 @@ import "./ILusd.sol";
 // i.e. a multisig
 contract DSProxy is DSAuth, DSNote {
     DSProxyCache public cache;  // global cache for contracts
+    DSProxyFactory public factory;
 
-    constructor(address _cacheAddr) public {
+    constructor(address _factory, address _cacheAddr) public {
         setCache(_cacheAddr);
+        factory = DSProxyFactory(_factory);
     }
 
-    function() external payable {
-    }
+    function() external payable {}
 
     // use the proxy to execute calldata _data on contract _code
     function execute(bytes memory _code, bytes memory _data)
@@ -123,7 +124,7 @@ contract DSProxyFactory {
     // deploys a new proxy instance
     // sets custom owner of proxy
     function build(address owner) public returns (address payable proxy) {
-        proxy = address(new DSProxy(address(cache)));
+        proxy = address(new DSProxy(address(this), address(cache)));
         emit Created(msg.sender, owner, address(proxy), address(cache));
         DSProxy(proxy).setOwner(owner);
         isProxy[proxy] = true;
