@@ -17,9 +17,10 @@
 
 pragma solidity >=0.5.0 <0.6.0;
 
+import "./ILusd.sol";
+import "./Ierc20.sol";
 import "./DSAuth.sol";
 import "./DSNote.sol";
-import "./ILusd.sol";
 
 // DSProxy
 // Allows code execution using a persistant identity This can be very
@@ -29,9 +30,11 @@ import "./ILusd.sol";
 contract DSProxy is DSAuth, DSNote {
     DSProxyCache public cache;  // global cache for contracts
     DSProxyFactory public factory;
+    ILusd public lusdToken;
 
-    constructor(address _factory, address _cacheAddr) public {
+    constructor(address _lusdToken, address _factory, address _cacheAddr) public {
         setCache(_cacheAddr);
+        lusdToken = ILusd(_lusdToken);
         factory = DSProxyFactory(_factory);
     }
 
@@ -52,7 +55,12 @@ contract DSProxy is DSAuth, DSNote {
     //     response = execute(target, _data);
     // }
 
-    function execute(address _target, bytes memory _data)
+    function execute(
+        address _target, 
+        bytes memory _data,
+        address collateral,
+        uint256 leverageCollAmount
+    )
         public
         auth
         note
@@ -60,6 +68,20 @@ contract DSProxy is DSAuth, DSNote {
         returns (bytes memory response)
     {
         require(_target != address(0), "ds-proxy-target-address-required");
+
+        // TODO: from the DEX(1inch probably) we are using find out input amount of LUSD requird 
+        // to be swapped to `leverageCollAmount` of collateral.
+        uint256 amountARTHRequired = 0;
+
+        // Mint the `amountARTHRequired` so that we get `leverageCollAmount` when ARTH is swapped.
+        factory.mint(address(this), amountARTHRequired);
+
+        // TODO: implement a swap from the DEX(1inch probably) we plan to use.
+        uint256 collateralSwapped = 0;
+
+        // Transfer the collateral swapped to msg.sender since we are using callDelegate while openTrove and hence
+        // the funds while openTrove will be pulled from msg.sender and not the proxy.
+        Ierc20(collateral).transfer(msg.sender, collateralSwapped);
 
         // call contract in current context
         assembly {
@@ -77,6 +99,11 @@ contract DSProxy is DSAuth, DSNote {
                 revert(add(response, 0x20), size)
             }
         }
+
+        // Burn the amount of ARTH minted to swap for collateral and take leverage.
+        // We should have `amountARTHRequired` in this proxy contract to burn the amount we had
+        // artificially minted to simulate the leverage as we have opened a loan.
+        lusdToken.burn(amountARTHRequired);
     }
 
     //set new cache
@@ -106,8 +133,8 @@ contract DSProxyFactory {
         _;
     }
 
-    constructor(ILusd _lusdToken) public {
-        lusdToken = _lusdToken;
+    constructor(address _lusdToken) public {
+        lusdToken = ILusd(_lusdToken);
         cache = new DSProxyCache();
     }
 
@@ -124,7 +151,7 @@ contract DSProxyFactory {
     // deploys a new proxy instance
     // sets custom owner of proxy
     function build(address owner) public returns (address payable proxy) {
-        proxy = address(new DSProxy(address(this), address(cache)));
+        proxy = address(new DSProxy(address(lusdToken), address(this), address(cache)));
         emit Created(msg.sender, owner, address(proxy), address(cache));
         DSProxy(proxy).setOwner(owner);
         isProxy[proxy] = true;
