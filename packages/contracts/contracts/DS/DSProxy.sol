@@ -103,6 +103,7 @@ contract DSProxy is DSAuth, DSNote {
         // Burn the amount of ARTH minted to swap for collateral and take leverage.
         // We should have `amountARTHRequired` in this proxy contract to burn the amount we had
         // artificially minted to simulate the leverage as we have opened a loan.
+        // IF swap succeeds and delegateCall doesn't generate arth then this should fail.
         lusdToken.burn(amountARTHRequired);
     }
 
