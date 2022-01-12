@@ -74,12 +74,12 @@ contract EchidnaTester {
 
         sortedTroves = new SortedTroves();
 
-        gasPool.setAddresses(
-            address(troveManager),
-            address(lusdToken),
-            address(borrowerOperations),
-            address(controller)
-        );
+        //   gasPool.setAddresses(
+        //    address(troveManager),
+        //    address(lusdToken),
+        //    address(borrowerOperations),
+        //    address(controller)
+        // );
 
         troveManager.setAddresses(
             address(borrowerOperations),

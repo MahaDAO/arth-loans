@@ -27,7 +27,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     address stabilityPoolAddress;
 
-    IGasPool public gasPool;
+    address gasPoolAddress;
 
     ICollSurplusPool collSurplusPool;
 
@@ -74,7 +74,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         IActivePool activePool;
         ILiquityLUSDToken lusdToken;
         IPriceFeed priceFeed;
-        IGasPool gasPool;
     }
 
     enum BorrowerOperation {
@@ -138,7 +137,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         activePool = IActivePool(_activePoolAddress);
         defaultPool = IDefaultPool(_defaultPoolAddress);
         stabilityPoolAddress = _stabilityPoolAddress;
-        gasPool = IGasPool(_gasPoolAddress);
+        gasPoolAddress = _gasPoolAddress;
         collSurplusPool = ICollSurplusPool(_collSurplusPoolAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
         lusdToken = ILiquityLUSDToken(_lusdTokenAddress);
@@ -183,8 +182,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
             troveManager,
             activePool,
             lusdToken,
-            getPriceFeed(),
-            gasPool
+            getPriceFeed()
         );
         LocalVariables_openTrove memory vars;
 
@@ -256,7 +254,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         _withdrawLUSD(
             contractsCache.activePool,
             contractsCache.lusdToken,
-            address(gasPool),
+            gasPoolAddress,
             LUSD_GAS_COMPENSATION,
             LUSD_GAS_COMPENSATION
         );
@@ -361,8 +359,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
             troveManager,
             activePool,
             lusdToken,
-            getPriceFeed(),
-            gasPool
+            getPriceFeed()
         );
         LocalVariables_adjustTrove memory vars;
 
@@ -499,7 +496,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
         // Burn the repaid LUSD from the user's balance and the gas compensation from the Gas Pool
         _repayLUSD(activePoolCached, lusdTokenCached, msg.sender, debt.sub(LUSD_GAS_COMPENSATION));
-        _repayLUSD(activePoolCached, lusdTokenCached, address(gasPool), LUSD_GAS_COMPENSATION);
+        _repayLUSD(activePoolCached, lusdTokenCached, gasPoolAddress, LUSD_GAS_COMPENSATION);
 
         // Send the collateral back to the user
         activePoolCached.sendETH(msg.sender, coll);
