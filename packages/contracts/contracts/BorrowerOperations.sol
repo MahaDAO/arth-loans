@@ -4,7 +4,6 @@ pragma solidity 0.6.11;
 
 import "./Interfaces/IBorrowerOperations.sol";
 import "./Interfaces/ITroveManager.sol";
-import "./Interfaces/ILUSDToken.sol";
 import "./Interfaces/ICollSurplusPool.sol";
 import "./Interfaces/ISortedTroves.sol";
 import "./Interfaces/ILQTYStaking.sol";
@@ -14,7 +13,7 @@ import "./Dependencies/IERC20.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/console.sol";
 import "./Interfaces/IGovernance.sol";
-import "./Interfaces/ILUSDToken.sol";
+import "./Interfaces/ILiquityLUSDToken.sol";
 import "./Interfaces/IController.sol";
 import "./Interfaces/IGasPool.sol";
 import "./Dependencies/ISimpleERCFund.sol";
@@ -32,13 +31,11 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     ICollSurplusPool collSurplusPool;
 
-    ILUSDToken public lusdToken;
+    ILiquityLUSDToken public lusdToken;
     IERC20 public weth;
 
     // A doubly linked list of Troves, sorted by their collateral ratios
     ISortedTroves public sortedTroves;
-
-    IController public coreController;
 
     /* --- Variable container structs  ---
 
@@ -75,7 +72,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     struct ContractsCache {
         ITroveManager troveManager;
         IActivePool activePool;
-        ILUSDToken lusdToken;
+        ILiquityLUSDToken lusdToken;
         IPriceFeed priceFeed;
         IGasPool gasPool;
     }
@@ -89,7 +86,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     mapping(address => bool) public frontEnds;
 
     event FrontEndRegistered(address indexed _frontEnd, uint256 timestamp);
-    event CoreControllerAddressChanged(address _coreControllerAddress);
     event TroveManagerAddressChanged(address _newTroveManagerAddress);
     event ActivePoolAddressChanged(address _activePoolAddress);
     event GovernanceAddressChanged(address _governanceAddress);
@@ -122,8 +118,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _sortedTrovesAddress,
         address _lusdTokenAddress,
         address _wethAddress,
-        address _governanceAddress,
-        address _coreControllerAddress
+        address _governanceAddress
     ) external override onlyOwner {
         // This makes impossible to open a trove with zero withdrawn LUSD
         assert(MIN_NET_DEBT > 0);
@@ -138,7 +133,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         checkContract(_lusdTokenAddress);
         checkContract(_wethAddress);
         checkContract(_governanceAddress);
-        checkContract(_coreControllerAddress);
 
         troveManager = ITroveManager(_troveManagerAddress);
         activePool = IActivePool(_activePoolAddress);
@@ -147,10 +141,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         gasPool = IGasPool(_gasPoolAddress);
         collSurplusPool = ICollSurplusPool(_collSurplusPoolAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
-        lusdToken = ILUSDToken(_lusdTokenAddress);
+        lusdToken = ILiquityLUSDToken(_lusdTokenAddress);
         weth = IERC20(_wethAddress);
         governance = IGovernance(_governanceAddress);
-        coreController = IController(_coreControllerAddress);
 
         emit TroveManagerAddressChanged(_troveManagerAddress);
         emit ActivePoolAddressChanged(_activePoolAddress);
@@ -161,7 +154,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         emit SortedTrovesAddressChanged(_sortedTrovesAddress);
         emit LUSDTokenAddressChanged(_lusdTokenAddress);
         emit GovernanceAddressChanged(_governanceAddress);
-        emit CoreControllerAddressChanged(_coreControllerAddress);
 
         _renounceOwnership();
     }
@@ -483,7 +475,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     function closeTrove() external override {
         ITroveManager troveManagerCached = troveManager;
         IActivePool activePoolCached = activePool;
-        ILUSDToken lusdTokenCached = lusdToken;
+        ILiquityLUSDToken lusdTokenCached = lusdToken;
         IPriceFeed priceFeed = getPriceFeed();
 
         _requireTroveisActive(troveManagerCached, msg.sender);
@@ -525,7 +517,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     function _triggerBorrowingFee(
         ITroveManager _troveManager,
-        ILUSDToken _lusdToken,
+        ILiquityLUSDToken _lusdToken,
         uint256 _LUSDAmount,
         uint256 _maxFeePercentage,
         address _frontEndTag
@@ -544,7 +536,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
                 // Else split and send half to fund and half to frontend.
                 uint256 feeToFrontEnd = LUSDFee.mul(50).div(100);
                 uint256 remainingFee = LUSDFee.sub(feeToFrontEnd);
-                coreController.mint(_frontEndTag, feeToFrontEnd); // send half to frontend.
+                _lusdToken.mint(_frontEndTag, feeToFrontEnd); // send half to frontend.
                 _sendFeeToFund(_lusdToken, remainingFee); // And reamining half to fund.
             }
         }
@@ -552,9 +544,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         return LUSDFee;
     }
 
-    function _sendFeeToFund(ILUSDToken _lusdToken, uint256 _LUSDFeeToFund) internal {
+    function _sendFeeToFund(ILiquityLUSDToken _lusdToken, uint256 _LUSDFeeToFund) internal {
         // 1. Mint the fee tokens to governance.
-        coreController.mint(address(governance), _LUSDFeeToFund);
+        _lusdToken.mint(address(governance), _LUSDFeeToFund);
         // 2. The governance nows has the fee tokens, and hence can be sent to funds by governance.
         governance.sendToFund(address(_lusdToken), _LUSDFeeToFund, "Borrowing fee triggered");
     }
@@ -599,7 +591,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     function _moveTokensAndETHfromAdjustment(
         IActivePool _activePool,
-        ILUSDToken _lusdToken,
+        ILiquityLUSDToken _lusdToken,
         address _borrower,
         uint256 _collChange,
         bool _isCollIncrease,
@@ -630,30 +622,24 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     // Issue the specified amount of LUSD to _account and increases the total active debt (_netDebtIncrease potentially includes a LUSDFee)
     function _withdrawLUSD(
         IActivePool _activePool,
-        ILUSDToken _lusdToken,
+        ILiquityLUSDToken _lusdToken,
         address _account,
         uint256 _LUSDAmount,
         uint256 _netDebtIncrease
     ) internal {
         _activePool.increaseLUSDDebt(_netDebtIncrease);
-        coreController.mint(_account, _LUSDAmount);
+        _lusdToken.mint(_account, _LUSDAmount);
     }
 
     // Burn the specified amount of LUSD from _account and decreases the total active debt
     function _repayLUSD(
         IActivePool _activePool,
-        ILUSDToken _lusdToken,
+        ILiquityLUSDToken _lusdToken,
         address _account,
         uint256 _LUSD
     ) internal {
         _activePool.decreaseLUSDDebt(_LUSD);
-        if (_account == address(gasPool)) {
-            gasPool.burnLUSD(_LUSD);
-        } else {
-            // Should be approved from UI, approval should be given to
-            // contorller since that is the function calling the poolBurnFrom on ARTH.
-            coreController.burn(_account, _LUSD);
-        }
+        _lusdToken.burn(_account, _LUSD);
     }
 
     // --- 'Require' wrapper functions ---
@@ -808,7 +794,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     function _requireSufficientLUSDBalance(
-        ILUSDToken _lusdToken,
+        ILiquityLUSDToken _lusdToken,
         address _borrower,
         uint256 _debtRepayment
     ) internal view {

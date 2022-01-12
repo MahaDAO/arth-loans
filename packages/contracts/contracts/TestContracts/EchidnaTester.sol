@@ -105,8 +105,7 @@ contract EchidnaTester {
             address(sortedTroves),
             address(lusdToken),
             address(weth),
-            address(governance),
-            address(controller)
+            address(governance)
         );
 
         activePool.setAddresses(
