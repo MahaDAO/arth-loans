@@ -91,7 +91,6 @@ contract EchidnaTester {
             address(lusdToken),
             address(sortedTroves),
             address(governance),
-            address(controller),
             address(weth)
         );
 

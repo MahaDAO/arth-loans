@@ -4,14 +4,13 @@ pragma solidity 0.6.11;
 
 import "./IStabilityPool.sol";
 import "./ILiquityBase.sol";
-import "../Interfaces/ILUSDToken.sol";
+import "../Interfaces/ILiquityLUSDToken.sol";
 
 // Common interface for the Trove Manager.
 interface ITroveManager is ILiquityBase {
     // --- Events ---
 
     event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
-    event CoreControllerChanged(address _coreControllerAddress);
     event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
     event LUSDTokenAddressChanged(address _newLUSDTokenAddress);
     event ActivePoolAddressChanged(address _activePoolAddress);
@@ -22,7 +21,6 @@ interface ITroveManager is ILiquityBase {
     event SortedTrovesAddressChanged(address _sortedTrovesAddress);
     event WETHAddressChanged(address _wethAddressChanged);
     event GovernanceAddressChanged(address _governanceAddress);
-    event CoreControllerAddressChanged(address _coreControllerAddress);
 
     event TroveOwnerDetailsUpdated(
         address owner,
@@ -80,13 +78,12 @@ interface ITroveManager is ILiquityBase {
         address _lusdTokenAddress,
         address _sortedTrovesAddress,
         address _governanceAddress,
-        address _coreControllerAddress,
         address _wethAddress
     ) external;
 
     function stabilityPool() external view returns (IStabilityPool);
 
-    function lusdToken() external view returns (ILUSDToken);
+    function lusdToken() external view returns (ILiquityLUSDToken);
 
     function getTroveOwnersCount() external view returns (uint256);
 
