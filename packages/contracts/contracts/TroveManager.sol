@@ -10,7 +10,6 @@ import "./Dependencies/LiquityBase.sol";
 import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Interfaces/IGovernance.sol";
-import "./Interfaces/IGasPool.sol";
 import "./Interfaces/ILiquityLUSDToken.sol";
 
 contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
@@ -21,7 +20,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     address public wethAddress;
     
     IStabilityPool public override stabilityPool;
-    IGasPool gasPool;
+    address gasPoolAddress;
     ICollSurplusPool collSurplusPool;
     ILiquityLUSDToken public override lusdToken;
 
@@ -169,7 +168,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         ILiquityLUSDToken lusdToken;
         ISortedTroves sortedTroves;
         ICollSurplusPool collSurplusPool;
-        IGasPool gasPool;
+        address gasPoolAddress;
         IPriceFeed priceFeed;
         IGovernance governance;
     }
@@ -277,7 +276,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         activePool = IActivePool(_activePoolAddress);
         defaultPool = IDefaultPool(_defaultPoolAddress);
         stabilityPool = IStabilityPool(_stabilityPoolAddress);
-        gasPool = IGasPool(_gasPoolAddress);
+        gasPoolAddress = _gasPoolAddress;
         collSurplusPool = ICollSurplusPool(_collSurplusPoolAddress);
         lusdToken = ILiquityLUSDToken(_lusdTokenAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
@@ -574,7 +573,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
             ILiquityLUSDToken(address(0)),
             sortedTroves,
             ICollSurplusPool(address(0)),
-            IGasPool(address(0)),
+            address(0),
             getPriceFeed(),
             governance
         );
@@ -1003,8 +1002,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         uint256 _ETH
     ) internal {
         if (_LUSD > 0) {
-            gasPool.returnToLiquidator(_liquidator, _LUSD);
-            // lusdToken.returnFromPool(gasPoolAddress, _liquidator, _LUSD);
+            lusdToken.returnFromPool(gasPoolAddress, _liquidator, _LUSD);
         }
 
         if (_ETH > 0) {
@@ -1105,7 +1103,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         uint256 _LUSD,
         uint256 _ETH
     ) internal {
-        _contractsCache.gasPool.burnLUSD(_LUSD);
+        _contractsCache.lusdToken.burn(gasPoolAddress, _LUSD);
         // Update Active Pool LUSD, and send ETH to account
         _contractsCache.activePool.decreaseLUSDDebt(_LUSD);
 
@@ -1167,7 +1165,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
             lusdToken,
             sortedTroves,
             collSurplusPool,
-            gasPool,
+            gasPoolAddress,
             getPriceFeed(),
             governance
         );
