@@ -15,7 +15,6 @@ import "./Dependencies/console.sol";
 import "./Interfaces/IGovernance.sol";
 import "./Interfaces/ILiquityLUSDToken.sol";
 import "./Interfaces/IController.sol";
-import "./Interfaces/IGasPool.sol";
 import "./Dependencies/ISimpleERCFund.sol";
 
 contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOperations {
