@@ -127,8 +127,7 @@ contract EchidnaTester {
             address(sortedTroves),
             address(0),
             address(weth),
-            address(governance),
-            address(controller)
+            address(governance)
         );
 
         collSurplusPool.setAddresses(
