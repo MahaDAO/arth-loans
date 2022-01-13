@@ -279,7 +279,7 @@ contract('StabilityPool', async accounts => {
 
       // Bob withdraws LUSD and deposits to StabilityPool
       await openTrove({ extraLUSDAmount: toBN(dec(1000, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: bob } })
-      await stabilityPool.provideToSP(dec(427, 18), frontEnd_1, { from: alice })
+      await stabilityPool.provideToSP(dec(148, 18), frontEnd_1, { from: alice })
 
       // Defaulter 3 Trove is closed
       await troveManager.liquidate(defaulter_3, { from: owner })
@@ -301,7 +301,7 @@ contract('StabilityPool', async accounts => {
       assert.isTrue(alice_Snapshot_S_2.eq(S_2))
       assert.isTrue(alice_Snapshot_P_2.eq(P_2))
     })
-
+    
     it("provideToSP(): reverts if user tries to provide more than their LUSD balance", async () => {
       await openTrove({ extraLUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(2, 18)), extraParams: { from: whale, value: dec(50, 'ether') } })
 
@@ -417,8 +417,8 @@ contract('StabilityPool', async accounts => {
       assert.isTrue(ETHinSP.gt(mv._zeroBN))
 
       // D makes an SP deposit
-      await stabilityPool.provideToSP(dec(1000, 18), frontEnd_1, { from: dennis })
-      assert.equal((await stabilityPool.getCompoundedLUSDDeposit(dennis)).toString(), dec(1000, 18))
+      await stabilityPool.provideToSP(dec(548, 18), frontEnd_1, { from: dennis })
+      assert.equal((await stabilityPool.getCompoundedLUSDDeposit(dennis)).toString(), dec(548, 18))
 
       const alice_LUSDDeposit_After = (await stabilityPool.getCompoundedLUSDDeposit(alice)).toString()
       const bob_LUSDDeposit_After = (await stabilityPool.getCompoundedLUSDDeposit(bob)).toString()
@@ -718,7 +718,7 @@ contract('StabilityPool', async accounts => {
       await stabilityPool.provideToSP(dec(1000, 18), frontEnd_1, { from: A })
       await stabilityPool.provideToSP(dec(2000, 18), frontEnd_2, { from: B })
       await stabilityPool.provideToSP(dec(3000, 18), frontEnd_3, { from: C })
-      await stabilityPool.provideToSP(dec(4000, 18), ZERO_ADDRESS, { from: D })  // transacts directly, no front end
+      await stabilityPool.provideToSP(dec(3248, 18), ZERO_ADDRESS, { from: D })  // transacts directly, no front end
 
       // Check A, B, C D have no front end tags
       const A_tagAfter = await getFrontEndTag(stabilityPool, A)
