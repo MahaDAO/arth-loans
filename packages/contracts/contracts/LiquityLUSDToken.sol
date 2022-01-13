@@ -6,6 +6,8 @@ import "./Interfaces/ILiquityLUSDToken.sol";
 import "./Dependencies/SafeMath.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/console.sol";
+import "./Dependencies/TransferableOwnable.sol";
+
 /*
 *
 * Based upon OpenZeppelin's ERC20 contract:
@@ -24,7 +26,7 @@ import "./Dependencies/console.sol";
 * 2) sendToPool() and returnFromPool(): functions callable only Liquity core contracts, which move LUSD tokens between Liquity <-> user.
 */
 
-contract LiquityLUSDToken is CheckContract, ILiquityLUSDToken {
+contract LiquityLUSDToken is CheckContract, TransferableOwnable, ILiquityLUSDToken {
     using SafeMath for uint256;
     
     uint256 private _totalSupply;
@@ -50,41 +52,20 @@ contract LiquityLUSDToken is CheckContract, ILiquityLUSDToken {
     
     mapping (address => uint256) private _nonces;
     
+    mapping (address => bool) public borrowerOperationAddresses;
+    mapping (address => bool) public troveManagerAddresses;
+    mapping (address => bool) public stabilityPoolAddresses;
+
     // User data for LUSD token
     mapping (address => uint256) private _balances;
     mapping (address => mapping (address => uint256)) private _allowances;  
     
-    // --- Addresses ---
-    address public immutable troveManagerAddress;
-    address public immutable stabilityPoolAddress;
-    address public immutable borrowerOperationsAddress;
-    
     // --- Events ---
-    event TroveManagerAddressChanged(address _troveManagerAddress);
-    event StabilityPoolAddressChanged(address _newStabilityPoolAddress);
-    event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
+    event BorrowerOperationsAddressToggled(address indexed boAddress, bool oldFlag, bool newFlag, uint256 timestamp);
+    event TroveManagerToggled(address indexed tmAddress, bool oldFlag, bool newFlag, uint256 timestamp);
+    event StabilityPoolToggled(address indexed spAddress, bool oldFlag, bool newFlag, uint256 timestamp);
 
-    constructor
-    ( 
-        address _troveManagerAddress,
-        address _stabilityPoolAddress,
-        address _borrowerOperationsAddress
-    ) 
-        public 
-    {  
-        checkContract(_troveManagerAddress);
-        checkContract(_stabilityPoolAddress);
-        checkContract(_borrowerOperationsAddress);
-
-        troveManagerAddress = _troveManagerAddress;
-        emit TroveManagerAddressChanged(_troveManagerAddress);
-
-        stabilityPoolAddress = _stabilityPoolAddress;
-        emit StabilityPoolAddressChanged(_stabilityPoolAddress);
-
-        borrowerOperationsAddress = _borrowerOperationsAddress;        
-        emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
-        
+    constructor() public {
         bytes32 hashedName = keccak256(bytes(_NAME));
         bytes32 hashedVersion = keccak256(bytes(_VERSION));
         
@@ -92,6 +73,26 @@ contract LiquityLUSDToken is CheckContract, ILiquityLUSDToken {
         _HASHED_VERSION = hashedVersion;
         _CACHED_CHAIN_ID = _chainID();
         _CACHED_DOMAIN_SEPARATOR = _buildDomainSeparator(_TYPE_HASH, hashedName, hashedVersion);
+    }
+
+    // -- Functions to manage access control ---
+    
+    function toggleBorrowerOperations(address borrowerOperations) external onlyOwner override {
+        bool oldFlag = borrowerOperationAddresses[borrowerOperations];
+        borrowerOperationAddresses[borrowerOperations] = !oldFlag;
+        emit BorrowerOperationsAddressToggled(borrowerOperations, oldFlag, !oldFlag, block.timestamp);
+    }
+
+    function toggleTroveManager(address troveManager) external onlyOwner override {
+        bool oldFlag = troveManagerAddresses[troveManager];
+        troveManagerAddresses[troveManager] = !oldFlag;
+        emit TroveManagerToggled(troveManager, oldFlag, !oldFlag, block.timestamp);
+    }
+
+    function toggleStabilityPool(address stabilityPool) external onlyOwner override {
+        bool oldFlag = stabilityPoolAddresses[stabilityPool];
+        stabilityPoolAddresses[stabilityPool] = !oldFlag;
+        emit StabilityPoolToggled(stabilityPool, oldFlag, !oldFlag, block.timestamp);
     }
 
     // --- Functions for intra-Liquity calls ---
@@ -252,33 +253,33 @@ contract LiquityLUSDToken is CheckContract, ILiquityLUSDToken {
             "LUSD: Cannot transfer tokens directly to the LUSD token contract or the zero address"
         );
         require(
-            _recipient != stabilityPoolAddress && 
-            _recipient != troveManagerAddress && 
-            _recipient != borrowerOperationsAddress, 
+            !stabilityPoolAddresses[_recipient] && 
+            !troveManagerAddresses[_recipient] && 
+            !borrowerOperationAddresses[_recipient], 
             "LUSD: Cannot transfer tokens directly to the StabilityPool, TroveManager or BorrowerOps"
         );
     }
 
     function _requireCallerIsBorrowerOperations() internal view {
-        require(msg.sender == borrowerOperationsAddress, "LUSDToken: Caller is not BorrowerOperations");
+        require(borrowerOperationAddresses[msg.sender], "LUSDToken: Caller is not BorrowerOperations");
     }
 
     function _requireCallerIsBOorTroveMorSP() internal view {
         require(
-            msg.sender == borrowerOperationsAddress ||
-            msg.sender == troveManagerAddress ||
-            msg.sender == stabilityPoolAddress,
+           borrowerOperationAddresses[msg.sender] ||
+           troveManagerAddresses[msg.sender] ||
+           stabilityPoolAddresses[msg.sender],
             "LUSD: Caller is neither BorrowerOperations nor TroveManager nor StabilityPool"
         );
     }
 
     function _requireCallerIsStabilityPool() internal view {
-        require(msg.sender == stabilityPoolAddress, "LUSD: Caller is not the StabilityPool");
+        require(stabilityPoolAddresses[msg.sender], "LUSD: Caller is not the StabilityPool");
     }
 
     function _requireCallerIsTroveMorSP() internal view {
         require(
-            msg.sender == troveManagerAddress || msg.sender == stabilityPoolAddress,
+            troveManagerAddresses[msg.sender] || stabilityPoolAddresses[msg.sender],
             "LUSD: Caller is neither TroveManager nor StabilityPool");
     }
 
