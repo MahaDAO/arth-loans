@@ -638,7 +638,7 @@ contract('BorrowerOperations', async accounts => {
     })
 
     it("withdrawColl(): reduces the Trove's collateral by the correct amount", async () => {
-      await openTrove({ ICR: toBN(dec(2, 18)), extraParams: { from: alice } })
+      await openTrove({ ICR: toBN(dec(3, 18)), extraParams: { from: alice } })
       assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
 
       const aliceCollBefore = await getTroveEntireColl(alice)
@@ -655,7 +655,7 @@ contract('BorrowerOperations', async accounts => {
     })
 
     it("withdrawColl(): reduces ActivePool ETH and raw ether by correct amount", async () => {
-      await openTrove({ ICR: toBN(dec(2, 18)), extraParams: { from: alice } })
+      await openTrove({ ICR: toBN(dec(3, 18)), extraParams: { from: alice } })
       assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
 
       const aliceCollBefore = await getTroveEntireColl(alice)
@@ -676,7 +676,7 @@ contract('BorrowerOperations', async accounts => {
 
     it("withdrawColl(): updates the stake and updates the total stakes", async () => {
       //  Alice creates initial Trove with 2 ether
-      await openTrove({ ICR: toBN(dec(2, 18)), extraParams: { from: alice, value: toBN(dec(5, 'ether')) } })
+      await openTrove({ ICR: toBN(dec(3, 18)), extraParams: { from: alice, value: toBN(dec(5, 'ether')) } })
       assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
 
       const aliceColl = await getTroveEntireColl(alice)
@@ -703,7 +703,7 @@ contract('BorrowerOperations', async accounts => {
     })
 
     it("withdrawColl(): sends the correct amount of ETH to the user", async () => {
-      await openTrove({ ICR: toBN(dec(2, 18)), extraParams: { from: alice, value: dec(2, 'ether') } })
+      await openTrove({ ICR: toBN(dec(3, 18)), extraParams: { from: alice, value: dec(2, 'ether') } })
       assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
 
       const alice_ETHBalance_Before = await weth.balanceOf(alice)
@@ -771,8 +771,8 @@ contract('BorrowerOperations', async accounts => {
       }
 
       // Alice and Bob withdraw from their Troves
-      const aliceCollWithdrawal = toBN(dec(5, 'ether'))
-      const bobCollWithdrawal = toBN(dec(1, 'ether'))
+      const aliceCollWithdrawal = toBN(dec(1, 17))
+      const bobCollWithdrawal = toBN(dec(5, 16))
 
       await borrowerOperations.withdrawColl(aliceCollWithdrawal, alice, alice, { from: alice })
       assert.equal((await troveManager.Troves(alice)).frontEndTag, ZERO_ADDR)
@@ -2161,6 +2161,7 @@ contract('BorrowerOperations', async accounts => {
     it("withdrawLUSD(): increases LUSD debt in ActivePool by correct amount", async () => {
       const txAlice = await openTrove({ ICR: toBN(dec(10, 18)), frontEndTag: frontEnd_1, extraParams: { from: alice, value: toBN(dec(100, 'ether')) } })
       assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_1)
+
       const txAliceFeeBN = BigNumber.from(th.getLUSDFeeFromLUSDBorrowingEvent(txAlice.tx))
       let ecosystemFundBN = txAliceFeeBN.div(2)
       let front1EndBN = txAliceFeeBN.div(2)
@@ -2174,7 +2175,8 @@ contract('BorrowerOperations', async accounts => {
       const activePool_LUSD_Before = await activePool.getLUSDDebt()
       assert.isTrue(activePool_LUSD_Before.eq(aliceDebtBefore))
 
-      const tx = await borrowerOperations.withdrawLUSD(th._100pct, await getNetBorrowingAmount(dec(10000, 18)), alice, alice, { from: alice })
+      const netBorrowingAmount = await getNetBorrowingAmount(dec(1000, 18));
+      const tx = await borrowerOperations.withdrawLUSD(th._100pct, netBorrowingAmount, alice, alice, { from: alice })
       assert.equal((await troveManager.Troves(alice)).frontEndTag, frontEnd_1)
       const txFeeBN = BigNumber.from(th.getLUSDFeeFromLUSDBorrowingEvent(tx))
       ecosystemFundBN = ecosystemFundBN.add(txFeeBN.div(2))
@@ -2184,7 +2186,7 @@ contract('BorrowerOperations', async accounts => {
 
       // check after
       const activePool_LUSD_After = await activePool.getLUSDDebt()
-      th.assertIsApproximatelyEqual(activePool_LUSD_After, activePool_LUSD_Before.add(toBN(dec(10000, 18))))
+      th.assertIsApproximatelyEqual(activePool_LUSD_After, activePool_LUSD_Before.add(toBN(dec(1000, 18))))
     })
 
     it("withdrawLUSD(): increases user LUSDToken balance by correct amount", async () => {
