@@ -379,24 +379,6 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "id",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "newId",
-        "type": "address"
-      }
-    ],
-    "name": "moveNodeOwner",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "owner",
     "outputs": [
