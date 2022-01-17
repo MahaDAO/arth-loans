@@ -9,13 +9,19 @@ interface ILiquityLUSDToken is IERC20, IERC2612 {
     
     // --- Events ---
 
-    event TroveManagerAddressChanged(address _troveManagerAddress);
-    event StabilityPoolAddressChanged(address _newStabilityPoolAddress);
-    event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
+    event BorrowerOperationsAddressToggled(address borrowerOperations, bool oldFlag, bool newFlag, uint256 timestamp);
+    event TroveManagerToggled(address troveManager, bool oldFlag, bool newFlag, uint256 timestamp);
+    event StabilityPoolToggled(address stabilityPool, bool oldFlag, bool newFlag, uint256 timestamp);
 
     event LUSDTokenBalanceUpdated(address _user, uint _amount);
 
     // --- Functions ---
+
+    function toggleBorrowerOperations(address borrowerOperations) external;
+
+    function toggleTroveManager(address troveManager) external;
+
+    function toggleStabilityPool(address stabilityPool) external;
 
     function mint(address _account, uint256 _amount) external;
 
