@@ -13,7 +13,9 @@ import "./Interfaces/IGovernance.sol";
 import "./Interfaces/ILiquityLUSDToken.sol";
 
 contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
-    string public constant NAME = "TroveManager";
+    string public NAME;
+
+    bool public initialized;
 
     // --- Connected contract declarations ---
     address public borrowerOperationsAddress;
@@ -29,23 +31,23 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
     // --- Data structures ---
 
-    uint256 public constant SECONDS_IN_ONE_MINUTE = 60;
+    uint256 public SECONDS_IN_ONE_MINUTE;
     /*
      * Half-life of 12h. 12h = 720 min
      * (1/2) = d^720 => d = (1/2)^(1/720)
      */
-    uint256 public constant MINUTE_DECAY_FACTOR = 999037758833783000;
-    uint256 public constant REDEMPTION_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5; // 0.5%
-    uint256 public constant MAX_BORROWING_FEE = (DECIMAL_PRECISION / 100) * 5; // 5%
+    uint256 public MINUTE_DECAY_FACTOR;
+    uint256 public REDEMPTION_FEE_FLOOR; // 0.5%
+    uint256 public MAX_BORROWING_FEE; // 5%
 
     // During bootsrap period redemptions are not allowed
-    uint256 public constant BOOTSTRAP_PERIOD = 7 days;
+    uint256 public BOOTSTRAP_PERIOD;
 
     /*
      * BETA: 18 digit decimal. Parameter by which to divide the redeemed fraction, in order to calc the new base rate from a redemption.
      * Corresponds to (1 / ALPHA) in the white paper.
      */
-    uint256 public constant BETA = 2;
+    uint256 public BETA;
 
     uint256 public baseRate;
 
@@ -246,7 +248,31 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         redeemCollateral
     }
 
-    // --- Dependency setter ---
+    function initialize() external {
+        require(!initialized, 'Contract already initialized');
+        DECIMAL_PRECISION = 1e18;
+        _100pct = 1000000000000000000; // 1e18 == 100%
+        MCR = 1100000000000000000; // 110%
+        CCR = 1500000000000000000; // 150%
+        LUSD_GAS_COMPENSATION = 5e18;
+        MIN_NET_DEBT = 250e18;
+        PERCENT_DIVISOR = 200; // dividing by 200 yields 0.5%
+        BORROWING_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5; // 0.5%
+
+        address msgSender = _msgSender();
+        _owner = msgSender;
+        emit OwnershipTransferred(address(0), msgSender);
+
+        NAME = "TroveManager";
+        SECONDS_IN_ONE_MINUTE = 60;
+        MINUTE_DECAY_FACTOR = 999037758833783000;
+        REDEMPTION_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5;
+        MAX_BORROWING_FEE = (DECIMAL_PRECISION / 100) * 5;
+        BOOTSTRAP_PERIOD = 7 days;
+        BETA = 2;
+
+        initialized = true; 
+    }
 
     function setAddresses(
         address _borrowerOperationsAddress,

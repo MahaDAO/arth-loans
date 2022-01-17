@@ -18,24 +18,24 @@ import "../Interfaces/ILiquityBase.sol";
 contract LiquityBase is BaseMath, ILiquityBase {
     using SafeMath for uint256;
 
-    uint256 public constant _100pct = 1000000000000000000; // 1e18 == 100%
+    uint256 public _100pct = 1000000000000000000; // 1e18 == 100%
 
     // Minimum collateral ratio for individual troves
-    uint256 public constant MCR = 1100000000000000000; // 110%
+    uint256 public MCR = 1100000000000000000; // 110%
 
     // Critical system collateral ratio. If the system's total collateral ratio (TCR) falls below the CCR, Recovery Mode is triggered.
-    uint256 public constant CCR = 1500000000000000000; // 150%
+    uint256 public CCR = 1500000000000000000; // 150%
 
     // Amount of LUSD to be locked in gas pool on opening troves
-    uint256 public constant LUSD_GAS_COMPENSATION = 5e18;
+    uint256 public LUSD_GAS_COMPENSATION = 5e18;
 
     // Minimum amount of net LUSD debt a trove must have
-    uint256 public constant MIN_NET_DEBT = 250e18;
+    uint256 public MIN_NET_DEBT = 250e18;
     // uint constant public MIN_NET_DEBT = 0;
 
-    uint256 public constant PERCENT_DIVISOR = 200; // dividing by 200 yields 0.5%
+    uint256 public PERCENT_DIVISOR = 200; // dividing by 200 yields 0.5%
 
-    uint256 public constant BORROWING_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5; // 0.5%
+    uint256 public BORROWING_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5; // 0.5%
 
     IActivePool public activePool;
     IDefaultPool public defaultPool;
