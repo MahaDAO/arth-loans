@@ -74,12 +74,12 @@ contract EchidnaTester {
 
         sortedTroves = new SortedTroves();
 
-        gasPool.setAddresses(
-            address(troveManager),
-            address(lusdToken),
-            address(borrowerOperations),
-            address(controller)
-        );
+        //   gasPool.setAddresses(
+        //    address(troveManager),
+        //    address(lusdToken),
+        //    address(borrowerOperations),
+        //    address(controller)
+        // );
 
         troveManager.setAddresses(
             address(borrowerOperations),
@@ -91,7 +91,6 @@ contract EchidnaTester {
             address(lusdToken),
             address(sortedTroves),
             address(governance),
-            address(controller),
             address(weth)
         );
 
@@ -105,8 +104,7 @@ contract EchidnaTester {
             address(sortedTroves),
             address(lusdToken),
             address(weth),
-            address(governance),
-            address(controller)
+            address(governance)
         );
 
         activePool.setAddresses(
@@ -128,8 +126,7 @@ contract EchidnaTester {
             address(sortedTroves),
             address(0),
             address(weth),
-            address(governance),
-            address(controller)
+            address(governance)
         );
 
         collSurplusPool.setAddresses(
