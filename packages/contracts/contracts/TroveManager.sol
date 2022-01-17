@@ -573,7 +573,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         uint256 _entireTroveDebt,
         uint256 _entireTroveColl,
         uint256 _price
-    ) internal pure returns (LiquidationValues memory singleLiquidation) {
+    ) internal view returns (LiquidationValues memory singleLiquidation) {
         singleLiquidation.entireTroveDebt = _entireTroveDebt;
         singleLiquidation.entireTroveColl = _entireTroveColl;
         uint256 collToOffset = _entireTroveDebt.mul(MCR).div(_price);
@@ -1645,7 +1645,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         uint256 _entireSystemColl,
         uint256 _entireSystemDebt,
         uint256 _price
-    ) internal pure returns (bool) {
+    ) internal view returns (bool) {
         uint256 TCR = LiquityMath._computeCR(_entireSystemColl, _entireSystemDebt, _price);
 
         return TCR < CCR;
@@ -1692,7 +1692,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         return _calcRedemptionRate(_calcDecayedBaseRate());
     }
 
-    function _calcRedemptionRate(uint256 _baseRate) internal pure returns (uint256) {
+    function _calcRedemptionRate(uint256 _baseRate) internal view returns (uint256) {
         return
             LiquityMath._min(
                 REDEMPTION_FEE_FLOOR.add(_baseRate),
@@ -1710,7 +1710,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
     function _calcRedemptionFee(uint256 _redemptionRate, uint256 _ETHDrawn)
         internal
-        pure
+        view
         returns (uint256)
     {
         uint256 redemptionFee = _redemptionRate.mul(_ETHDrawn).div(DECIMAL_PRECISION);
@@ -1728,7 +1728,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         return _calcBorrowingRate(_calcDecayedBaseRate());
     }
 
-    function _calcBorrowingRate(uint256 _baseRate) internal pure returns (uint256) {
+    function _calcBorrowingRate(uint256 _baseRate) internal view returns (uint256) {
         return LiquityMath._min(BORROWING_FEE_FLOOR.add(_baseRate), MAX_BORROWING_FEE);
     }
 
@@ -1742,7 +1742,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
     function _calcBorrowingFee(uint256 _borrowingRate, uint256 _LUSDDebt)
         internal
-        pure
+        view
         returns (uint256)
     {
         return _borrowingRate.mul(_LUSDDebt).div(DECIMAL_PRECISION);
@@ -1834,7 +1834,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         );
     }
 
-    function _requireValidMaxFeePercentage(uint256 _maxFeePercentage) internal pure {
+    function _requireValidMaxFeePercentage(uint256 _maxFeePercentage) internal view {
         require(
             _maxFeePercentage >= REDEMPTION_FEE_FLOOR && _maxFeePercentage <= DECIMAL_PRECISION,
             "Max fee percentage must be between 0.5% and 100%"

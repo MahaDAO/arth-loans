@@ -48,16 +48,16 @@ contract LiquityBase is BaseMath, ILiquityBase {
     }
 
     // Returns the composite debt (drawn debt + gas compensation) of a trove, for the purpose of ICR calculation
-    function _getCompositeDebt(uint256 _debt) internal pure returns (uint256) {
+    function _getCompositeDebt(uint256 _debt) internal view returns (uint256) {
         return _debt.add(LUSD_GAS_COMPENSATION);
     }
 
-    function _getNetDebt(uint256 _debt) internal pure returns (uint256) {
+    function _getNetDebt(uint256 _debt) internal view returns (uint256) {
         return _debt.sub(LUSD_GAS_COMPENSATION);
     }
 
     // Return the amount of ETH to be drawn from a trove's collateral and sent as gas compensation.
-    function _getCollGasCompensation(uint256 _entireColl) internal pure returns (uint256) {
+    function _getCollGasCompensation(uint256 _entireColl) internal view returns (uint256) {
         return _entireColl / PERCENT_DIVISOR;
     }
 
@@ -89,7 +89,7 @@ contract LiquityBase is BaseMath, ILiquityBase {
         uint256 _fee,
         uint256 _amount,
         uint256 _maxFeePercentage
-    ) internal pure {
+    ) internal view {
         uint256 feePercentage = _fee.mul(DECIMAL_PRECISION).div(_amount);
         require(feePercentage <= _maxFeePercentage, "Fee exceeded provided maximum");
     }

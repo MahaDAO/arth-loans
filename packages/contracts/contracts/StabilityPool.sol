@@ -1056,7 +1056,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         );
     }
 
-    function _requireValidKickbackRate(uint256 _kickbackRate) internal pure {
+    function _requireValidKickbackRate(uint256 _kickbackRate) internal view {
         require(
             _kickbackRate <= DECIMAL_PRECISION,
             "StabilityPool: Kickback rate must be in range [0,1]"

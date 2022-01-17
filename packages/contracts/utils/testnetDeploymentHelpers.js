@@ -14,6 +14,7 @@ class MainnetDeploymentHelper {
   }
 
   async loadAllContractFactories() {
+    this.proxyFactory = await this.getFactory("UpgradableProxy");
     this.mockPairOracle = await this.getFactory("MockUniswapOracle");
     this.mockTokenFactory = await this.getFactory("ERC20Mock")
     this.gasPoolFactory = await this.getFactory("GasPool")
@@ -79,12 +80,12 @@ class MainnetDeploymentHelper {
     return minedTx
   }
 
-  async loadOrDeploy(factory, name, abiName, deploymentState, params=[]) {
+  async loadOrDeploy(factory, name, abiName, deploymentState, params=[], proxyImplementationFactory=null) {
     if (deploymentState[name] && deploymentState[name].address) {
       console.log(`- Using previously deployed ${name} contract at address ${deploymentState[name].address}`)
       return new ethers.Contract(
         deploymentState[name].address,
-        factory.interface,
+        proxyImplementationFactory ? proxyImplementationFactory.interface : factory.interface,
         this.deployerWallet
       );
     }
@@ -103,7 +104,13 @@ class MainnetDeploymentHelper {
     }
 
     this.saveDeployment(deploymentState)
-    return contract
+    return proxyImplementationFactory
+      ? new ethers.Contract(
+        contract.address,
+        proxyImplementationFactory.interface,
+        this.deployerWallet
+      )
+      : contract
   }
 
   async deploy(deploymentState) {
@@ -184,13 +191,19 @@ class MainnetDeploymentHelper {
         deploymentState
     )
 
+    const troveManagerImplementation = await this.troveManagerFactory.deploy()
     const troveManager = await this.loadOrDeploy(
-        this.troveManagerFactory,
+        this.proxyFactory,
         `${token}TroveManager`,
         'TroveManager',
-        deploymentState
+        deploymentState,
+        [troveManagerImplementation.address],
+        this.troveManagerFactory
     )
-
+    await this.sendAndWaitForTransaction(
+      troveManager.initialize({gasPrice})
+    )
+    
     const activePool = await this.loadOrDeploy(
         this.activePoolFactory,
         `${token}ActivePool`,
