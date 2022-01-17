@@ -214,7 +214,7 @@ class MainnetDeploymentHelper {
         this.troveManagerFactory
     )
     await this.sendAndWaitForTransaction(
-      troveManager.initialize({gasPrice: his.configParams.GAS_PRICE})
+      troveManager.initialize({gasPrice: this.configParams.GAS_PRICE})
     )
     
     const activePool = await this.loadOrDeploy(
