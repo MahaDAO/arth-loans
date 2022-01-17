@@ -191,7 +191,20 @@ class MainnetDeploymentHelper {
         deploymentState
     )
 
-    const troveManagerImplementation = await this.troveManagerFactory.deploy()
+    const troveManagerImplementation = await this.troveManagerFactory.deploy({gasPrice: this.configParams.GAS_PRICE})
+    try {
+      await this.hre.run("verify:verify", {
+        address: troveManagerImplementation.address
+      })
+    } catch (error) {
+      console.log(error)
+      if (error.name != 'NomicLabsHardhatPluginError') {
+        console.error(`- Error verifying: ${error.name}`)
+        console.error(error)
+        return
+      }
+    }
+
     const troveManager = await this.loadOrDeploy(
         this.proxyFactory,
         `${token}TroveManager`,
@@ -201,7 +214,7 @@ class MainnetDeploymentHelper {
         this.troveManagerFactory
     )
     await this.sendAndWaitForTransaction(
-      troveManager.initialize({gasPrice})
+      troveManager.initialize({gasPrice: his.configParams.GAS_PRICE})
     )
     
     const activePool = await this.loadOrDeploy(
@@ -286,7 +299,7 @@ class MainnetDeploymentHelper {
       await this.verifyContract(`ARTHStablecoin`, deploymentState)
       await this.verifyContract(`MahaToken`, deploymentState)
       await this.verifyContract(`${token}SortedTroves`, deploymentState)
-      await this.verifyContract(`${token}TroveManager`, deploymentState)
+      await this.verifyContract(`${token}TroveManager`, deploymentState, [troveManagerImplementation.address])
       await this.verifyContract(`${token}ActivePool`, deploymentState)
       await this.verifyContract(`${token}StabilityPool`, deploymentState)
       await this.verifyContract(`${token}GasPool`, deploymentState)
