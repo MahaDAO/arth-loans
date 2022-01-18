@@ -409,17 +409,17 @@ class TestnetDeploymentHelper {
         {gasPrice}
     ))
 
-    await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleBorrowerOperations(
+    !(await ARTHContracts.arth.borrowerOperationAddresses(ARTHContracts.borrowerOperations.address)) && await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleBorrowerOperations(
      ARTHContracts.borrowerOperations.address,
      { gasPrice } 
     ))
 
-    await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleTroveManager(
+    !(await ARTHContracts.arth.troveManagerAddresses(ARTHContracts.borrowerOperations.address)) && await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleTroveManager(
       ARTHContracts.troveManager.address,
       { gasPrice } 
      ))
 
-     await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleStabilityPool(
+     !(await ARTHContracts.arth.stabilityPoolAddresses(ARTHContracts.borrowerOperations.address)) && await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleStabilityPool(
       ARTHContracts.stabilityPool.address,
       { gasPrice } 
      ))
