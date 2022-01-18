@@ -5,7 +5,7 @@ const { network, ethers } = require('hardhat');
 const maxBytes32 = '0x' + 'f'.repeat(64)
 const ZERO_ADDRESS = '0x' + '0'.repeat(40)
 
-class MainnetDeploymentHelper {
+class TestnetDeploymentHelper {
   constructor(configParams, deployerWallet) {
     this.deployments = {}
     this.hre = require("hardhat")
@@ -197,15 +197,16 @@ class MainnetDeploymentHelper {
       'TroveManager',
       deploymentState
     )
+    const proxyParams = [troveManagerImplementation.address]
     const troveManager = await this.loadOrDeploy(
         this.proxyFactory,
         `${token}TroveManager`,
         'TroveManager',
         deploymentState,
-        [troveManagerImplementation.address],
+        proxyParams,
         this.troveManagerFactory
     )
-    await this.sendAndWaitForTransaction(
+    !(await this.isInitialized(troveManager)) && await this.sendAndWaitForTransaction(
       troveManager.initialize({gasPrice: this.configParams.GAS_PRICE})
     )
     
@@ -292,7 +293,7 @@ class MainnetDeploymentHelper {
       await this.verifyContract(`MahaToken`, deploymentState)
       await this.verifyContract(`${token}SortedTroves`, deploymentState)
       await this.verifyContract(`${token}TroveManagerImplementation`, deploymentState)
-      await this.verifyContract(`${token}TroveManager`, deploymentState, [troveManagerImplementation.address])
+      await this.verifyContract(`${token}TroveManager`, deploymentState, proxyParams)
       await this.verifyContract(`${token}ActivePool`, deploymentState)
       await this.verifyContract(`${token}StabilityPool`, deploymentState)
       await this.verifyContract(`${token}GasPool`, deploymentState)
@@ -384,6 +385,10 @@ class MainnetDeploymentHelper {
   async isOwnershipRenounced(contract) {
     const owner = await contract.owner()
     return owner == ZERO_ADDRESS
+  }
+
+  async isInitialized(contract) {
+    return await contract.initialized();
   }
 
   async connectCoreContracts(ARTHContracts, LQTYContracts, token) {
@@ -588,4 +593,4 @@ class MainnetDeploymentHelper {
   }
 }
 
-module.exports = MainnetDeploymentHelper
+module.exports = TestnetDeploymentHelper
