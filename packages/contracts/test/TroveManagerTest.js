@@ -107,7 +107,7 @@ contract('TroveManager', async accounts => {
     ) {
         await contracts.mahaToken.mint(account, dec(1, 39), {from: account})
         await contracts.mahaToken.approve(contracts.governance.address, dec(1, 39), {from: account})
-        await lusdToken.approve(controller.address, dec(10000000, 24), {from: account})
+        await lusdToken.approve(controller.address, dec(1, 39), {from: account})
     }
   })
 
@@ -1164,7 +1164,7 @@ contract('TroveManager', async accounts => {
     await openTrove({ ICR: toBN(dec(80, 18)), extraParams: { from: ida } })
 
     // Whale puts some tokens in Stability Pool
-    await stabilityPool.provideToSP(dec(300, 18), ZERO_ADDRESS, { from: whale })
+    await stabilityPool.provideToSP(dec(248, 18), ZERO_ADDRESS, { from: whale })
 
     // --- TEST ---
 
@@ -1900,7 +1900,7 @@ contract('TroveManager', async accounts => {
     assert.equal((await sortedTroves.getSize()).toString(), '6')
 
     // Whale puts some tokens in Stability Pool
-    await stabilityPool.provideToSP(dec(300, 18), ZERO_ADDRESS, { from: whale })
+    await stabilityPool.provideToSP(dec(248, 18), ZERO_ADDRESS, { from: whale })
 
     // --- TEST ---
 
@@ -1954,7 +1954,7 @@ contract('TroveManager', async accounts => {
     assert.equal((await sortedTroves.getSize()).toString(), '6')
 
     // Whale puts some tokens in Stability Pool
-    await stabilityPool.provideToSP(dec(300, 18), ZERO_ADDRESS, { from: whale })
+    await stabilityPool.provideToSP(dec(248, 18), ZERO_ADDRESS, { from: whale })
 
     // --- TEST ---
 
@@ -2011,7 +2011,7 @@ contract('TroveManager', async accounts => {
     assert.equal((await sortedTroves.getSize()).toString(), '6')
 
     // Whale puts some tokens in Stability Pool
-    await stabilityPool.provideToSP(dec(300, 18), ZERO_ADDRESS, { from: whale })
+    await stabilityPool.provideToSP(dec(248, 18), ZERO_ADDRESS, { from: whale })
 
     // --- TEST ---
 
@@ -2065,7 +2065,7 @@ contract('TroveManager', async accounts => {
     assert.equal((await sortedTroves.getSize()).toString(), '6')
 
     // Whale puts some tokens in Stability Pool
-    await stabilityPool.provideToSP(dec(300, 18), ZERO_ADDRESS, { from: whale })
+    await stabilityPool.provideToSP(dec(248, 18), ZERO_ADDRESS, { from: whale })
 
     // --- TEST ---
 
@@ -2833,6 +2833,7 @@ contract('TroveManager', async accounts => {
 
     // A's remaining debt = 29800 + 19800 + 9800 + 200 - 55000 = 4600
     const A_debt = await troveManager.getTroveDebt(A)
+    console.log('A debt', A_debt.toString())
     await th.assertIsApproximatelyEqual(A_debt, dec(4600, 18), 1000) 
   })
 
