@@ -2813,6 +2813,10 @@ contract('TroveManager', async accounts => {
     await weth.approve(borrowerOperations.address, dec(1000, 'ether'), { from: C})
     await borrowerOperations.openTrove(th._100pct, await getOpenTroveLUSDAmount(dec(30000, 18)), dec(1000, 'ether'), C, C, th.ZERO_ADDRESS, { from: C })
 
+    const A_debt1 = await troveManager.getTroveDebt(A)
+    const B_debt = await troveManager.getTroveDebt(B)
+    const C_debt = await troveManager.getTroveDebt(C)
+
     // A and C send all their tokens to B
     await lusdToken.transfer(B, await lusdToken.balanceOf(A), {from: A})
     await lusdToken.transfer(B, await lusdToken.balanceOf(C), {from: C})
@@ -2833,8 +2837,7 @@ contract('TroveManager', async accounts => {
 
     // A's remaining debt = 29800 + 19800 + 9800 + 200 - 55000 = 4600
     const A_debt = await troveManager.getTroveDebt(A)
-    console.log('A debt', A_debt.toString())
-    await th.assertIsApproximatelyEqual(A_debt, dec(4600, 18), 1000) 
+    await th.assertIsApproximatelyEqual(A_debt, dec(4990, 18), 1000) 
   })
 
   it("redeemCollateral(): doesn't perform partial redemption if resultant debt would be < minimum net debt", async () => {
@@ -2871,7 +2874,7 @@ contract('TroveManager', async accounts => {
     // A's remaining debt would be 29950 + 19950 + 5950 + 50 - 55000 = 900.
     // Since this is below the min net debt of 100, A should be skipped and untouched by the redemption
     const A_debt = await troveManager.getTroveDebt(A)
-    await th.assertIsApproximatelyEqual(A_debt, dec(6000, 18))
+    await th.assertIsApproximatelyEqual(A_debt, dec(990, 18))
   })
 
   it('redeemCollateral(): doesnt perform the final partial redemption in the sequence if the hint is out-of-date', async () => {
