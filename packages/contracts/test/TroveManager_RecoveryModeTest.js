@@ -2984,7 +2984,7 @@ contract('TroveManager - in Recovery Mode', async accounts => {
     const equivalentColl = A_totalDebt.add(B_totalDebt).mul(toBN(dec(11, 17))).div(price)
     th.assertIsApproximatelyEqual(liquidatedColl, th.applyLiquidationFee(equivalentColl))
     th.assertIsApproximatelyEqual(collGasComp, equivalentColl.sub(th.applyLiquidationFee(equivalentColl))) // 0.5% of 283/120*1.1
-    assert.equal(lusdGasComp.toString(), dec(400, 18))
+    assert.equal(lusdGasComp.toString(), dec(10, 18))
 
     // check collateral surplus
     const alice_remainingCollateral = A_coll.sub(A_totalDebt.mul(th.toBN(dec(11, 17))).div(price))
@@ -3638,7 +3638,7 @@ contract('TroveManager - in Recovery Mode', async accounts => {
     const equivalentColl = A_totalDebt.add(B_totalDebt).mul(toBN(dec(11, 17))).div(price)
     th.assertIsApproximatelyEqual(liquidatedColl, th.applyLiquidationFee(equivalentColl))
     th.assertIsApproximatelyEqual(collGasComp, equivalentColl.sub(th.applyLiquidationFee(equivalentColl))) // 0.5% of 283/120*1.1
-    assert.equal(lusdGasComp.toString(), dec(400, 18))
+    assert.equal(lusdGasComp.toString(), dec(10, 18))
 
     // check collateral surplus
     const alice_remainingCollateral = A_coll.sub(A_totalDebt.mul(th.toBN(dec(11, 17))).div(price))
