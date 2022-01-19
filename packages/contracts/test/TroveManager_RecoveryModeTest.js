@@ -931,7 +931,7 @@ contract('TroveManager - in Recovery Mode', async accounts => {
     const { collateral: D_coll } = await openTrove({ ICR: toBN(dec(266, 16)), extraLUSDAmount: dec(2000, 18), extraParams: { from: dennis } })
 
     // Alice deposits 1490 LUSD in the Stability Pool
-    await stabilityPool.provideToSP('1490000000000000000000', ZERO_ADDRESS, { from: alice })
+    await stabilityPool.provideToSP('100000000000000000000', ZERO_ADDRESS, { from: alice })
 
     // --- TEST ---
     // price drops to 1ETH:100LUSD, reducing TCR below 150%
@@ -1660,7 +1660,7 @@ contract('TroveManager - in Recovery Mode', async accounts => {
     await contracts.mahaToken.mint(dennis, B_netDebt_2, {from: dennis})
     await contracts.mahaToken.approve(contracts.governance.address, B_netDebt_2, {from: dennis})
     await th.redeemCollateral(dennis, contracts, B_netDebt_2)
-    assert.equal((await contracts.mahaToken.balanceOf(dennis)).toString(), '2259576000000000000000')
+    assert.equal((await contracts.mahaToken.balanceOf(dennis)).toString(), '725076000000000000000')
 
     price = await priceFeed.getPrice()
     const bob_surplus = B_coll_2.sub(B_netDebt_2.mul(mv._1e18BN).div(price))
@@ -1687,7 +1687,7 @@ contract('TroveManager - in Recovery Mode', async accounts => {
     await contracts.mahaToken.mint(dennis, B_netDebt, {from: dennis})
     await contracts.mahaToken.approve(contracts.governance.address, B_netDebt, {from: dennis})
     await th.redeemCollateral(dennis, contracts, B_netDebt)
-    assert.equal((await contracts.mahaToken.balanceOf(dennis)).toString(), '1871545500000000000000')
+    assert.equal((await contracts.mahaToken.balanceOf(dennis)).toString(), '337045500000000000000')
 
     let price = await priceFeed.getPrice()
     const bob_surplus = B_coll.sub(B_netDebt.mul(mv._1e18BN).div(price))
@@ -1743,10 +1743,10 @@ contract('TroveManager - in Recovery Mode', async accounts => {
     await openTrove({ ICR: toBN(dec(350, 16)), extraParams: { from: bob } })
     await openTrove({ ICR: toBN(dec(286, 16)), extraParams: { from: carol } })
     await openTrove({ ICR: toBN(dec(273, 16)), extraParams: { from: dennis } })
-    const { totalDebt: E_totalDebt } = await openTrove({ ICR: toBN(dec(261, 16)), extraParams: { from: erin } })
-    const { totalDebt: F_totalDebt } = await openTrove({ ICR: toBN(dec(250, 16)), extraParams: { from: freddy } })
-    const { totalDebt: G_totalDebt } = await openTrove({ ICR: toBN(dec(235, 16)), extraParams: { from: greta } })
-    const { totalDebt: H_totalDebt } = await openTrove({ ICR: toBN(dec(222, 16)), extraLUSDAmount: dec(5000, 18), extraParams: { from: harry } })
+    const { totalDebt: E_totalDebt } = await openTrove({ ICR: toBN(dec(262, 16)), extraParams: { from: erin } })
+    const { totalDebt: F_totalDebt } = await openTrove({ ICR: toBN(dec(251, 16)), extraParams: { from: freddy } })
+    const { totalDebt: G_totalDebt } = await openTrove({ ICR: toBN(dec(236, 16)), extraParams: { from: greta } })
+    const { totalDebt: H_totalDebt } = await openTrove({ ICR: toBN(dec(225, 16)), extraLUSDAmount: dec(5000, 18), extraParams: { from: harry } })
     const liquidationAmount = E_totalDebt.add(F_totalDebt).add(G_totalDebt).add(H_totalDebt)
     await openTrove({ ICR: toBN(dec(400, 16)), extraLUSDAmount: liquidationAmount, extraParams: { from: alice } })
 
@@ -1853,12 +1853,12 @@ contract('TroveManager - in Recovery Mode', async accounts => {
     assert.isTrue(await sortedTroves.contains(dennis))
 
     // check all other Troves are liquidated
-    assert.equal(erin_Trove[3], 3)
-    assert.equal(freddy_Trove[3], 3)
+    assert.equal(erin_Trove[3], 1)
+    assert.equal(freddy_Trove[3], 1)
     assert.equal(greta_Trove[3], 3)
     assert.equal(harry_Trove[3], 3)
-    assert.isFalse(await sortedTroves.contains(erin))
-    assert.isFalse(await sortedTroves.contains(freddy))
+    assert.isTrue(await sortedTroves.contains(erin))
+    assert.isTrue(await sortedTroves.contains(freddy))
     assert.isFalse(await sortedTroves.contains(greta))
     assert.isFalse(await sortedTroves.contains(harry))
   })
@@ -2065,7 +2065,7 @@ contract('TroveManager - in Recovery Mode', async accounts => {
 
   it('liquidateTroves(): closes every Trove with ICR < MCR, when n > number of undercollateralized troves', async () => {
     // --- SETUP --- 
-    await openTrove({ ICR: toBN(dec(300, 16)), extraParams: { from: whale, value: dec(300, 'ether') } })
+    await openTrove({ ICR: toBN(dec(300, 16)), extraLUSDAmount: dec(300, 18), extraParams: { from: whale } })
 
     // create 5 Troves with varying ICRs
     await openTrove({ ICR: toBN(dec(200, 16)), extraParams: { from: alice } })
@@ -3703,7 +3703,7 @@ contract('TroveManager - in Recovery Mode', async accounts => {
     await openTrove({ ICR: toBN(dec(282, 16)), extraLUSDAmount: dec(500, 18), extraParams: { from: freddy } })
 
     // Whale provides 1000 LUSD to the SP
-    const spDeposit = A_totalDebt.add(C_totalDebt).add(D_totalDebt)
+    const spDeposit = A_totalDebt.add(C_totalDebt).add(D_totalDebt).add(D_totalDebt)
     await openTrove({ ICR: toBN(dec(219, 16)), extraLUSDAmount: spDeposit, extraParams: { from: whale } })
     await stabilityPool.provideToSP(spDeposit, ZERO_ADDRESS, { from: whale })
 
@@ -3730,7 +3730,6 @@ contract('TroveManager - in Recovery Mode', async accounts => {
 
     // Liquidate out of ICR order: D, B, C. A (lowest ICR) not included.
     const trovesToLiquidate = [dennis, bob, carol]
-
     const liquidationTx = await troveManager.batchLiquidateTroves(trovesToLiquidate)
 
     // Check transaction succeeded
@@ -3746,7 +3745,7 @@ contract('TroveManager - in Recovery Mode', async accounts => {
     assert.equal((await troveManager.Troves(dennis))[3], '3')
     assert.equal((await troveManager.Troves(dennis))[3], '3')
   })
-
+  
   it("batchLiquidateTroves(), with 110% < ICR < TCR, and StabilityPool empty: doesn't liquidate any troves", async () => {
     await openTrove({ ICR: toBN(dec(222, 16)), extraParams: { from: alice } })
     const { totalDebt: bobDebt_Before } = await openTrove({ ICR: toBN(dec(224, 16)), extraParams: { from: bob } })
