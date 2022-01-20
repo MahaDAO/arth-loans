@@ -102,7 +102,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     // --- Helper functions ---
 
     function _fetchPrice() internal view returns (uint256) {
-        if (address(uniPairOracle) != address(0)) return _fetchPriceWithoutUniPair();
+        if (address(uniPairOracle) == address(0)) return _fetchPriceWithoutUniPair();
 
         return _fetchPriceWithUniPair();
     }
