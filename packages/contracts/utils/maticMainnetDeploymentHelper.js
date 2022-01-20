@@ -42,11 +42,11 @@ class MainnetDeploymentHelper {
 
   isMainnet() {
     return this.configParams.NETWORK_NAME == 'mainnet' ||
-        this.configParams.NETWORK_NAME == 'matic' ||
-        this.configParams.NETWORK_NAME == 'bsc' ||
-        network.name == 'matic' ||
-        network.name == 'mainnet' ||
-        network.name == 'bsc'
+      this.configParams.NETWORK_NAME == 'matic' ||
+      this.configParams.NETWORK_NAME == 'bsc' ||
+      network.name == 'matic' ||
+      network.name == 'mainnet' ||
+      network.name == 'bsc'
   }
 
   loadPreviousDeployment() {
@@ -135,10 +135,10 @@ class MainnetDeploymentHelper {
         'ARTHController',
         deploymentState,
         [
-            this.configParams.EXTERNAL_ADDRS.ARTH,
-            this.configParams.EXTERNAL_ADDRS.MahaToken,
-            this.configParams.DEPLOYER_ADDRS.DEPLOYER,
-            this.configParams.DEPLOYER_ADDRS.TIMELOCK
+          this.configParams.EXTERNAL_ADDRS.ARTH,
+          this.configParams.EXTERNAL_ADDRS.MahaToken,
+          this.configParams.DEPLOYER_ADDRS.DEPLOYER,
+          this.configParams.DEPLOYER_ADDRS.TIMELOCK
         ]
     )
 
@@ -245,6 +245,7 @@ class MainnetDeploymentHelper {
       troveManager.address,
       sortedTroves.address
     ]
+
     const multiTroveGetter = await this.loadOrDeploy(
       this.multiTroveGetterFactory,
       `${token}MultiTroveGetter`,
@@ -380,10 +381,10 @@ class MainnetDeploymentHelper {
         {gasPrice}
     ))
 
-    await this.sendAndWaitForTransaction(ARTHContracts.arthController.addPool(
-        ARTHContracts.controller.address,
-        {gasPrice}
-    ))
+    // await this.sendAndWaitForTransaction(ARTHContracts.arthController.addPool(
+    //     ARTHContracts.controller.address,
+    //     {gasPrice}
+    // ))
 
     // TODO: manually.
     // await this.sendAndWaitForTransaction(

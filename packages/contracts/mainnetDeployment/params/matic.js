@@ -8,6 +8,7 @@ const EXTERNAL_ADDRS  = {
     CHAINLINK_DAI_USD: "0x4746DeC9e833A82EC7C2C1356372CcF2cfcD2F3D",
     CHAINLINK_WETH_USD: "0xF9680D99D6C9589e2a93a78A04A279e509205945",
     MahaToken: '0xedd6ca8a4202d4a36611e2fff109648c4863ae19',
+    MAHA: '0xedd6ca8a4202d4a36611e2fff109648c4863ae19',
     MAHA_ARTH_PAIR_ORACLE: '0xFC645E3c39e257d634bBea9637a4c7f326eB4B50',
     ECOSYSTEMFUND: '0xC4E65254bb14dD5A99259247b0b9760722dc2A7F',  // TODO: add this addr.
 };
@@ -23,7 +24,7 @@ const waitFunction = async () => delay(90000); // Wait 90s.
 const TX_CONFIRMATIONS = 1;
 const GAS_PRICE = 50 * 1000000000; // 5.1 gwei
 const NETWORK_NAME = 'matic';
-const COLLATERLAS = ['DAI', 'WMATIC'];
+const COLLATERLAS = ['MAHA'];
 const OUTPUT_FILE = './output/matic.json';
 const ETHERSCAN_BASE_URL = 'https://polygonscan.com/address';
 
