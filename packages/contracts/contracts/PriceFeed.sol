@@ -121,7 +121,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
 
         return (
             chainlinkPrice
-                .mul(TARGET_DIGITS)
+                .mul(10 ** TARGET_DIGITS)
                 .div(gmuPrice)
         );
     }
@@ -158,7 +158,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     function _fetchBaseAssetPairPrice() internal view returns (uint256) {
         uint256 price = uniPairOracle.consult(baseAsset, 10 ** baseAssetDecimals);
 
-        _scalePriceByDigits(
+        return _scalePriceByDigits(
             price,
             quoteAssetDecimals
         );

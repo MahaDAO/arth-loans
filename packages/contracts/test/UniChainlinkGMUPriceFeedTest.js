@@ -25,7 +25,7 @@ contract('PriceFeed', async accounts => {
     await priceFeed.setAddresses(
         base.address,
         quote.address,
-        ZERO_ADDRESS,
+        mockUniswap.address,
         mockChainlink.address, 
         gmuOracle.address, 
         { from: owner }
@@ -103,7 +103,7 @@ contract('PriceFeed', async accounts => {
             priceFeed.setAddresses(
             base.address,
             quote.address,
-            ZERO_ADDRESS,
+            mockUniswap.address,
             mockChainlink.address, 
             gmuOracle.address, 
             { from: alice }
@@ -117,7 +117,7 @@ contract('PriceFeed', async accounts => {
       const txOwner = await priceFeed.setAddresses(
         base.address,
         quote.address,
-        ZERO_ADDRESS,
+        mockUniswap.address,
         mockChainlink.address, 
         gmuOracle.address,
         { from: owner }
@@ -128,7 +128,7 @@ contract('PriceFeed', async accounts => {
         priceFeed.setAddresses(
             base.address,
             quote.address,
-            ZERO_ADDRESS,
+            mockUniswap.address,
             mockChainlink.address, 
             gmuOracle.address, 
             { from: owner }
@@ -140,7 +140,7 @@ contract('PriceFeed', async accounts => {
         priceFeed.setAddresses(
             base.address,
             quote.address,
-            ZERO_ADDRESS,
+            mockUniswap.address,
             mockChainlink.address, 
             gmuOracle.address, 
             { from: alice }
@@ -158,7 +158,6 @@ contract('PriceFeed', async accounts => {
     it("Should work fine with chainlink price = 0.5, chainlink decimals = 8 decimals", async () => {
         await mockChainlink.setDecimals(8)
         await mockChainlink.setPrice(toBN(0.5e8))
-        
         assert.equal(await priceFeed.fetchPrice.call(), '500000000000000000')
     })
     
