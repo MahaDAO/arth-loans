@@ -105,8 +105,13 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     // --- Helper functions ---
 
     function _fetchPrice() internal view returns (uint256) {
+        // If uniswap pair oracle is not set, that means, the desired collateral
+        // has a direct price aggregator, hence we fetch price without uniswap pair oracle.
+        // i.e we fetch price from base to usd using chainlink and then usd to gmu using gmu oracle.
         if (address(uniPairOracle) == address(0)) return _fetchPriceWithoutUniPair();
 
+        // Else, we fetch price from uniswap base to quote, then from quote to usd using chainlink,
+        // and finally usd to gmu using gmu oracle.
         return _fetchPriceWithUniPair();
     }
 
@@ -127,9 +132,9 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
         uint256 chainlinkPrice = _fetchChainlinkPrice();
 
         return (
-            chainlinkPrice
-                .mul(pairPrice)
-                .div(gmuPrice)
+            pairPrice // Base to quote.
+                .mul(chainlinkPrice) // Quote to USD.
+                .div(gmuPrice) // USD To GMU.
         );
     }
 
@@ -138,12 +143,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
         pure
         returns (uint256)
     {
-        /*
-         * Convert the price returned by the Chainlink oracle to an 18-digit decimal for use by Liquity.
-         * At date of Liquity launch, Chainlink uses an 8-digit price, but we also handle the possibility of
-         * future changes.
-         *
-         */
+        // Convert the price returned by the oracle to an 18-digit decimal for use.
         uint256 price;
         if (_answerDigits >= TARGET_DIGITS) {
             // Scale the returned price value down to Liquity's target precision
