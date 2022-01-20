@@ -547,7 +547,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         governance.sendToFund(address(_lusdToken), _LUSDFeeToFund, "Borrowing fee triggered");
     }
 
-    function _getUSDValue(uint256 _coll, uint256 _price) internal pure returns (uint256) {
+    function _getUSDValue(uint256 _coll, uint256 _price) internal view returns (uint256) {
         uint256 usdValue = _price.mul(_coll).div(DECIMAL_PRECISION);
 
         return usdValue;
@@ -746,14 +746,14 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         }
     }
 
-    function _requireICRisAboveMCR(uint256 _newICR) internal pure {
+    function _requireICRisAboveMCR(uint256 _newICR) internal view {
         require(
             _newICR >= MCR,
             "BorrowerOps: An operation that would result in ICR < MCR is not permitted"
         );
     }
 
-    function _requireICRisAboveCCR(uint256 _newICR) internal pure {
+    function _requireICRisAboveCCR(uint256 _newICR) internal view {
         require(_newICR >= CCR, "BorrowerOps: Operation must leave trove with ICR >= CCR");
     }
 
@@ -764,21 +764,21 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         );
     }
 
-    function _requireNewTCRisAboveCCR(uint256 _newTCR) internal pure {
+    function _requireNewTCRisAboveCCR(uint256 _newTCR) internal view {
         require(
             _newTCR >= CCR,
             "BorrowerOps: An operation that would result in TCR < CCR is not permitted"
         );
     }
 
-    function _requireAtLeastMinNetDebt(uint256 _netDebt) internal pure {
+    function _requireAtLeastMinNetDebt(uint256 _netDebt) internal view {
         require(
             _netDebt >= MIN_NET_DEBT,
             "BorrowerOps: Trove's net debt must be greater than minimum"
         );
     }
 
-    function _requireValidLUSDRepayment(uint256 _currentDebt, uint256 _debtRepayment) internal pure {
+    function _requireValidLUSDRepayment(uint256 _currentDebt, uint256 _debtRepayment) internal view {
         require(
             _debtRepayment <= _currentDebt.sub(LUSD_GAS_COMPENSATION),
             "BorrowerOps: Amount repaid must not be larger than the Trove's debt"
@@ -802,7 +802,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     function _requireValidMaxFeePercentage(uint256 _maxFeePercentage, bool _isRecoveryMode)
         internal
-        pure
+        view
     {
         if (_isRecoveryMode) {
             require(
@@ -898,7 +898,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         return newTCR;
     }
 
-    function getCompositeDebt(uint256 _debt) external pure override returns (uint256) {
+    function getCompositeDebt(uint256 _debt) external view override returns (uint256) {
         return _getCompositeDebt(_debt);
     }
 }

@@ -1,5 +1,5 @@
-const configParams = require("./params/bscTestnet.js")
-const TestnetDeploymentHelper = require("../utils/testnetDeploymentHelpers.js")
+const configParams = require("./params/bsc.js")
+const MainnetDeploymentHelper = require("../utils/maticMainnetDeploymentHelper.js")
 
 async function main() {
     const date = new Date();
@@ -10,7 +10,7 @@ async function main() {
 
     const deployerWallet = (await ethers.getSigners())[0];
 
-    const mdh = new TestnetDeploymentHelper(configParams, deployerWallet);
+    const mdh = new MainnetDeploymentHelper(configParams, deployerWallet);
     await mdh.loadAllContractFactories();
     const deploymentState = mdh.loadPreviousDeployment();
 

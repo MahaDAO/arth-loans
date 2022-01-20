@@ -5,7 +5,7 @@ const { network, ethers } = require('hardhat');
 const maxBytes32 = '0x' + 'f'.repeat(64)
 const ZERO_ADDRESS = '0x' + '0'.repeat(40)
 
-class MainnetDeploymentHelper {
+class TestnetDeploymentHelper {
   constructor(configParams, deployerWallet) {
     this.deployments = {}
     this.hre = require("hardhat")
@@ -14,6 +14,7 @@ class MainnetDeploymentHelper {
   }
 
   async loadAllContractFactories() {
+    this.proxyFactory = await this.getFactory("UpgradableProxy");
     this.mockPairOracle = await this.getFactory("MockUniswapOracle");
     this.mockTokenFactory = await this.getFactory("ERC20Mock")
     this.gasPoolFactory = await this.getFactory("GasPool")
@@ -79,12 +80,12 @@ class MainnetDeploymentHelper {
     return minedTx
   }
 
-  async loadOrDeploy(factory, name, abiName, deploymentState, params=[]) {
+  async loadOrDeploy(factory, name, abiName, deploymentState, params=[], proxyImplementationFactory=null) {
     if (deploymentState[name] && deploymentState[name].address) {
       console.log(`- Using previously deployed ${name} contract at address ${deploymentState[name].address}`)
       return new ethers.Contract(
         deploymentState[name].address,
-        factory.interface,
+        proxyImplementationFactory ? proxyImplementationFactory.interface : factory.interface,
         this.deployerWallet
       );
     }
@@ -103,7 +104,13 @@ class MainnetDeploymentHelper {
     }
 
     this.saveDeployment(deploymentState)
-    return contract
+    return proxyImplementationFactory
+      ? new ethers.Contract(
+        contract.address,
+        proxyImplementationFactory.interface,
+        this.deployerWallet
+      )
+      : contract
   }
 
   async deploy(deploymentState) {
@@ -184,13 +191,25 @@ class MainnetDeploymentHelper {
         deploymentState
     )
 
+    const troveManagerImplementation = await this.loadOrDeploy(
+      this.troveManagerFactory,
+      `${token}TroveManagerImplementation`,
+      'TroveManager',
+      deploymentState
+    )
+    const proxyParams = [troveManagerImplementation.address]
     const troveManager = await this.loadOrDeploy(
-        this.troveManagerFactory,
+        this.proxyFactory,
         `${token}TroveManager`,
         'TroveManager',
-        deploymentState
+        deploymentState,
+        proxyParams,
+        this.troveManagerFactory
     )
-
+    !(await this.isInitialized(troveManager)) && await this.sendAndWaitForTransaction(
+      troveManager.initialize({gasPrice: this.configParams.GAS_PRICE})
+    )
+    
     const activePool = await this.loadOrDeploy(
         this.activePoolFactory,
         `${token}ActivePool`,
@@ -273,7 +292,8 @@ class MainnetDeploymentHelper {
       await this.verifyContract(`ARTHStablecoin`, deploymentState)
       await this.verifyContract(`MahaToken`, deploymentState)
       await this.verifyContract(`${token}SortedTroves`, deploymentState)
-      await this.verifyContract(`${token}TroveManager`, deploymentState)
+      await this.verifyContract(`${token}TroveManagerImplementation`, deploymentState)
+      await this.verifyContract(`${token}TroveManager`, deploymentState, proxyParams)
       await this.verifyContract(`${token}ActivePool`, deploymentState)
       await this.verifyContract(`${token}StabilityPool`, deploymentState)
       await this.verifyContract(`${token}GasPool`, deploymentState)
@@ -367,6 +387,10 @@ class MainnetDeploymentHelper {
     return owner == ZERO_ADDRESS
   }
 
+  async isInitialized(contract) {
+    return await contract.initialized();
+  }
+
   async connectCoreContracts(ARTHContracts, LQTYContracts, token) {
     const gasPrice = this.configParams.GAS_PRICE
 
@@ -385,17 +409,17 @@ class MainnetDeploymentHelper {
         {gasPrice}
     ))
 
-    await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleBorrowerOperations(
+    !(await ARTHContracts.arth.borrowerOperationAddresses(ARTHContracts.borrowerOperations.address)) && await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleBorrowerOperations(
      ARTHContracts.borrowerOperations.address,
      { gasPrice } 
     ))
 
-    await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleTroveManager(
+    !(await ARTHContracts.arth.troveManagerAddresses(ARTHContracts.borrowerOperations.address)) && await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleTroveManager(
       ARTHContracts.troveManager.address,
       { gasPrice } 
      ))
 
-     await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleStabilityPool(
+     !(await ARTHContracts.arth.stabilityPoolAddresses(ARTHContracts.borrowerOperations.address)) && await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleStabilityPool(
       ARTHContracts.stabilityPool.address,
       { gasPrice } 
      ))
@@ -569,4 +593,4 @@ class MainnetDeploymentHelper {
   }
 }
 
-module.exports = MainnetDeploymentHelper
+module.exports = TestnetDeploymentHelper
