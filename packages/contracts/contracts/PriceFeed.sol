@@ -28,18 +28,21 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     string public constant NAME = "PriceFeed";
 
     // Mainnet Chainlink aggregator.
-    // This will be BNB/USD in case of MAHA Collateral and MAHA/WBNB Unipair.
-    // Else will be BUSD/USD in case of BUSD Collatera.
+    // This will be BNB/USD in case of MAHA Collateral because we use MAHA/WBNB pair.
+    // Else will be BUSD/USD in case of BUSD Collateral.
     AggregatorV3Interface public priceAggregator;
 
-    address public baseAsset;  // MAHA in case of MAHA Collateral using MAHA/WBNB pair.
-    address public quoteAsset; // WBNB in case of MAHA Collateral using MAHA/WBNB pair.
+    // MAHA in case of MAHA Collateral using MAHA/WBNB pair.
+    address public baseAsset;
+    // WBNB in case of MAHA Collateral using MAHA/WBNB pair.
+    address public quoteAsset;
 
     uint256 public baseAssetDecimals;
     uint256 public quoteAssetDecimals;
 
     // Oracle to fetch price from DEX.
-    IUniswapPairOracle public uniPairOracle;  // MAHA/WBNB in case of MAHA Collateral else 0.
+    // MAHA/WBNB in case of MAHA Collateral else ZERO ADDRESS.
+    IUniswapPairOracle public uniPairOracle;
 
     // GMU oracle.
     IOracle public gmuOracle;
