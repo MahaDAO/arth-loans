@@ -14,6 +14,8 @@ class TestnetDeploymentHelper {
   }
 
   async loadAllContractFactories() {
+    this.gmuOracleFactory = await this.getFactory("GMUOracle");
+    this.mockAggregatorFactory = await this.getFactory("MockAggregator");
     this.proxyFactory = await this.getFactory("UpgradableProxy");
     this.mockPairOracle = await this.getFactory("MockUniswapOracle");
     this.mockTokenFactory = await this.getFactory("ERC20Mock")
@@ -21,7 +23,7 @@ class TestnetDeploymentHelper {
     this.unipoolFactory = await this.getFactory("Unipool")
     this.lusdTokenFactory = await this.getFactory("LiquityLUSDToken")
     this.mahaTokenFactory = await this.getFactory("MockMaha")
-    this.priceFeedFactory = await this.getFactory("PriceFeedTestnet")
+    this.priceFeedFactory = await this.getFactory("PriceFeed")
     this.lqtyTokenFactory = await this.getFactory("LQTYToken")
     this.activePoolFactory = await this.getFactory("ActivePool")
     this.governanceFactory = await this.getFactory('Governance')
@@ -141,13 +143,20 @@ class TestnetDeploymentHelper {
       this.configParams.DEPLOYER,
       BigNumber.from(1).pow(18)
     ];
-    const mockToken = await this.loadOrDeploy(
-      this.mockTokenFactory,
-      token,
-      'ERC20Mock',
-      deploymentState,
-      mockTokenParams
-    )
+    const mockToken = token === 'MAHA'
+      ? await this.loadOrDeploy(
+        this.mahaTokenFactory,
+        `MahaToken`,
+        'MockMaha',
+        deploymentState
+      )
+      : await this.loadOrDeploy(
+        this.mockTokenFactory,
+        token,
+        'ERC20Mock',
+        deploymentState,
+        mockTokenParams
+      )
 
     const arth = await this.loadOrDeploy(
       this.lusdTokenFactory,
@@ -176,12 +185,34 @@ class TestnetDeploymentHelper {
       'MockUniswapOracle',
       deploymentState
     )
+      
+    const mockAggregator = await this.loadOrDeploy(
+      this.mockAggregatorFactory,
+      `${token}MockAgrregator`,
+      `MockAgrregator`,
+      deploymentState
+    )
     
+    const gmuOracle = await this.loadOrDeploy(
+      this.gmuOracleFactory,
+      `GMUOracle`,
+      'GMUOracle',
+      deploymentState,
+      [2e6]
+    )
+
+    const mockPriceFeedPairOracle = await this.loadOrDeploy(
+      this.mockPairOracle,
+      `${token}MockPairOracle`,
+      'MockUniswapOracle',
+      deploymentState
+    )
+
     const priceFeed = await this.loadOrDeploy(
-        this.priceFeedFactory,
-        `${token}PriceFeed`,
-        'PriceFeedTestnet',
-        deploymentState
+      this.priceFeedFactory,
+      `${token}PriceFeed`,
+      'PriceFeed',
+      deploymentState
     )
 
     const sortedTroves = await this.loadOrDeploy(
@@ -286,7 +317,10 @@ class TestnetDeploymentHelper {
     if (!this.configParams.ETHERSCAN_BASE_URL) {
       console.log('- No Etherscan Url defined, skipping verification')
     } else {
+      await this.verifyContract(`${token}MockAgrregator`, deploymentState)
+      await this.verifyContract('GMUOracle', deploymentState, [2e6])
       await this.verifyContract(`EcosystemFund`, deploymentState)
+      await this.verifyContract(`${token}MockPairOracle`, deploymentState)
       await this.verifyContract(`UniswapPairOracle_ARTH_MAHA`, deploymentState)
       await this.verifyContract(`${token}`, deploymentState, mockTokenParams)
       await this.verifyContract(`ARTHStablecoin`, deploymentState)
@@ -307,6 +341,9 @@ class TestnetDeploymentHelper {
     }
 
     return {
+      mockPriceFeedPairOracle,
+      gmuOracle,
+      mockAggregator,
       ecosystemFund,
       mahaARTHPairOracle,
       arth,
@@ -393,6 +430,37 @@ class TestnetDeploymentHelper {
 
   async connectCoreContracts(ARTHContracts, LQTYContracts, token) {
     const gasPrice = this.configParams.GAS_PRICE
+
+    await this.sendAndWaitForTransaction(
+      ARTHContracts.mockAggregator.setLatestRoundId(3, { gasPrice }),
+    )
+    await this.sendAndWaitForTransaction(
+      ARTHContracts.mockAggregator.setPrevRoundId(2, { gasPrice }),
+    )
+    await this.sendAndWaitForTransaction(
+      ARTHContracts.mockAggregator.setPrice(BigNumber.from(10).pow(8), { gasPrice }),
+    )
+    await this.sendAndWaitForTransaction(
+      ARTHContracts.mockAggregator.setPrevPrice(BigNumber.from(10).pow(8), { gasPrice }),
+    )
+    await this.sendAndWaitForTransaction(
+      ARTHContracts.mockAggregator.setUpdateTime(Math.floor(Date.now() / 1000), { gasPrice }),
+    )
+    await this.sendAndWaitForTransaction(
+      ARTHContracts.mockAggregator.setPrevUpdateTime(Math.floor(Date.now() / 1000), { gasPrice }),
+    )
+
+    await this.isOwnershipRenounced(ARTHContracts.sortedTroves) || 
+    await this.sendAndWaitForTransaction(
+      ARTHContracts.priceFeed.setAddresses(
+        ARTHContracts.mockToken.address,
+        ARTHContracts.mockToken.address,
+        token === 'MAHA' ? ARTHContracts.mockPriceFeedPairOracle.address : ZERO_ADDRESS,
+        ARTHContracts.mockAggregator.address,
+        ARTHContracts.gmuOracle.address,
+        {gasPrice}
+      )
+    )
 
     await this.sendAndWaitForTransaction(
         ARTHContracts.governance.setPriceFeed(ARTHContracts.priceFeed.address, {gasPrice})
