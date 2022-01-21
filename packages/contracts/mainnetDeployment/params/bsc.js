@@ -23,12 +23,12 @@ const PRICEFEED_CONFIGS = {
         baseAsset: zeroAddress,
         quoteAsset: zeroAddress,
         uniPairOracle: zeroAddress,
-        priceAggregator: "0xcBb98864Ef56E9042e7d2efef76141f15731B82f", // WBNB/USD
+        priceAggregator: "0xcBb98864Ef56E9042e7d2efef76141f15731B82f", // BUSD/USD
     },
-    WBNB: {
+    MAHA: {
         baseAsset: "0xCE86F7fcD3B40791F63B86C3ea3B8B355Ce2685b",
         quoteAsset: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
-        uniPairOracle: "",
+        uniPairOracle: "", // MAHA/WBNB Uni
         priceAggregator: "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE", // WBNB/USD
     }
 }
