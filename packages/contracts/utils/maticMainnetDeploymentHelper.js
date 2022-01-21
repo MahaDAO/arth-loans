@@ -366,7 +366,10 @@ class MainnetDeploymentHelper {
 
     await this.isOwnershipRenounced(ARTHContracts.priceFeed) ||
     await this.sendAndWaitForTransaction(ARTHContracts.priceFeed.setAddresses(
-        this.configParams.EXTERNAL_ADDRS[`CHAINLINK_${token}_USD`],
+        this.configParams.PRICEFEED_CONFIGS[token].baseAsset,
+        this.configParams.PRICEFEED_CONFIGS[token].quoteAsset,
+        this.configParams.PRICEFEED_CONFIGS[token].uniPairOracle,
+        this.configParams.PRICEFEED_CONFIGS[token].priceAggregator,
         ARTHContracts.gmuOracle.address,
         {gasPrice})
       )
