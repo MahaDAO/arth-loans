@@ -67,8 +67,6 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
         address _priceAggregatorAddress, 
         address _gmuOracle
     ) external onlyOwner {
-        checkContract(_baseAsset);
-        checkContract(_quoteAsset);
         checkContract(_priceAggregatorAddress);
         checkContract(_gmuOracle);
 
@@ -78,8 +76,8 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
         priceAggregator = AggregatorV3Interface(_priceAggregatorAddress);
         gmuOracle = IOracle(_gmuOracle);
 
-        baseAssetDecimals = IERC20(_baseAsset).decimals();
-        quoteAssetDecimals = IERC20(_quoteAsset).decimals();
+        baseAssetDecimals = address(_baseAsset) != address(0) ? IERC20(_baseAsset).decimals() : 0;
+        quoteAssetDecimals = address(_quoteAsset) != address(0) ? IERC20(_quoteAsset).decimals() : 0;
 
         _renounceOwnership();
     }
