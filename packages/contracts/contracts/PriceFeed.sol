@@ -156,9 +156,10 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
         returns (uint256)
     {
         IUMBOracle umbOracle = IUMBOracle(umbRegistry.getAddressByString("Chain"));
-        (uint224 price, ) = umbOracle.fcds(umbFCDKey);
+        IUMBOracle.FirstClassData memory fcd = umbOracle.fcds(umbFCDKey);
+
         return _scalePriceByDigits(
-            uint256(price),
+            uint256(fcd.value),
             18
         );
     }
