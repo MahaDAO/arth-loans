@@ -15,6 +15,7 @@ import "./Dependencies/console.sol";
 import "./Dependencies/IUniswapPairOracle.sol";
 import "./Dependencies/IERC20.sol";
 import "./Dependencies/IUMBOracle.sol";
+import "./Dependencies/IUMBRegistry.sol";
 
 /*
  * PriceFeed for mainnet deployment, to be connected to Chainlink's live ETH:USD aggregator reference
@@ -31,7 +32,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
 
     AggregatorV3Interface public priceAggregator;
     IOracle public gmuOracle;
-    IUMBOracle public umbOracle;
+    IUMBRegistry public umbRegistry;
 
     bytes32 public umbFCDKey;
     // Use to convert a price answer to an 18-digit precision uint.
@@ -50,17 +51,17 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     function setAddresses(
         address _priceAggregatorAddress, 
         address _gmuOracle,
-        address _umbOracle,
+        address _umbRegistry,
         bytes32 _umbFCDKey
     ) external onlyOwner {
-        checkContract(_umbOracle);
+        checkContract(_umbRegistry);
         checkContract(_priceAggregatorAddress);
         checkContract(_gmuOracle);
 
+        umbRegistry = IUMBRegistry(_umbRegistry);
         priceAggregator = AggregatorV3Interface(_priceAggregatorAddress);
         gmuOracle = IOracle(_gmuOracle);
         umbFCDKey = _umbFCDKey;
-        umbOracle = IUMBOracle(_umbOracle);
 
         _renounceOwnership();
     }
@@ -154,6 +155,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
         view
         returns (uint256)
     {
+        IUMBOracle umbOracle = IUMBOracle(umbRegistry.getAddressByString("Chain"));
         (uint224 price, ) = umbOracle.fcds(umbFCDKey);
         return _scalePriceByDigits(
             uint256(price),
