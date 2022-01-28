@@ -1,4 +1,4 @@
-const { zeroAddress } = require("ethereumjs-util");
+const zeroAddress = '0x' + '0'.repeat(40)
 
 const EXTERNAL_ADDRS  = {
     WBNB: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
@@ -8,8 +8,8 @@ const EXTERNAL_ADDRS  = {
 };
 
 const DEPLOYER_ADDRS = {
-    DEPLOYER: "0xc3c1f5e3C94b7a05B3bB314c187d1df0f45c814F",  // TODO; change this addr
-    TIMELOCK: "0xc3c1f5e3C94b7a05B3bB314c187d1df0f45c814F" // TODO; change this addr
+    DEPLOYER: "0xbA1af27c0eFdfBE8B0FE1E8F890f9E896D1B2d6f",  // TODO; change this addr
+    TIMELOCK: "0xbA1af27c0eFdfBE8B0FE1E8F890f9E896D1B2d6f" // TODO; change this addr
 };
 
 const PRICEFEED_CONFIGS = {
@@ -28,7 +28,7 @@ const PRICEFEED_CONFIGS = {
     MAHA: {
         baseAsset: "0xCE86F7fcD3B40791F63B86C3ea3B8B355Ce2685b",
         quoteAsset: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
-        uniPairOracle: "", // MAHA/WBNB Uni
+        uniPairOracle: "0xCdf53e1d7C2Dabe3973d601Fa28290f4bC1e90b7", // MAHA/WBNB Uni
         priceAggregator: "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE", // WBNB/USD
     }
 }
