@@ -15,8 +15,7 @@ import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/console.sol";
 import "./Interfaces/IGovernance.sol";
-import "./Interfaces/IController.sol";
-import "./Interfaces/ILUSDToken.sol";
+import "./Interfaces/ILiquityLUSDToken.sol";
 
 /*
  * The Stability Pool holds LUSD tokens deposited by Stability Pool depositors.
@@ -156,9 +155,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
     ITroveManager public troveManager;
 
-    ILUSDToken public lusdToken;
-    
-    IController public coreController;
+    ILiquityLUSDToken public lusdToken;
 
     // Needed to check if there are pending liquidations
     ISortedTroves public sortedTroves;
@@ -243,7 +240,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
     event StabilityPoolETHBalanceUpdated(uint256 _newBalance);
     event StabilityPoolLUSDBalanceUpdated(uint256 _newBalance);
-    event CoreControllerAddressChanged(address _newCoreControllerAddress);
     event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
     event TroveManagerAddressChanged(address _newTroveManagerAddress);
     event ActivePoolAddressChanged(address _newActivePoolAddress);
@@ -286,8 +282,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         address _sortedTrovesAddress,
         address _communityIssuanceAddress,
         address _wethAddress,
-        address _governanceAddress,
-        address _coreControllerAddress
+        address _governanceAddress
     ) external override onlyOwner {
         checkContract(_borrowerOperationsAddress);
         checkContract(_troveManagerAddress);
@@ -297,17 +292,15 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         checkContract(_communityIssuanceAddress);
         checkContract(_wethAddress);
         checkContract(_governanceAddress);
-        checkContract(_coreControllerAddress);
 
         borrowerOperations = IBorrowerOperations(_borrowerOperationsAddress);
         troveManager = ITroveManager(_troveManagerAddress);
         activePool = IActivePool(_activePoolAddress);
-        lusdToken = ILUSDToken(_lusdTokenAddress);
+        lusdToken = ILiquityLUSDToken(_lusdTokenAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
         communityIssuance = ICommunityIssuance(_communityIssuanceAddress);
         weth = IERC20(_wethAddress);
         governance = IGovernance(_governanceAddress);
-        coreController = IController(_coreControllerAddress);
 
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
         emit TroveManagerAddressChanged(_troveManagerAddress);
@@ -316,7 +309,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         emit SortedTrovesAddressChanged(_sortedTrovesAddress);
         emit CommunityIssuanceAddressChanged(_communityIssuanceAddress);
         emit GovernanceAddressChanged(_governanceAddress);
-        emit CoreControllerAddressChanged(_coreControllerAddress);
 
         _renounceOwnership();
     }
@@ -660,9 +652,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         activePoolCached.decreaseLUSDDebt(_debtToOffset);
         _decreaseLUSD(_debtToOffset);
 
-        // Burn the debt that was successfully offset
-        lusdToken.approve(address(coreController), _debtToOffset);
-        coreController.burn(address(this), _debtToOffset);
+        lusdToken.burn(address(this), _debtToOffset);
 
         activePoolCached.sendETH(address(this), _collToAdd);
     }
@@ -890,7 +880,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
     // Transfer the LUSD tokens from the user to the Stability Pool's address, and update its recorded LUSD
     function _sendLUSDtoStabilityPool(address _address, uint256 _amount) internal {
-        coreController.sendToPool(_address, address(this), _amount);  // _address must approve coreController to send arth to this contract.
+        lusdToken.sendToPool(_address, address(this), _amount);
         uint256 newTotalLUSDDeposits = totalLUSDDeposits.add(_amount);
         totalLUSDDeposits = newTotalLUSDDeposits;
         emit StabilityPoolLUSDBalanceUpdated(newTotalLUSDDeposits);
@@ -914,9 +904,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
             return;
         }
 
-        // Rather than just doing a transfer from coreController, transfer the amount from here itself.
-        // Since this contract itself has balance and is the sender.
-        lusdToken.transfer(_depositor, LUSDWithdrawal);
+        lusdToken.returnFromPool(address(this), _depositor, LUSDWithdrawal);
         _decreaseLUSD(LUSDWithdrawal);
     }
 
@@ -1068,7 +1056,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         );
     }
 
-    function _requireValidKickbackRate(uint256 _kickbackRate) internal pure {
+    function _requireValidKickbackRate(uint256 _kickbackRate) internal view {
         require(
             _kickbackRate <= DECIMAL_PRECISION,
             "StabilityPool: Kickback rate must be in range [0,1]"

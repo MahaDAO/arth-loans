@@ -5,7 +5,7 @@ const { network, ethers } = require('hardhat');
 const maxBytes32 = '0x' + 'f'.repeat(64)
 const ZERO_ADDRESS = '0x' + '0'.repeat(40)
 
-class MainnetDeploymentHelper {
+class TestnetDeploymentHelper {
   constructor(configParams, deployerWallet) {
     this.deployments = {}
     this.hre = require("hardhat")
@@ -14,13 +14,16 @@ class MainnetDeploymentHelper {
   }
 
   async loadAllContractFactories() {
+    this.gmuOracleFactory = await this.getFactory("GMUOracle");
+    this.mockAggregatorFactory = await this.getFactory("MockAggregator");
     this.proxyFactory = await this.getFactory("UpgradableProxy");
+    this.mockPairOracle = await this.getFactory("MockUniswapOracle");
+    this.mockTokenFactory = await this.getFactory("ERC20Mock")
     this.gasPoolFactory = await this.getFactory("GasPool")
     this.unipoolFactory = await this.getFactory("Unipool")
     this.lusdTokenFactory = await this.getFactory("LiquityLUSDToken")
-    this.mahaTokenFactory = await this.getFactory("MahaToken")
+    this.mahaTokenFactory = await this.getFactory("MockMaha")
     this.priceFeedFactory = await this.getFactory("PriceFeed")
-    this.gmuOracleFactory = await this.getFactory("GMUOracle")
     this.lqtyTokenFactory = await this.getFactory("LQTYToken")
     this.activePoolFactory = await this.getFactory("ActivePool")
     this.governanceFactory = await this.getFactory('Governance')
@@ -38,7 +41,7 @@ class MainnetDeploymentHelper {
     this.lockupContractFactoryFactory = await this.getFactory('LockupContractFactory')
   }
 
-  isMainnet() { 
+  isMainnet() {
     return this.configParams.NETWORK_NAME == 'mainnet' ||
         this.configParams.NETWORK_NAME == 'matic' ||
         this.configParams.NETWORK_NAME == 'bsc' ||
@@ -89,6 +92,7 @@ class MainnetDeploymentHelper {
       );
     }
 
+    console.log(`- Deploying ${name}...`)
     const contract = await factory.deploy(...params, {gasPrice: this.configParams.GAS_PRICE})
     await this.deployerWallet.provider.waitForTransaction(
         contract.deployTransaction.hash,
@@ -112,7 +116,7 @@ class MainnetDeploymentHelper {
   }
 
   async deploy(deploymentState) {
-    if (!this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
+    if (this.isMainnet()) throw Error('ERROR: !!! Wrong network !!!')
 
     for (const token of this.configParams.COLLATERLAS) {
         console.log()
@@ -133,20 +137,62 @@ class MainnetDeploymentHelper {
   }
 
   async deployLiquityCore(deploymentState, token) {
-    const priceFeed = await this.loadOrDeploy(
-        this.priceFeedFactory,
-        `${token}PriceFeed`,
-        'PriceFeed',
+    const mockTokenParams =  [
+      token,
+      token,
+      this.configParams.DEPLOYER,
+      BigNumber.from(1).pow(18)
+    ];
+    const mockToken = token === 'MAHA'
+      ? await this.loadOrDeploy(
+        this.mahaTokenFactory,
+        `MahaToken`,
+        'MockMaha',
         deploymentState
+      )
+      : await this.loadOrDeploy(
+        this.mockTokenFactory,
+        token,
+        'ERC20Mock',
+        deploymentState,
+        mockTokenParams
+      )
+
+    const arth = await this.loadOrDeploy(
+      this.lusdTokenFactory,
+      `ARTHStablecoin`,
+      'LiquityLUSDToken',
+      deploymentState
+    )
+
+    const maha = await this.loadOrDeploy(
+      this.mahaTokenFactory,
+      `MahaToken`,
+      'MockMaha',
+      deploymentState
     )
 
     const ecosystemFund = await this.loadOrDeploy(
       this.ecosystemFundFactory,
-      `EcosystemFund`,
+      'EcosystemFund',
       'EcosystemFund',
       deploymentState
     )
 
+    const mahaARTHPairOracle = await this.loadOrDeploy(
+      this.mockPairOracle,
+      'UniswapPairOracle_ARTH_MAHA',
+      'MockUniswapOracle',
+      deploymentState
+    )
+      
+    const mockAggregator = await this.loadOrDeploy(
+      this.mockAggregatorFactory,
+      `${token}MockAgrregator`,
+      `MockAgrregator`,
+      deploymentState
+    )
+    
     const gmuOracle = await this.loadOrDeploy(
       this.gmuOracleFactory,
       `GMUOracle`,
@@ -155,13 +201,20 @@ class MainnetDeploymentHelper {
       [2e6]
     )
 
-    const arth = await this.loadOrDeploy(
-      this.lusdTokenFactory,
-      `ARTHStablecoin`,
-      'LiquityLUSDToken',
+    const mockPriceFeedPairOracle = await this.loadOrDeploy(
+      this.mockPairOracle,
+      `${token}MockPairOracle`,
+      'MockUniswapOracle',
       deploymentState
     )
-  
+
+    const priceFeed = await this.loadOrDeploy(
+      this.priceFeedFactory,
+      `${token}PriceFeed`,
+      'PriceFeed',
+      deploymentState
+    )
+
     const sortedTroves = await this.loadOrDeploy(
         this.sortedTrovesFactory,
         `${token}SortedTroves`,
@@ -184,10 +237,10 @@ class MainnetDeploymentHelper {
         proxyParams,
         this.troveManagerFactory
     )
-    !(await troveManager.initialized()) && await this.sendAndWaitForTransaction(
+    !(await this.isInitialized(troveManager)) && await this.sendAndWaitForTransaction(
       troveManager.initialize({gasPrice: this.configParams.GAS_PRICE})
     )
-
+    
     const activePool = await this.loadOrDeploy(
         this.activePoolFactory,
         `${token}ActivePool`,
@@ -264,9 +317,14 @@ class MainnetDeploymentHelper {
     if (!this.configParams.ETHERSCAN_BASE_URL) {
       console.log('- No Etherscan Url defined, skipping verification')
     } else {
-      await this.verifyContract(`ARTHStablecoin`, deploymentState)
+      await this.verifyContract(`${token}MockAgrregator`, deploymentState)
+      await this.verifyContract('GMUOracle', deploymentState, [2e6])
       await this.verifyContract(`EcosystemFund`, deploymentState)
-      await this.verifyContract(`GMUOracle`, deploymentState, [2e6])
+      await this.verifyContract(`${token}MockPairOracle`, deploymentState)
+      await this.verifyContract(`UniswapPairOracle_ARTH_MAHA`, deploymentState)
+      await this.verifyContract(`${token}`, deploymentState, mockTokenParams)
+      await this.verifyContract(`ARTHStablecoin`, deploymentState)
+      await this.verifyContract(`MahaToken`, deploymentState)
       await this.verifyContract(`${token}SortedTroves`, deploymentState)
       await this.verifyContract(`${token}TroveManagerImplementation`, deploymentState)
       await this.verifyContract(`${token}TroveManager`, deploymentState, proxyParams)
@@ -283,7 +341,14 @@ class MainnetDeploymentHelper {
     }
 
     return {
+      mockPriceFeedPairOracle,
+      gmuOracle,
+      mockAggregator,
+      ecosystemFund,
+      mahaARTHPairOracle,
       arth,
+      maha,
+      mockToken,
       governance,
       sortedTroves,
       troveManager,
@@ -295,9 +360,7 @@ class MainnetDeploymentHelper {
       borrowerOperations,
       hintHelpers,
       multiTroveGetter,
-      priceFeed,
-      ecosystemFund,
-      gmuOracle
+      priceFeed
     }
   }
 
@@ -361,52 +424,73 @@ class MainnetDeploymentHelper {
     return owner == ZERO_ADDRESS
   }
 
+  async isInitialized(contract) {
+    return await contract.initialized();
+  }
+
   async connectCoreContracts(ARTHContracts, LQTYContracts, token) {
     const gasPrice = this.configParams.GAS_PRICE
 
-    await this.isOwnershipRenounced(ARTHContracts.priceFeed) ||
-    await this.sendAndWaitForTransaction(ARTHContracts.priceFeed.setAddresses(
-        this.configParams.PRICEFEED_CONFIGS[token].baseAsset,
-        this.configParams.PRICEFEED_CONFIGS[token].quoteAsset,
-        this.configParams.PRICEFEED_CONFIGS[token].uniPairOracle,
-        this.configParams.PRICEFEED_CONFIGS[token].priceAggregator,
+    await this.sendAndWaitForTransaction(
+      ARTHContracts.mockAggregator.setLatestRoundId(3, { gasPrice }),
+    )
+    await this.sendAndWaitForTransaction(
+      ARTHContracts.mockAggregator.setPrevRoundId(2, { gasPrice }),
+    )
+    await this.sendAndWaitForTransaction(
+      ARTHContracts.mockAggregator.setPrice(BigNumber.from(10).pow(8), { gasPrice }),
+    )
+    await this.sendAndWaitForTransaction(
+      ARTHContracts.mockAggregator.setPrevPrice(BigNumber.from(10).pow(8), { gasPrice }),
+    )
+    await this.sendAndWaitForTransaction(
+      ARTHContracts.mockAggregator.setUpdateTime(Math.floor(Date.now() / 1000), { gasPrice }),
+    )
+    await this.sendAndWaitForTransaction(
+      ARTHContracts.mockAggregator.setPrevUpdateTime(Math.floor(Date.now() / 1000), { gasPrice }),
+    )
+
+    await this.isOwnershipRenounced(ARTHContracts.sortedTroves) || 
+    await this.sendAndWaitForTransaction(
+      ARTHContracts.priceFeed.setAddresses(
+        ARTHContracts.mockToken.address,
+        ARTHContracts.mockToken.address,
+        token === 'MAHA' ? ARTHContracts.mockPriceFeedPairOracle.address : ZERO_ADDRESS,
+        ARTHContracts.mockAggregator.address,
         ARTHContracts.gmuOracle.address,
-        {gasPrice})
+        {gasPrice}
       )
+    )
 
     await this.sendAndWaitForTransaction(
         ARTHContracts.governance.setPriceFeed(ARTHContracts.priceFeed.address, {gasPrice})
     )
 
-    // TODO: once redeem and all the pools and liquidity have been added on dex.
-    // await this.sendAndWaitForTransaction(ARTHContracts.governance.setStabilityFeeToken(
-    //     this.configParams.EXTERNAL_ADDRS.MahaToken,
-    //     this.configParams.EXTERNAL_ADDRS.MAHA_ARTH_PAIR_ORACLE,
-    //     {gasPrice}
-    // ))
+    await this.sendAndWaitForTransaction(ARTHContracts.governance.setStabilityFeeToken(
+        ARTHContracts.maha.address,
+        ARTHContracts.mahaARTHPairOracle.address,
+        {gasPrice}
+    ))
 
     await this.sendAndWaitForTransaction(ARTHContracts.governance.setFund(
         ARTHContracts.ecosystemFund.address,
         {gasPrice}
     ))
-    
-    !(await ARTHContracts.arth.borrowerOperationAddresses(ARTHContracts.borrowerOperations.address)) && 
-    await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleBorrowerOperations(
-      ARTHContracts.borrowerOperations.address,
+
+    !(await ARTHContracts.arth.borrowerOperationAddresses(ARTHContracts.borrowerOperations.address)) && await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleBorrowerOperations(
+     ARTHContracts.borrowerOperations.address,
+     { gasPrice } 
+    ))
+
+    !(await ARTHContracts.arth.troveManagerAddresses(ARTHContracts.borrowerOperations.address)) && await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleTroveManager(
+      ARTHContracts.troveManager.address,
       { gasPrice } 
      ))
- 
-     !(await ARTHContracts.arth.troveManagerAddresses(ARTHContracts.borrowerOperations.address)) && 
-     await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleTroveManager(
-       ARTHContracts.troveManager.address,
-       { gasPrice } 
-      ))
- 
-      !(await ARTHContracts.arth.stabilityPoolAddresses(ARTHContracts.borrowerOperations.address)) && 
-      await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleStabilityPool(
-       ARTHContracts.stabilityPool.address,
-       { gasPrice } 
-      ))
+
+     !(await ARTHContracts.arth.stabilityPoolAddresses(ARTHContracts.borrowerOperations.address)) && await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleStabilityPool(
+      ARTHContracts.stabilityPool.address,
+      { gasPrice } 
+     ))
 
     // set TroveManager addr in Sorted Troves.
     await this.isOwnershipRenounced(ARTHContracts.sortedTroves) ||
@@ -429,7 +513,7 @@ class MainnetDeploymentHelper {
         ARTHContracts.arth.address,
         ARTHContracts.sortedTroves.address,
         ARTHContracts.governance.address,
-        this.configParams.EXTERNAL_ADDRS[token],
+        ARTHContracts.mockToken.address,
         {gasPrice}
       ))
 
@@ -444,7 +528,7 @@ class MainnetDeploymentHelper {
         ARTHContracts.collSurplusPool.address,
         ARTHContracts.sortedTroves.address,
         ARTHContracts.arth.address,
-        this.configParams.EXTERNAL_ADDRS[token],
+        ARTHContracts.mockToken.address,
         ARTHContracts.governance.address,
         {gasPrice}
       ))
@@ -458,7 +542,7 @@ class MainnetDeploymentHelper {
         ARTHContracts.arth.address,
         ARTHContracts.sortedTroves.address,
         LQTYContracts.communityIssuance.address,
-        this.configParams.EXTERNAL_ADDRS[token],
+        ARTHContracts.mockToken.address,
         ARTHContracts.governance.address,
         {gasPrice}
       ))
@@ -471,7 +555,7 @@ class MainnetDeploymentHelper {
         ARTHContracts.stabilityPool.address,
         ARTHContracts.defaultPool.address,
         ARTHContracts.collSurplusPool.address,
-        this.configParams.EXTERNAL_ADDRS[token],
+        ARTHContracts.mockToken.address,
         {gasPrice}
       ))
 
@@ -480,7 +564,7 @@ class MainnetDeploymentHelper {
       await this.sendAndWaitForTransaction(ARTHContracts.defaultPool.setAddresses(
         ARTHContracts.troveManager.address,
         ARTHContracts.activePool.address,
-        this.configParams.EXTERNAL_ADDRS[token],
+        ARTHContracts.mockToken.address,
         {gasPrice}
       ))
 
@@ -490,7 +574,7 @@ class MainnetDeploymentHelper {
         ARTHContracts.borrowerOperations.address,
         ARTHContracts.troveManager.address,
         ARTHContracts.activePool.address,
-        this.configParams.EXTERNAL_ADDRS[token],
+        ARTHContracts.mockToken.address,
         {gasPrice}
       ))
 
@@ -524,7 +608,7 @@ class MainnetDeploymentHelper {
         ARTHContracts.troveManager.address,
         ARTHContracts.borrowerOperations.address,
         ARTHContracts.activePool.address,
-        this.configParams.EXTERNAL_ADDRS[token],
+        ARTHContracts.mockToken.address,
         {gasPrice}
       ))
 
@@ -577,4 +661,4 @@ class MainnetDeploymentHelper {
   }
 }
 
-module.exports = MainnetDeploymentHelper
+module.exports = TestnetDeploymentHelper

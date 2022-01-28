@@ -10,45 +10,44 @@ import "./Dependencies/LiquityBase.sol";
 import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Interfaces/IGovernance.sol";
-import "./Interfaces/IGasPool.sol";
-import "./Interfaces/ILUSDToken.sol";
-import "./Interfaces/IController.sol";
+import "./Interfaces/ILiquityLUSDToken.sol";
 
 contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
-    string public constant NAME = "TroveManager";
+    string public NAME;
+
+    bool public initialized;
 
     // --- Connected contract declarations ---
     address public borrowerOperationsAddress;
     address public wethAddress;
     
     IStabilityPool public override stabilityPool;
-    IGasPool gasPool;
+    address gasPoolAddress;
     ICollSurplusPool collSurplusPool;
-    ILUSDToken public override lusdToken;
-    IController public coreController;
+    ILiquityLUSDToken public override lusdToken;
 
     // A doubly linked list of Troves, sorted by their sorted by their collateral ratios
     ISortedTroves public sortedTroves;
 
     // --- Data structures ---
 
-    uint256 public constant SECONDS_IN_ONE_MINUTE = 60;
+    uint256 public SECONDS_IN_ONE_MINUTE;
     /*
      * Half-life of 12h. 12h = 720 min
      * (1/2) = d^720 => d = (1/2)^(1/720)
      */
-    uint256 public constant MINUTE_DECAY_FACTOR = 999037758833783000;
-    uint256 public constant REDEMPTION_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5; // 0.5%
-    uint256 public constant MAX_BORROWING_FEE = (DECIMAL_PRECISION / 100) * 5; // 5%
+    uint256 public MINUTE_DECAY_FACTOR;
+    uint256 public REDEMPTION_FEE_FLOOR; // 0.5%
+    uint256 public MAX_BORROWING_FEE; // 5%
 
     // During bootsrap period redemptions are not allowed
-    uint256 public constant BOOTSTRAP_PERIOD = 7 days;
+    uint256 public BOOTSTRAP_PERIOD;
 
     /*
      * BETA: 18 digit decimal. Parameter by which to divide the redeemed fraction, in order to calc the new base rate from a redemption.
      * Corresponds to (1 / ALPHA) in the white paper.
      */
-    uint256 public constant BETA = 2;
+    uint256 public BETA;
 
     uint256 public baseRate;
 
@@ -168,12 +167,11 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     struct ContractsCache {
         IActivePool activePool;
         IDefaultPool defaultPool;
-        ILUSDToken lusdToken;
+        ILiquityLUSDToken lusdToken;
         ISortedTroves sortedTroves;
         ICollSurplusPool collSurplusPool;
-        IGasPool gasPool;
+        address gasPoolAddress;
         IPriceFeed priceFeed;
-        IController controller;
         IGovernance governance;
     }
     // --- Variable container structs for redemptions ---
@@ -206,7 +204,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     event CollSurplusPoolAddressChanged(address _collSurplusPoolAddress);
     event SortedTrovesAddressChanged(address _sortedTrovesAddress);
     event GovernanceAddressChanged(address _governanceAddress);
-    event CoreControllerChanged(address _coreControllerAddress);
     event WETHAddressChanged(address _wethAddress);
 
     event RewardSnapshotDetailsUpdated(address owner, address newOwner, uint256 timestamp);
@@ -251,7 +248,31 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         redeemCollateral
     }
 
-    // --- Dependency setter ---
+    function initialize() external {
+        require(!initialized, 'Contract already initialized');
+        DECIMAL_PRECISION = 1e18;
+        _100pct = 1000000000000000000; // 1e18 == 100%
+        MCR = 1100000000000000000; // 110%
+        CCR = 1500000000000000000; // 150%
+        LUSD_GAS_COMPENSATION = 5e18;
+        MIN_NET_DEBT = 250e18;
+        PERCENT_DIVISOR = 200; // dividing by 200 yields 0.5%
+        BORROWING_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5; // 0.5%
+
+        address msgSender = _msgSender();
+        _owner = msgSender;
+        emit OwnershipTransferred(address(0), msgSender);
+
+        NAME = "TroveManager";
+        SECONDS_IN_ONE_MINUTE = 60;
+        MINUTE_DECAY_FACTOR = 999037758833783000;
+        REDEMPTION_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5;
+        MAX_BORROWING_FEE = (DECIMAL_PRECISION / 100) * 5;
+        BOOTSTRAP_PERIOD = 7 days;
+        BETA = 2;
+
+        initialized = true; 
+    }
 
     function setAddresses(
         address _borrowerOperationsAddress,
@@ -263,7 +284,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         address _lusdTokenAddress,
         address _sortedTrovesAddress,
         address _governanceAddress,
-        address _coreControllerAddress,
         address _wethAddress
     ) external override onlyOwner {
         checkContract(_borrowerOperationsAddress);
@@ -275,7 +295,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         checkContract(_lusdTokenAddress);
         checkContract(_sortedTrovesAddress);
         checkContract(_governanceAddress);
-        checkContract(_coreControllerAddress);
         checkContract(_wethAddress);
 
         borrowerOperationsAddress = _borrowerOperationsAddress;
@@ -283,12 +302,11 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         activePool = IActivePool(_activePoolAddress);
         defaultPool = IDefaultPool(_defaultPoolAddress);
         stabilityPool = IStabilityPool(_stabilityPoolAddress);
-        gasPool = IGasPool(_gasPoolAddress);
+        gasPoolAddress = _gasPoolAddress;
         collSurplusPool = ICollSurplusPool(_collSurplusPoolAddress);
-        lusdToken = ILUSDToken(_lusdTokenAddress);
+        lusdToken = ILiquityLUSDToken(_lusdTokenAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
         governance = IGovernance(_governanceAddress);
-        coreController = IController(_coreControllerAddress);
 
         emit WETHAddressChanged(_wethAddress);
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
@@ -300,7 +318,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         emit CollSurplusPoolAddressChanged(_collSurplusPoolAddress);
         emit LUSDTokenAddressChanged(_lusdTokenAddress);
         emit SortedTrovesAddressChanged(_sortedTrovesAddress);
-        emit CoreControllerChanged(_coreControllerAddress);
 
         _renounceOwnership();
     }
@@ -556,7 +573,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         uint256 _entireTroveDebt,
         uint256 _entireTroveColl,
         uint256 _price
-    ) internal pure returns (LiquidationValues memory singleLiquidation) {
+    ) internal view returns (LiquidationValues memory singleLiquidation) {
         singleLiquidation.entireTroveDebt = _entireTroveDebt;
         singleLiquidation.entireTroveColl = _entireTroveColl;
         uint256 collToOffset = _entireTroveDebt.mul(MCR).div(_price);
@@ -579,12 +596,11 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         ContractsCache memory contractsCache = ContractsCache(
             activePool,
             defaultPool,
-            ILUSDToken(address(0)),
+            ILiquityLUSDToken(address(0)),
             sortedTroves,
             ICollSurplusPool(address(0)),
-            IGasPool(address(0)),
+            address(0),
             getPriceFeed(),
-            coreController,
             governance
         );
         IStabilityPool stabilityPoolCached = stabilityPool;
@@ -1012,8 +1028,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         uint256 _ETH
     ) internal {
         if (_LUSD > 0) {
-            gasPool.returnToLiquidator(_liquidator, _LUSD);
-            // lusdToken.returnFromPool(gasPoolAddress, _liquidator, _LUSD);
+            lusdToken.returnFromPool(gasPoolAddress, _liquidator, _LUSD);
         }
 
         if (_ETH > 0) {
@@ -1114,7 +1129,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         uint256 _LUSD,
         uint256 _ETH
     ) internal {
-        _contractsCache.gasPool.burnLUSD(_LUSD);
+        _contractsCache.lusdToken.burn(gasPoolAddress, _LUSD);
         // Update Active Pool LUSD, and send ETH to account
         _contractsCache.activePool.decreaseLUSDDebt(_LUSD);
 
@@ -1176,9 +1191,8 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
             lusdToken,
             sortedTroves,
             collSurplusPool,
-            gasPool,
+            gasPoolAddress,
             getPriceFeed(),
-            coreController,
             governance
         );
         RedemptionTotals memory totals;
@@ -1273,9 +1287,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         emit Redemption(_LUSDamount, totals.totalLUSDToRedeem, totals.totalETHDrawn, totals.ETHFee);
 
         // Burn the total LUSD that is cancelled with debt, and send the redeemed ETH to msg.sender
-        // Has to be approved from forntend, approval should be given to controller. This is because
-        // controller is the one calling burnFrom function on ARTH.
-        contractsCache.controller.burn(msg.sender, totals.totalLUSDToRedeem);
+        contractsCache.lusdToken.burn(msg.sender, totals.totalLUSDToRedeem);
         // Update Active Pool LUSD, and send ETH to account
         contractsCache.activePool.decreaseLUSDDebt(totals.totalLUSDToRedeem);
         contractsCache.activePool.sendETH(msg.sender, totals.ETHToSendToRedeemer);
@@ -1633,7 +1645,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         uint256 _entireSystemColl,
         uint256 _entireSystemDebt,
         uint256 _price
-    ) internal pure returns (bool) {
+    ) internal view returns (bool) {
         uint256 TCR = LiquityMath._computeCR(_entireSystemColl, _entireSystemDebt, _price);
 
         return TCR < CCR;
@@ -1680,7 +1692,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         return _calcRedemptionRate(_calcDecayedBaseRate());
     }
 
-    function _calcRedemptionRate(uint256 _baseRate) internal pure returns (uint256) {
+    function _calcRedemptionRate(uint256 _baseRate) internal view returns (uint256) {
         return
             LiquityMath._min(
                 REDEMPTION_FEE_FLOOR.add(_baseRate),
@@ -1698,7 +1710,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
     function _calcRedemptionFee(uint256 _redemptionRate, uint256 _ETHDrawn)
         internal
-        pure
+        view
         returns (uint256)
     {
         uint256 redemptionFee = _redemptionRate.mul(_ETHDrawn).div(DECIMAL_PRECISION);
@@ -1716,7 +1728,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         return _calcBorrowingRate(_calcDecayedBaseRate());
     }
 
-    function _calcBorrowingRate(uint256 _baseRate) internal pure returns (uint256) {
+    function _calcBorrowingRate(uint256 _baseRate) internal view returns (uint256) {
         return LiquityMath._min(BORROWING_FEE_FLOOR.add(_baseRate), MAX_BORROWING_FEE);
     }
 
@@ -1730,7 +1742,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
     function _calcBorrowingFee(uint256 _borrowingRate, uint256 _LUSDDebt)
         internal
-        pure
+        view
         returns (uint256)
     {
         return _borrowingRate.mul(_LUSDDebt).div(DECIMAL_PRECISION);
@@ -1789,7 +1801,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     }
 
     function _requireLUSDBalanceCoversRedemption(
-        ILUSDToken _lusdToken,
+        ILiquityLUSDToken _lusdToken,
         address _redeemer,
         uint256 _amount
     ) internal view {
@@ -1822,7 +1834,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         );
     }
 
-    function _requireValidMaxFeePercentage(uint256 _maxFeePercentage) internal pure {
+    function _requireValidMaxFeePercentage(uint256 _maxFeePercentage) internal view {
         require(
             _maxFeePercentage >= REDEMPTION_FEE_FLOOR && _maxFeePercentage <= DECIMAL_PRECISION,
             "Max fee percentage must be between 0.5% and 100%"
