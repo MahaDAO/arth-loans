@@ -390,23 +390,23 @@ class MainnetDeploymentHelper {
         {gasPrice}
     ))
     
-    !(await ARTHContracts.arth.borrowerOperationAddresses(ARTHContracts.borrowerOperations.address)) && 
-    await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleBorrowerOperations(
-      ARTHContracts.borrowerOperations.address,
-      { gasPrice } 
-     ))
+    // !(await ARTHContracts.arth.borrowerOperationAddresses(ARTHContracts.borrowerOperations.address)) && 
+    // await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleBorrowerOperations(
+    //   ARTHContracts.borrowerOperations.address,
+    //   { gasPrice } 
+    //  ))
  
-     !(await ARTHContracts.arth.troveManagerAddresses(ARTHContracts.borrowerOperations.address)) && 
-     await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleTroveManager(
-       ARTHContracts.troveManager.address,
-       { gasPrice } 
-      ))
+    //  !(await ARTHContracts.arth.troveManagerAddresses(ARTHContracts.borrowerOperations.address)) && 
+    //  await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleTroveManager(
+    //    ARTHContracts.troveManager.address,
+    //    { gasPrice } 
+    //   ))
  
-      !(await ARTHContracts.arth.stabilityPoolAddresses(ARTHContracts.borrowerOperations.address)) && 
-      await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleStabilityPool(
-       ARTHContracts.stabilityPool.address,
-       { gasPrice } 
-      ))
+    //   !(await ARTHContracts.arth.stabilityPoolAddresses(ARTHContracts.borrowerOperations.address)) && 
+    //   await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleStabilityPool(
+    //    ARTHContracts.stabilityPool.address,
+    //    { gasPrice } 
+    //   ))
 
     // set TroveManager addr in Sorted Troves.
     await this.isOwnershipRenounced(ARTHContracts.sortedTroves) ||
