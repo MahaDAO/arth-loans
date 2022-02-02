@@ -1505,11 +1505,7 @@ contract MasterChef is Ownable {
     }
 
     // The CAKE TOKEN!
-    CakeToken public cake;
-    // The SYRUP TOKEN!
-    SyrupBar public syrup;
-    // Dev address.
-    address public devaddr;
+    IBEP20 public cake;
     // CAKE tokens created per block.
     uint256 public cakePerBlock;
     // Bonus muliplier for early cake makers.
@@ -1531,15 +1527,11 @@ contract MasterChef is Ownable {
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
     constructor(
-        CakeToken _cake,
-        SyrupBar _syrup,
-        address _devaddr,
+        IBEP20 _cake,
         uint256 _cakePerBlock,
         uint256 _startBlock
     ) public {
         cake = _cake;
-        syrup = _syrup;
-        devaddr = _devaddr;
         cakePerBlock = _cakePerBlock;
         startBlock = _startBlock;
 
@@ -1552,7 +1544,6 @@ contract MasterChef is Ownable {
         }));
 
         totalAllocPoint = 1000;
-
     }
 
     function updateMultiplier(uint256 multiplierNumber) public onlyOwner {
@@ -1664,8 +1655,6 @@ contract MasterChef is Ownable {
         }
         uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
         uint256 cakeReward = multiplier.mul(cakePerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-        cake.mint(devaddr, cakeReward.div(10));
-        cake.mint(address(syrup), cakeReward);
         pool.accCakePerShare = pool.accCakePerShare.add(cakeReward.mul(1e12).div(lpSupply));
         pool.lastRewardBlock = block.number;
     }
@@ -1729,8 +1718,6 @@ contract MasterChef is Ownable {
             user.amount = user.amount.add(_amount);
         }
         user.rewardDebt = user.amount.mul(pool.accCakePerShare).div(1e12);
-
-        syrup.mint(msg.sender, _amount);
         emit Deposit(msg.sender, 0, _amount);
     }
 
@@ -1749,8 +1736,6 @@ contract MasterChef is Ownable {
             pool.lpToken.safeTransfer(address(msg.sender), _amount);
         }
         user.rewardDebt = user.amount.mul(pool.accCakePerShare).div(1e12);
-
-        syrup.burn(msg.sender, _amount);
         emit Withdraw(msg.sender, 0, _amount);
     }
 
@@ -1764,14 +1749,12 @@ contract MasterChef is Ownable {
         user.rewardDebt = 0;
     }
 
-    // Safe cake transfer function, just in case if rounding error causes pool to not have enough CAKEs.
     function safeCakeTransfer(address _to, uint256 _amount) internal {
-        syrup.safeCakeTransfer(_to, _amount);
+        cake.safeTransfer(_to, _amount);
     }
 
-    // Update dev address by the previous dev.
-    function dev(address _devaddr) public {
-        require(msg.sender == devaddr, "dev: wut?");
-        devaddr = _devaddr;
+    function emergencyRewardWithdraw(uint256 _amount) public onlyOwner {
+        require(_amount < cake.balanceOf(address(this)), 'not enough token');
+        cake.safeTransfer(address(msg.sender), _amount);
     }
 }
