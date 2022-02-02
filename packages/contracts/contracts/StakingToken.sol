@@ -18,7 +18,6 @@ contract StakingToken is ERC20, TransferableOwnable, IStakingToken {
         public 
     {
         underlyingStakingToken = _underlyingStakingToken;
-        _mint(owner, 10000 * 1e18);
     }
 
     function mintOnStake(address recipient_, uint256 amount_)
