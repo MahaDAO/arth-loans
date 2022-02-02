@@ -14,7 +14,7 @@
     "@material-ui/icons": "^4.11.2",
     "@material-ui/utils": "^4.11.2",
     "@popperjs/core": "2.9.1",
-    "@testing-library/dom": "7.30.0",
+    "@testing-library/dom": "8.11.3",
     "@testing-library/jest-dom": "5.11.9",
     "@testing-library/react": "11.2.5",
     "@testing-library/user-event": "12.8.3",
