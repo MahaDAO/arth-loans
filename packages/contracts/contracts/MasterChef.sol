@@ -1574,10 +1574,10 @@ contract MasterChef is Ownable {
         uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
         IStakingToken spToken = IStakingToken(
-            new StakingToken{salt: keccak256(abi.encode(address(_cake), address(this)))}(
+            new StakingToken{salt: keccak256(abi.encode(address(_lpToken), address(this)))}(
                 "MahaDAO SP",
                 "MSP",
-                address(_cake)
+                address(_lpToken)
             )
         );
         poolInfo.push(PoolInfo({
