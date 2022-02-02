@@ -7,10 +7,19 @@ import { IStakingToken } from "./Interfaces/IStakingToken.sol";
 import { TransferableOwnable } from "./Dependencies/TransferableOwnable.sol";
 
 contract StakingToken is ERC20, TransferableOwnable, IStakingToken {
-    constructor(string memory name_, string memory symbol_) 
+    address public underlyingStakingToken;
+
+    constructor(
+        string memory name_, 
+        string memory symbol_, 
+        address _underlyingStakingToken
+    ) 
         ERC20(name_, symbol_) 
         public 
-    {}
+    {
+        underlyingStakingToken = _underlyingStakingToken;
+        _mint(owner, 10000 * 1e18);
+    }
 
     function mintOnStake(address recipient_, uint256 amount_)
         public
