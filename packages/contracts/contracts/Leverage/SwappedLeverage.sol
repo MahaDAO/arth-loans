@@ -61,8 +61,9 @@ contract SwappedLeverage is CheckContract {
         uint256 arthToSwapForToken0 = totalARTHToSwap.div(2);
         uint256 arthToSwapForToken1 = totalARTHToSwap.sub(arthToSwapForToken0);
 
-        uint256 token0Out = _swapARTHForToken(token0, arthToToken0Path, arthToSwapForToken0);
-        uint256 token1Out = _swapARTHForToken(token1, arthToToken1Path, arthToSwapForToken1);
+        IERC20(arth).approve(address(uniswapRouter), totalARTHToSwap);
+        uint256 token0Out = _swapARTHForToken(arthToToken0Path, arthToSwapForToken0);
+        uint256 token1Out = _swapARTHForToken(arthToToken1Path, arthToSwapForToken1);
 
         uint256 liquidityAdded = _addLiquidity(token0Out, token1Out);
         IERC20(pair).approve(address(borrowerOperations), liquidityAdded);
@@ -70,7 +71,6 @@ contract SwappedLeverage is CheckContract {
     }
 
     function _swapARTHForToken(
-        address _token,
         address[] memory path,
         uint256 _arthAmount
     ) internal returns (uint256) {
