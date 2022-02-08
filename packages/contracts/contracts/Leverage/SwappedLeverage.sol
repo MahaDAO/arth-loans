@@ -52,14 +52,34 @@ contract SwappedLeverage is CheckContract {
         borrowerOperations = _borrowerOperations;
     }
 
-    function openTrove(
+    function leverage(
         uint256 _maxFee,
         uint256 _LUSDAmount,
         uint256 _ETHAmount,
         address _upperHint,
         address _lowerHint,
         address _frontEndTag
-    ) external payable {
+    ) external {
+        _openTrovenAndAddColl(
+            _maxFee,
+            _LUSDAmount,
+            _ETHAmount,
+            _upperHint,
+            _lowerHint,
+            _frontEndTag
+        );
+        _withdrawAndAddColl();
+        _withdrawAndAddColl();
+    }
+
+    function _openTrovenAndAddColl(
+        uint256 _maxFee,
+        uint256 _LUSDAmount,
+        uint256 _ETHAmount,
+        address _upperHint,
+        address _lowerHint,
+        address _frontEndTag
+    ) internal {
         // 1. Open trove and figure out how much ARTH you've got.
         uint256 balanaceBefore = IERC20(arth).balanceOf(address(this));
         borrowerOperations.openTrove(
@@ -74,24 +94,19 @@ contract SwappedLeverage is CheckContract {
 
         // 2. Figure out the amount of ARTH to swap for tokens of the pair.
         uint256 totalARTHToSwap = balanceAfter.sub(balanaceBefore);
-        uint256 arthToSwapForToken0 = totalARTHToSwap.div(2);
-        uint256 arthToSwapForToken1 = totalARTHToSwap.sub(arthToSwapForToken0);
+        (uint256 arthToSwapForToken0, uint256 arthToSwapForToken1) = _calARTHToSwapForTokens(totalARTHToSwap);
 
         // 3. Swap the ARTH for tokens of the pair.
-        IERC20(arth).approve(address(uniswapRouter), totalARTHToSwap);
         uint256 token0Out = _swapARTHForToken(arthToToken0Path, arthToSwapForToken0);
         uint256 token1Out = _swapARTHForToken(arthToToken1Path, arthToSwapForToken1);
 
         // 4. Add liquidity to get the LP token and add that as collateral.
         uint256 liquidityAdded = _addLiquidity(token0Out, token1Out);
         IERC20(pair).approve(address(borrowerOperations), liquidityAdded);
-        borrowerOperations.addColl(liquidityAdded, _upperHint, _lowerHint);
-
-        _withdrawAndAddColl(_upperHint, _lowerHint);
-        _withdrawAndAddColl(_upperHint, _lowerHint);
+        borrowerOperations.addColl(liquidityAdded, address(0), address(0));
     }
 
-    function _withdrawAndAddColl(address _upperHint, address _lowerHint) internal {
+    function _withdrawAndAddColl() internal {
         // 1.Check that system is not in recover mode, as in recover mode 
         // only debt increase is not acceptable.
         _requireSystemNotInRecoveryMode();
@@ -99,28 +114,29 @@ contract SwappedLeverage is CheckContract {
         // 2. Figure out the amount that is withdrawable.
         uint256 withdrawableARTH = _calcWithdrawableARTH();
         uint256 balanaceBefore = IERC20(arth).balanceOf(address(this));
-        borrowerOperations.withdrawColl(withdrawableARTH, _upperHint, _lowerHint);
+        borrowerOperations.withdrawColl(withdrawableARTH, address(0), address(0));
         uint256 balanceAfter = IERC20(arth).balanceOf(address(this));
 
         // 3. Figure out the amount of ARTH to swap for tokens of the pair.
         uint256 totalARTHToSwap = balanceAfter.sub(balanaceBefore);
-        uint256 arthToSwapForToken0 = totalARTHToSwap.div(2);
-        uint256 arthToSwapForToken1 = totalARTHToSwap.sub(arthToSwapForToken0);
-        IERC20(arth).approve(address(uniswapRouter), totalARTHToSwap);
+        (uint256 arthToSwapForToken0, uint256 arthToSwapForToken1) = _calARTHToSwapForTokens(totalARTHToSwap);
 
+        // 4. Swap ARHT for respective tokens.
         uint256 token0Out = _swapARTHForToken(arthToToken0Path, arthToSwapForToken0);
         uint256 token1Out = _swapARTHForToken(arthToToken1Path, arthToSwapForToken1);
 
         // 8. Add liquidity to get the LP token and add that as collateral.
         uint256 liquidityAdded = _addLiquidity(token0Out, token1Out);
         IERC20(pair).approve(address(borrowerOperations), liquidityAdded);
-        borrowerOperations.addColl(liquidityAdded, _upperHint, _lowerHint);
+        borrowerOperations.addColl(liquidityAdded, address(0), address(0));
     }
 
     function _swapARTHForToken(
         address[] memory path,
         uint256 _arthAmount
     ) internal returns (uint256) {
+        IERC20(arth).approve(address(uniswapRouter), _arthAmount);
+
         uint256[] memory expectedAmountsOut = uniswapRouter.getAmountsOut(
             _arthAmount,
             path
@@ -157,12 +173,22 @@ contract SwappedLeverage is CheckContract {
 
         return liquidity;
     }
-
+    
     function _fetchPrice() internal returns (uint256) {
         IPriceFeed priceFeed = ILiquityBase(address(borrowerOperations)).getPriceFeed();
         return priceFeed.fetchPrice();
     }
 
+    function _calARTHToSwapForTokens(uint256 totalARTHToSwap) 
+        internal 
+        pure 
+        returns (uint256, uint256) 
+    {
+        uint256 arthToSwapForToken0 = totalARTHToSwap.div(2);
+        uint256 arthToSwapForToken1 = totalARTHToSwap.sub(arthToSwapForToken0);
+        return (arthToSwapForToken0, arthToSwapForToken1);
+    }
+    
     function _calcWithdrawableARTH() internal returns (uint256) {
         uint256 price = _fetchPrice();        
         (uint256 debt, uint256 coll, ,) = troveManager.getEntireDebtAndColl(address(this));
