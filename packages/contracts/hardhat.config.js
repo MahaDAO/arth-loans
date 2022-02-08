@@ -62,6 +62,15 @@ module.exports = {
                     }
                 }
             },
+            {
+                version: "0.5.17",
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 100
+                    }
+                }
+            },
         ]
     },
     networks: {
