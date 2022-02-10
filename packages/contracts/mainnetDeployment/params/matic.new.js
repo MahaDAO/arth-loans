@@ -36,7 +36,7 @@ const PRICEFEED_CONFIGS = {
     },
     MAHA: {
         umbOracle: "0xE31ea987B1042819966B0f159076dbaaA68a8430", // MAHA/USD
-        chainlinkOracle: zeroAddress, // WBNB/USD
+        chainlinkOracle: zeroAddress,
     }
 };
 
