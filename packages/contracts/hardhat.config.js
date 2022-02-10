@@ -30,8 +30,8 @@ const alchemyUrlRinkeby = () => {
 
 module.exports = {
     paths: {
-        // contracts: "./contracts",
-        // artifacts: "./artifacts"
+        contracts: "./contracts",
+        artifacts: "./artifacts"
     },
     solidity: {
         compilers: [

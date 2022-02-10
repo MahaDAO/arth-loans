@@ -18,8 +18,8 @@ contract UMBOracle {
     using SafeMath for uint256;
 
     string public NAME;
-    bytes32 public key;
     IUMBRegistry public registry;
+    bytes32 public key;
 
     // --- Contract setters ---
     constructor(
