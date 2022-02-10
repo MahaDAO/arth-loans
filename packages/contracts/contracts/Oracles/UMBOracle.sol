@@ -14,7 +14,11 @@ interface IUMBChain {
     function getCurrentValue(bytes32 _key) external view returns (uint256 value, uint256 timestamp);
 }
 
-contract UMBOracle {
+interface IUMBOracle {
+    function getPrice() external view returns (uint256);
+}
+
+contract UMBOracle is IUMBOracle {
     using SafeMath for uint256;
 
     string public NAME;
@@ -32,7 +36,7 @@ contract UMBOracle {
         key = _key;
     }
 
-    function getPrice() public view returns (uint256) {
+    function getPrice() external view override returns (uint256) {
         IUMBChain chain = IUMBChain(registry.getAddressByString("Chain"));
         (uint256 value, ) = chain.getCurrentValue(key);
         return value;

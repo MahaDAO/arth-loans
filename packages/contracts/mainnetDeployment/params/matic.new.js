@@ -23,28 +23,20 @@ const DEPLOYER_ADDRS = {
 
 const PRICEFEED_CONFIGS = {
     WMATIC: {
-        baseAsset: zeroAddress,
-        quoteAsset: zeroAddress,
-        uniPairOracle: zeroAddress,
-        priceAggregator: "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0", // MATIC/USD
+        umbOracle: zeroAddress,
+        chainlinkOracle: "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0", // MATIC/USD
     },
     DAI: {
-        baseAsset: zeroAddress,
-        quoteAsset: zeroAddress,
-        uniPairOracle: zeroAddress,
-        priceAggregator: "0x4746DeC9e833A82EC7C2C1356372CcF2cfcD2F3D", // DAI/USD
+        umbOracle: zeroAddress,
+        chainlinkOracle: "0x4746DeC9e833A82EC7C2C1356372CcF2cfcD2F3D", // DAI/USD
     },
     WETH: {
-        baseAsset: zeroAddress,
-        quoteAsset: zeroAddress,
-        uniPairOracle: zeroAddress,
-        priceAggregator: "0xF9680D99D6C9589e2a93a78A04A279e509205945", // WETH/USD
+        umbOracle: zeroAddress,
+        chainlinkOracle: "0xF9680D99D6C9589e2a93a78A04A279e509205945", // WETH/USD
     },
     MAHA: {
-        baseAsset: "0xCE86F7fcD3B40791F63B86C3ea3B8B355Ce2685b",
-        quoteAsset: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
-        uniPairOracle: "", // MAHA/WBNB Uni
-        priceAggregator: "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE", // WBNB/USD
+        umbOracle: "0xE31ea987B1042819966B0f159076dbaaA68a8430", // MAHA/USD
+        chainlinkOracle: zeroAddress, // WBNB/USD
     }
 };
 

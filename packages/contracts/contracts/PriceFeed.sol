@@ -10,9 +10,10 @@ import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/BaseMath.sol";
 import "./Dependencies/LiquityMath.sol";
-import "./Dependencies/console.sol";
-import "./Dependencies/IUniswapPairOracle.sol";
-import "./Dependencies/IERC20.sol";
+
+interface IUMBOracle {
+    function getPrice() external view returns (uint256);
+}
 
 /*
  * PriceFeed for mainnet deployment, to be connected to Chainlink's live ETH:USD aggregator reference
@@ -27,22 +28,8 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
 
     string public constant NAME = "PriceFeed";
 
-    // Mainnet Chainlink aggregator.
-    // This will be BNB/USD in case of MAHA Collateral because we use MAHA/WBNB pair.
-    // Else will be BUSD/USD in case of BUSD Collateral.
-    AggregatorV3Interface public priceAggregator;
-
-    // MAHA in case of MAHA Collateral using MAHA/WBNB pair.
-    address public baseAsset;
-    // WBNB in case of MAHA Collateral using MAHA/WBNB pair.
-    address public quoteAsset;
-
-    uint256 public baseAssetDecimals;
-    uint256 public quoteAssetDecimals;
-
-    // Oracle to fetch price from DEX.
-    // MAHA/WBNB in case of MAHA Collateral else ZERO ADDRESS.
-    IUniswapPairOracle public uniPairOracle;
+    AggregatorV3Interface public chainlinkOracle;
+    IUMBOracle public umbOracle;
 
     // GMU oracle.
     IOracle public gmuOracle;
@@ -61,23 +48,17 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     // --- Dependency setters ---
 
     function setAddresses(
-        address _baseAsset,
-        address _quoteAsset,
-        address _uniPairOracle,
-        address _priceAggregatorAddress,
+        address _umbOracle,
+        address _chainlinkOracleAddress,
         address _gmuOracle
     ) external onlyOwner {
-        checkContract(_priceAggregatorAddress);
+        checkContract(_chainlinkOracleAddress);
         checkContract(_gmuOracle);
+        checkContract(_umbOracle);
 
-        baseAsset = _baseAsset;
-        quoteAsset = _quoteAsset;
-        uniPairOracle = IUniswapPairOracle(_uniPairOracle);
-        priceAggregator = AggregatorV3Interface(_priceAggregatorAddress);
+        umbOracle = IUMBOracle(_umbOracle);
+        chainlinkOracle = AggregatorV3Interface(_chainlinkOracleAddress);
         gmuOracle = IOracle(_gmuOracle);
-
-        baseAssetDecimals = address(_baseAsset) != address(0) ? IERC20(_baseAsset).decimals() : 0;
-        quoteAssetDecimals = address(_quoteAsset) != address(0) ? IERC20(_quoteAsset).decimals() : 0;
 
         _renounceOwnership();
     }
@@ -97,16 +78,10 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
      *
      */
     function fetchPrice() external override returns (uint256) {
-        return _fetchPrice();
-    }
-
-    // --- Helper functions ---
-
-    function _fetchPrice() internal view returns (uint256) {
         // If uniswap pair oracle is not set, that means, the desired collateral
         // has a direct price aggregator, hence we fetch price without uniswap pair oracle.
         // i.e we fetch price from base to usd using chainlink and then usd to gmu using gmu oracle.
-        if (address(uniPairOracle) == address(0)) return _fetchPriceWithoutUniPair();
+        if (address(umbOracle) == address(0)) return _fetchPriceWithoutUniPair();
 
         // Else, we fetch price from uniswap base to quote, then from quote to usd using chainlink,
         // and finally usd to gmu using gmu oracle.
@@ -122,12 +97,11 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
 
     function _fetchPriceWithUniPair() internal view returns (uint256) {
         uint256 gmuPrice = _fetchGMUPrice();
-        uint256 pairPrice = _fetchBaseAssetPairPrice();
+        uint256 pairPrice = _fetchUMBPrice();
         uint256 chainlinkPrice = _fetchChainlinkPrice();
 
         return (
-            pairPrice // Base to quote.
-            .mul(chainlinkPrice).div(gmuPrice) // Quote to USD. // USD To GMU.
+            pairPrice.mul(chainlinkPrice).div(gmuPrice) // Base to quote. // Quote to USD. // USD To GMU.
         );
     }
 
@@ -148,16 +122,13 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
         return price;
     }
 
-    function _fetchBaseAssetPairPrice() internal view returns (uint256) {
-        uint256 price = uniPairOracle.consult(baseAsset, 10**baseAssetDecimals);
-
-        return _scalePriceByDigits(price, quoteAssetDecimals);
+    function _fetchUMBPrice() internal view returns (uint256) {
+        return _scalePriceByDigits(umbOracle.getPrice(), 18);
     }
 
     function _fetchGMUPrice() internal view returns (uint256) {
         uint256 gmuPrice = gmuOracle.getPrice();
         uint256 gmuPricePrecision = gmuOracle.getDecimalPercision();
-
         return _scalePriceByDigits(gmuPrice, gmuPricePrecision);
     }
 
@@ -178,7 +149,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
         returns (ChainlinkResponse memory chainlinkResponse)
     {
         // First, try to get current decimal precision:
-        try priceAggregator.decimals() returns (uint8 decimals) {
+        try chainlinkOracle.decimals() returns (uint8 decimals) {
             // If call to Chainlink succeeds, record the current decimal precision
             chainlinkResponse.decimals = decimals;
         } catch {
@@ -187,7 +158,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
         }
 
         // Secondly, try to get latest price data:
-        try priceAggregator.latestRoundData() returns (
+        try chainlinkOracle.latestRoundData() returns (
             uint80 roundId,
             int256 answer,
             uint256, /* startedAt */

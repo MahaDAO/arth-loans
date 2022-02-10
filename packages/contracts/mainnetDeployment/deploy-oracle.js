@@ -14,12 +14,12 @@ async function main() {
   ];
 
   const StakingRewards = await ethers.getContractFactory('UMBOracle');
-  // const instance = await StakingRewards.deploy(...constructorArguments);
-  // await instance.deployed();
-  // console.log('created', instance.address);
+  const instance = await StakingRewards.deploy(...constructorArguments);
+  console.log('created', instance.address);
+  await instance.deployed();
 
   await this.hre.run("verify:verify", {
-    address: '0x52E79DBAe9De41e620BCd47dfb7d46FC671D6000',
+    address: instance.address,
     constructorArguments,
   });
 }
