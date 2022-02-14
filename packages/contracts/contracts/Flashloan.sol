@@ -62,6 +62,8 @@ contract Flashloan is CheckContract {
             address(this),
             vars.currentAmountPlusPremium
         );
+        arth.burn(address(this), vars.currentAmount);
+        // TODO: what is to be done with the premium?
         
         emit FlashLoan(
             receiverAddress,
