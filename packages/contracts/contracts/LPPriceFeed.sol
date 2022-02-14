@@ -132,6 +132,9 @@ contract LPPriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
 
     function _fetchPrice() internal view returns (uint256) {
         uint256 gmuPrice = _fetchGMUPrice();
+        uint256 fairPrice = _fetchFairPrice();
+
+        return fairPrice.mul(10 ** TARGET_DIGITS).div(gmuPrice);
     }
 
     function _scalePriceByDigits(uint256 _price, uint256 _answerDigits)
