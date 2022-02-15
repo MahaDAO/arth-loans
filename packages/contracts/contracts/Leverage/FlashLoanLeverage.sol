@@ -45,8 +45,8 @@ contract FlashLoanLeverage is CheckContract {
         token1 = IUniswapV2Pair(_pair).token1();
         arthToToken0Path = _arthToToken0Path;
         arthToToken1Path = _arthToToken1Path;
-        flashLoan = IFlashLoan(_flashLoan);
-        uniswapRouter = IUniswapV2Router02(_uniswapRouter);
+        flashLoan = _flashLoan;
+        uniswapRouter = _uniswapRouter;
         borrowerOperations = _borrowerOperations;
     }
 
@@ -80,15 +80,13 @@ contract FlashLoanLeverage is CheckContract {
             (uint256,uint256,uint256,address,address,address)
         );
         
-        // 1. Swap and add liquidity for the borrowed ARTH.
         uint256 arthToSwap = amount.div(2);
         uint256 token0Out = _swapARTHForToken(arthToToken0Path, arthToSwap);
         uint256 token1Out = _swapARTHForToken(arthToToken1Path, arthToSwap);
         uint256 liquidityOut = _addLiquidity(token0Out, token1Out);
 
-        // 2. Take the LP token and approve it to be taken in by borrower operations.
-        IERC20(pair).transferFrom(msg.sender, address(this), _ETHAmount);
-        IERC20(pair).approve(address(borrowerOperations), _ETHAmount.add(liquidityOut));
+        IERC20(pair).transferFrom(msg.sender, address(this), _ETHAmount.sub(liquidityOut));
+        IERC20(pair).approve(address(borrowerOperations), _ETHAmount);
 
         // 3. Borrow ARTH.
         borrowerOperations.openTrove(
