@@ -24,7 +24,6 @@ contract Flashloan is CheckContract {
 
     struct FlashLoanLocalVars {
         IFlashLoanReceiver receiver;
-        uint256 i;
         uint256 currentAmount;
         uint256 currentPremium;
         uint256 currentAmountPlusPremium;
