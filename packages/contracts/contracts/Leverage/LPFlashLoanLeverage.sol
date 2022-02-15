@@ -10,7 +10,7 @@ import "../Dependencies/IERC20.sol";
 import "../Dependencies/SafeMath.sol";
 import "../Interfaces/IFlashLoan.sol";
 
-contract FlashLoanLeverage is CheckContract {
+contract LPFlashLoanLeverage is CheckContract {
     using SafeMath for uint256;
 
     address immutable arth;
