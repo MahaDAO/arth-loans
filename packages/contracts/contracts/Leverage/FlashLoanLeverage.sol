@@ -79,12 +79,11 @@ contract FlashLoanLeverage is CheckContract {
             params, 
             (uint256,uint256,uint256,address,address,address)
         );
-
+        
         // 1. Swap and add liquidity for the borrowed ARTH.
-        uint256 arthToSwapForToken0 = amount.div(2);
-        uint256 arthToSwapForToken1 = amount.sub(arthToSwapForToken0);
-        uint256 token0Out = _swapARTHForToken(arthToToken0Path, arthToSwapForToken0);
-        uint256 token1Out = _swapARTHForToken(arthToToken1Path, arthToSwapForToken1);
+        uint256 arthToSwap = amount.div(2);
+        uint256 token0Out = _swapARTHForToken(arthToToken0Path, arthToSwap);
+        uint256 token1Out = _swapARTHForToken(arthToToken1Path, arthToSwap);
         uint256 liquidityOut = _addLiquidity(token0Out, token1Out);
 
         // 2. Take the LP token and approve it to be taken in by borrower operations.
