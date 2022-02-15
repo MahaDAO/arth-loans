@@ -14,6 +14,7 @@ contract LPFlashLoanLeverage is CheckContract {
     using SafeMath for uint256;
 
     address immutable arth;
+    address immutable collateral;
     address[] public arthToCollateralPath;
 
     IFlashLoan public flashLoan;
@@ -22,6 +23,7 @@ contract LPFlashLoanLeverage is CheckContract {
 
     constructor(
         address _arth,
+        address _collateral,
         address[] memory _arthToCollateralPath,
         IFlashLoan _flashLoan,
         IUniswapV2Router02 _uniswapRouter,
@@ -33,6 +35,7 @@ contract LPFlashLoanLeverage is CheckContract {
         checkContract(address(_borrowerOperations));
 
         arth = _arth;
+        collateral = _collateral;
         arthToCollateralPath = _arthToCollateralPath;
         flashLoan = _flashLoan;
         uniswapRouter = _uniswapRouter;
@@ -71,8 +74,8 @@ contract LPFlashLoanLeverage is CheckContract {
         
         uint256 collateralOut = _swapARTHForToken(arthToCollateralPath, amount);
 
-        IERC20(pair).transferFrom(msg.sender, address(this), _ETHAmount.sub(collateralOut));
-        IERC20(pair).approve(address(borrowerOperations), _ETHAmount);
+        IERC20(collateral).transferFrom(msg.sender, address(this), _ETHAmount.sub(collateralOut));
+        IERC20(collateral).approve(address(borrowerOperations), _ETHAmount);
 
         // 3. Borrow ARTH.
         borrowerOperations.openTrove(
