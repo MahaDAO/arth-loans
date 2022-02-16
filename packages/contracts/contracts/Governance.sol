@@ -43,7 +43,7 @@ contract Governance is TransferableOwnable, IGovernance {
 
     uint256 private maxDebtCeiling = uint256(-1); // infinity
     uint256 private stabilityFee = 10000000000000000; // 1%
-    
+
     uint256 private immutable DEPLOYMENT_START_TIME;
 
     event AllowMintingChanged(bool oldFlag, bool newFlag, uint256 timestamp);
@@ -137,6 +137,11 @@ contract Governance is TransferableOwnable, IGovernance {
     function chargeStabilityFee(address who, uint256 LUSDAmount) external override {
         _requireCallerIsTroveManager();
 
+        if (
+            address(stabilityTokenPairOracle) == address(0) ||
+            address(stabilityFeeToken) == address(0)
+        ) return;
+
         uint256 stabilityFeeInLUSD = LUSDAmount.mul(stabilityFee).div(_100pct);
         uint256 stabilityTokenPriceInLUSD = stabilityTokenPairOracle.consult(
             address(stabilityFeeToken),
@@ -151,7 +156,11 @@ contract Governance is TransferableOwnable, IGovernance {
     }
 
     // Amount of tokens have to be transferred to this addr before calling this func.
-    function sendToFund(address token, uint256 amount, string memory reason) external override {
+    function sendToFund(
+        address token,
+        uint256 amount,
+        string memory reason
+    ) external override {
         _requireCallerIsBOorTroveM();
 
         IERC20(token).approve(address(fund), amount);
