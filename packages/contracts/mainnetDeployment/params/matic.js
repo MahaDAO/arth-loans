@@ -1,3 +1,5 @@
+const { zeroAddress } = require("ethereumjs-util");
+
 const EXTERNAL_ADDRS  = {
     DAI: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',
     WETH: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
@@ -16,20 +18,20 @@ const DEPLOYER_ADDRS = {
 
 const PRICEFEED_CONFIGS = {
     WMATIC: {
-        umbOracle: zeroAddress,
+        umbOracle: zeroAddress(),
         chainlinkOracle: "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0", // MATIC/USD
     },
     DAI: {
-        umbOracle: zeroAddress,
+        umbOracle: zeroAddress(),
         chainlinkOracle: "0x4746DeC9e833A82EC7C2C1356372CcF2cfcD2F3D", // DAI/USD
     },
     WETH: {
-        umbOracle: zeroAddress,
+        umbOracle: zeroAddress(),
         chainlinkOracle: "0xF9680D99D6C9589e2a93a78A04A279e509205945", // WETH/USD
     },
     MAHA: {
         umbOracle: "0xE31ea987B1042819966B0f159076dbaaA68a8430", // MAHA/USD
-        chainlinkOracle: zeroAddress,
+        chainlinkOracle: zeroAddress(),
     }
 };
 

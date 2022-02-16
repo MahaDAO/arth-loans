@@ -95,16 +95,16 @@ class MainnetDeploymentHelper {
     await this.deployerWallet.provider.waitForTransaction(
         contract.deployTransaction.hash,
         this.configParams.TX_CONFIRMATIONS
-    )
+    );
 
     deploymentState[name] = {
       abi: abiName || name,
       address: contract.address,
       txHash: contract.deployTransaction.hash
-    }
+    };
 
-    this.saveDeployment(deploymentState)
-    return contract
+    this.saveDeployment(deploymentState);
+    return contract;
   }
 
   async deploy(deploymentState) {
@@ -363,7 +363,7 @@ class MainnetDeploymentHelper {
     await this.sendAndWaitForTransaction(ARTHContracts.priceFeed.setAddresses(
         this.configParams.PRICEFEED_CONFIGS[token].umbOracle,
         this.configParams.PRICEFEED_CONFIGS[token].chainlinkOracle,
-        ARTHContracts.gmuOracle.address,
+        this.configParams.EXTERNAL_ADDRS.GMU_ORACLE,
         {gasPrice})
       )
 
@@ -375,12 +375,12 @@ class MainnetDeploymentHelper {
     await this.sendAndWaitForTransaction(ARTHContracts.governance.setStabilityFeeToken(
         this.configParams.EXTERNAL_ADDRS.MahaToken,
         this.configParams.EXTERNAL_ADDRS.MAHA_ARTH_PAIR_ORACLE,
-        {gasPrice}
+        // {gasPrice}
     ))
 
     await this.sendAndWaitForTransaction(ARTHContracts.governance.setFund(
         this.configParams.EXTERNAL_ADDRS.ECOSYSTEMFUND,
-        {gasPrice}
+        // {gasPrice}
     ))
 
     // await this.sendAndWaitForTransaction(ARTHContracts.arthController.addPool(

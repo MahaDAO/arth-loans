@@ -52,9 +52,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
         address _chainlinkOracleAddress,
         address _gmuOracle
     ) external onlyOwner {
-        checkContract(_chainlinkOracleAddress);
         checkContract(_gmuOracle);
-        checkContract(_umbOracle);
 
         umbOracle = IUMBOracle(_umbOracle);
         chainlinkOracle = AggregatorV3Interface(_chainlinkOracleAddress);
@@ -81,28 +79,23 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
         // If uniswap pair oracle is not set, that means, the desired collateral
         // has a direct price aggregator, hence we fetch price without uniswap pair oracle.
         // i.e we fetch price from base to usd using chainlink and then usd to gmu using gmu oracle.
-        if (address(umbOracle) == address(0)) return _fetchPriceWithoutUniPair();
+        if (address(umbOracle) == address(0)) return fetchPriceWithoutUMB();
 
         // Else, we fetch price from uniswap base to quote, then from quote to usd using chainlink,
         // and finally usd to gmu using gmu oracle.
-        return _fetchPriceWithUniPair();
+        return fetchPriceWithUMB();
     }
 
-    function _fetchPriceWithoutUniPair() internal view returns (uint256) {
+    function fetchPriceWithoutUMB() public view returns (uint256) {
         uint256 gmuPrice = _fetchGMUPrice();
         uint256 chainlinkPrice = _fetchChainlinkPrice();
-
         return (chainlinkPrice.mul(10**TARGET_DIGITS).div(gmuPrice));
     }
 
-    function _fetchPriceWithUniPair() internal view returns (uint256) {
+    function fetchPriceWithUMB() public view returns (uint256) {
         uint256 gmuPrice = _fetchGMUPrice();
-        uint256 pairPrice = _fetchUMBPrice();
-        uint256 chainlinkPrice = _fetchChainlinkPrice();
-
-        return (
-            pairPrice.mul(chainlinkPrice).div(gmuPrice) // Base to quote. // Quote to USD. // USD To GMU.
-        );
+        uint256 umbPrice = _fetchUMBPrice();
+        return (umbPrice.mul(10**TARGET_DIGITS).div(gmuPrice));
     }
 
     function _scalePriceByDigits(uint256 _price, uint256 _answerDigits)
@@ -142,7 +135,6 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     }
 
     // --- Oracle response wrapper functions ---
-
     function _getCurrentChainlinkResponse()
         internal
         view

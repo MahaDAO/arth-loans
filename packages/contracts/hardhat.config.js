@@ -73,6 +73,14 @@ module.exports = {
             baseFee: 165700565374,
             maxFeePerGas: 50000000000
         },
+        bsc: {
+            url:
+              'https://bsc-dataseed.binance.org/',
+            accounts: [getSecret('DEPLOYER_PRIVATEKEY', '0x60ddfe7f579ab6867cbe7a2dc03853dc141d7a4ab6dbefc0dae2d2b1bd4e487f')],
+            // gasPrice: 50 * 1000000000, // 5.1 gwei
+            // baseFee: 165700565374,
+            // maxFeePerGas: 50000000000
+        },
         hardhat: {
             accounts: accountsList,
             gas: 10000000,  // tx gas limit
