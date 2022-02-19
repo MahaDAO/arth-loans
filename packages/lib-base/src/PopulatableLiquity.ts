@@ -12,6 +12,7 @@ import {
   TroveClosureDetails,
   TroveCreationDetails
 } from "./TransactableLiquity";
+import { CollateralTypes } from "./constants";
 
 /**
  * A transaction that has been prepared for sending.
@@ -113,6 +114,8 @@ export interface PopulatableLiquity<R = unknown, S = unknown, P = unknown>
 
   /** {@inheritDoc TransactableLiquity.openTrove} */
   openTrove(
+    collateralType: CollateralTypes,
+    frontendTag: string,
     params: TroveCreationParams<Decimalish>,
     maxBorrowingRate?: Decimalish
   ): Promise<

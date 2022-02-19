@@ -2,7 +2,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { Block, BlockTag } from "@ethersproject/abstract-provider";
 import { Signer } from "@ethersproject/abstract-signer";
 
-import { Decimal } from "@mahadao/arth-lib-base";
+import { CollateralTypes, Decimal } from "@mahadao/arth-lib-base";
 
 import devOrNull from "../deployments/dev.json";
 import goerli from "../deployments/goerli.json";
@@ -130,7 +130,7 @@ const connectionFrom = (
 };
 
 /** @internal */
-export const _getContracts = (connection: EthersLiquityConnection): _LiquityContracts =>
+export const _getContracts = (collateralType: CollateralTypes, connection: EthersLiquityConnection): _LiquityContracts =>
   (connection as _InternalEthersLiquityConnection)._contracts;
 
 const getMulticall = (connection: EthersLiquityConnection): _Multicall | undefined =>

@@ -2,6 +2,7 @@ import { Decimal, Decimalish } from "./Decimal";
 import { Trove, TroveAdjustmentParams, TroveClosureParams, TroveCreationParams } from "./Trove";
 import { StabilityDepositChange } from "./StabilityDeposit";
 import { FailedReceipt } from "./SendableLiquity";
+import { CollateralTypes } from "./constants";
 
 /**
  * Thrown by {@link TransactableLiquity} functions in case of transaction failure.
@@ -181,6 +182,8 @@ export interface TransactableLiquity {
    * acceptable rate.
    */
   openTrove(
+    collateralType: CollateralTypes,
+    frontendTag: string,
     params: TroveCreationParams<Decimalish>,
     maxBorrowingRate?: Decimalish
   ): Promise<TroveCreationDetails>;

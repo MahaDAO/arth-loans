@@ -41,13 +41,10 @@ const getType = ({ baseType, components, arrayChildren }: ParamType, flexible: b
     case "address":
     case "string":
       return "string";
-
     case "bool":
       return "boolean";
-
     case "array":
       return `${getType(arrayChildren, flexible)}[]`;
-
     case "tuple":
       return getTupleType(components, flexible);
   }

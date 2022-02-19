@@ -5,6 +5,7 @@ import { AddressZero } from "@ethersproject/constants";
 import { Log } from "@ethersproject/abstract-provider";
 
 import {
+  CollateralTypes,
   CollateralGainTransferDetails,
   Decimal,
   Decimalish,
@@ -592,11 +593,13 @@ export class PopulatableEthersLiquity
 
   /** {@inheritDoc @mahadao/arth-lib-base#PopulatableLiquity.openTrove} */
   async openTrove(
+    collateralType: CollateralTypes,
+    frontendTag: string,
     params: TroveCreationParams<Decimalish>,
     maxBorrowingRate?: Decimalish,
     overrides?: EthersTransactionOverrides
   ): Promise<PopulatedEthersLiquityTransaction<TroveCreationDetails>> {
-    const { borrowerOperations } = _getContracts(this._readable.connection);
+    const { borrowerOperations } = _getContracts(collateralType,this._readable.connection);
 
     const normalized = _normalizeTroveCreation(params);
     const { depositCollateral, borrowLUSD } = normalized;
@@ -618,7 +621,8 @@ export class PopulatableEthersLiquity
         maxBorrowingRate.hex,
         borrowLUSD.hex,
         depositCollateral.hex,
-        ...(await this._findHints(newTrove))
+        ...(await this._findHints(newTrove)),
+        frontendTag
       )
     );
   }

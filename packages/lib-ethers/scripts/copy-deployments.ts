@@ -15,6 +15,7 @@ const copyDeploymentsFrom = (deploymentsDir: string) => {
   const deployments = fs.readdirSync(deploymentsDir);
 
   for (const deployment of deployments) {
+    console.log('copying', path.join(deploymentsDir, deployment), path.join(outputDir, deployment))
     fs.copyFileSync(path.join(deploymentsDir, deployment), path.join(outputDir, deployment));
   }
 };

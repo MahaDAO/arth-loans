@@ -72,6 +72,9 @@ export interface CollateralGainTransferDetails extends StabilityPoolGainsWithdra
     newTrove: Trove;
 }
 
+// @public (undocumented)
+export type CollateralTypes = "WETH" | "WMATIC" | "DAI" | "DFYN";
+
 // @internal (undocumented)
 export type _CollateralWithdrawal<T> = {
     withdrawCollateral: T;
@@ -726,7 +729,11 @@ export class Trove {
 
 // @public
 export interface TroveAdjustmentDetails {
+    // (undocumented)
+    collateralType: CollateralTypes;
     fee: Decimal;
+    // (undocumented)
+    frontendTag: string;
     newTrove: Trove;
     params: TroveAdjustmentParams<Decimal>;
 }
@@ -758,6 +765,10 @@ export type TroveChange<T> = {
 
 // @public
 export interface TroveClosureDetails {
+    // (undocumented)
+    collateralType: CollateralTypes;
+    // (undocumented)
+    frontendTag: string;
     params: TroveClosureParams<Decimal>;
 }
 
@@ -771,7 +782,11 @@ export type TroveClosureParams<T> = _CollateralWithdrawal<T> & _NoCollateralDepo
 
 // @public
 export interface TroveCreationDetails {
+    // (undocumented)
+    collateralType: CollateralTypes;
     fee: Decimal;
+    // (undocumented)
+    frontendTag: string;
     newTrove: Trove;
     params: TroveCreationParams<Decimal>;
 }
