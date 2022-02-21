@@ -22,10 +22,10 @@ const waitFunction = async () => delay(90000); // Wait 90s.
 
 const TX_CONFIRMATIONS = 1;
 const GAS_PRICE = 50 * 1000000000; // 5.1 gwei
-const NETWORK_NAME = 'bscTestnet';
-const COLLATERLAS = ['BUSD', 'WBNB', 'MAHA'];
-const OUTPUT_FILE = './output/bscTestnet.json';
-const ETHERSCAN_BASE_URL = 'https://testnet.bscscan.com/address';
+const NETWORK_NAME = 'maticMumbai';
+const COLLATERLAS = ['WMATIC', 'DAI', 'MAHA'];
+const OUTPUT_FILE = './output/maticMumbai.json';
+const ETHERSCAN_BASE_URL = 'https://mumbai.polygonscan.com/address';
 
 module.exports = {
     COLLATERLAS,
