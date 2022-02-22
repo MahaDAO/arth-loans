@@ -43,22 +43,22 @@ contract FlashLoanLeverage is CheckContract {
     }
 
     function leverage(
-        bytes calldata params,
+        bytes calldata data,
         uint256 flashLoanAmount
     ) external {
-        flashLoan.flashLoan(address(this), flashLoanAmount, params);
+        flashLoan.flashLoan(address(this), flashLoanAmount, data);
     }
 
-    function executeOperation(
-        uint256 amount,
-        uint256 premium,
+    function onFlashLoan(
         address initiator,
-        bytes calldata params
-    ) external returns(bool) {
+        uint256 amount,
+        uint256 fee,
+        bytes calldata data
+    ) external returns(bytes32) {
         require(msg.sender == address(flashLoan), "Untrusted lender");
         require(initiator == address(this), "Untrusted initiator");
     
-        uint256 paybackAmount = amount.add(premium);
+        uint256 paybackAmount = amount.add(fee);
 
         (
             uint256 _maxFee,
@@ -68,7 +68,7 @@ contract FlashLoanLeverage is CheckContract {
             address _lowerHint,
             address _frontEndTag
         ) = abi.decode(
-            params, 
+            data, 
             (uint256,uint256,uint256,address,address,address)
         );
         
@@ -92,7 +92,7 @@ contract FlashLoanLeverage is CheckContract {
         );
         IERC20(arth).approve(address(flashLoan), paybackAmount);
 
-        return true;
+        return keccak256("FlashMinter.onFlashLoan");
     }
 
     function _swapARTHForToken(
