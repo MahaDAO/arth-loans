@@ -50,13 +50,6 @@ contract LPFlashLoanLeverage is CheckContract {
         borrowerOperations = _borrowerOperations;
     }
 
-    function leverage(
-        bytes calldata data,
-        uint256 flashLoanAmount
-    ) external {
-        flashLoan.flashLoan(address(this), flashLoanAmount, data);
-    }
-
     function onFlashLoan(
         address initiator,
         uint256 amount,
@@ -64,7 +57,6 @@ contract LPFlashLoanLeverage is CheckContract {
         bytes calldata data
     ) external returns(bytes32) {
         require(msg.sender == address(flashLoan), "Untrusted lender");
-        require(initiator == address(this), "Untrusted initiator");
     
         uint256 paybackAmount = amount.add(fee);
 
@@ -85,7 +77,7 @@ contract LPFlashLoanLeverage is CheckContract {
         uint256 token1Out = _swapARTHForToken(arthToToken1Path, arthToSwap);
         uint256 liquidityOut = _addLiquidity(token0Out, token1Out);
 
-        IERC20(pair).transferFrom(msg.sender, address(this), _ETHAmount.sub(liquidityOut));
+        IERC20(pair).transferFrom(initiator, address(this), _ETHAmount.sub(liquidityOut));
         IERC20(pair).approve(address(borrowerOperations), _ETHAmount);
 
         // 3. Borrow ARTH.
