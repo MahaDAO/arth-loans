@@ -26,6 +26,7 @@
     "ethers": "^5.0.32",
     "hardhat-abi-exporter": "^2.2.1",
     "solc": "^0.6.11",
+    "web3": "^1.7.0",
     "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
