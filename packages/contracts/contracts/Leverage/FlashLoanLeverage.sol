@@ -14,6 +14,7 @@ contract FlashLoanLeverage is CheckContract {
     using SafeMath for uint256;
 
     address immutable arth;
+    address immutable frontEndTag;
     address immutable collateral;
     address[] public arthToCollateralPath;
 
@@ -24,6 +25,7 @@ contract FlashLoanLeverage is CheckContract {
     constructor(
         address _arth,
         address _collateral,
+        address _frontEndTag,
         address[] memory _arthToCollateralPath,
         IFlashLoan _flashLoan,
         IUniswapV2Router02 _uniswapRouter,
@@ -35,6 +37,7 @@ contract FlashLoanLeverage is CheckContract {
         checkContract(address(_borrowerOperations));
 
         arth = _arth;
+        frontEndTag =_frontEndTag;
         collateral = _collateral;
         arthToCollateralPath = _arthToCollateralPath;
         flashLoan = _flashLoan;
@@ -58,13 +61,13 @@ contract FlashLoanLeverage is CheckContract {
             uint256 _ETHAmount,
             address _upperHint,
             address _lowerHint,
-            address _frontEndTag
+            uint256 _minSwapAmount
         ) = abi.decode(
             data, 
-            (uint256,uint256,uint256,address,address,address)
+            (uint256,uint256,uint256,address,address,uint256)
         );
         
-        uint256 collateralOut = _swapARTHForToken(arthToCollateralPath, amount);
+        uint256 collateralOut = _swapARTHForToken(arthToCollateralPath, amount, _minSwapAmount);
 
         IERC20(collateral).transferFrom(initiator, address(this), _ETHAmount.sub(collateralOut));
         IERC20(collateral).approve(address(borrowerOperations), _ETHAmount);
@@ -76,7 +79,7 @@ contract FlashLoanLeverage is CheckContract {
             _ETHAmount, 
             _upperHint, 
             _lowerHint, 
-            _frontEndTag
+            frontEndTag
         );
         require(
             IERC20(arth).balanceOf(address(this)) >= paybackAmount,
@@ -89,18 +92,14 @@ contract FlashLoanLeverage is CheckContract {
 
     function _swapARTHForToken(
         address[] memory path,
-        uint256 _arthAmount
+        uint256 _arthAmount,
+        uint256 _minSwapAmount
     ) internal returns (uint256) {
         IERC20(arth).approve(address(uniswapRouter), _arthAmount);
 
-        uint256[] memory expectedAmountsOut = uniswapRouter.getAmountsOut(
-            _arthAmount,
-            path
-        );
-
         uint256[] memory amountsOut = uniswapRouter.swapExactTokensForTokens(
             _arthAmount,
-            expectedAmountsOut[expectedAmountsOut.length - 1],
+            _minSwapAmount,
             path,
             address(this),
             block.timestamp
