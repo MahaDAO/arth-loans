@@ -171,7 +171,7 @@ class TestnetDeploymentHelper {
     const arth = await this.loadOrDeploy(
       this.lusdTokenFactory,
       `ARTHStablecoin`,
-      'LiquityLUSDToken',
+      'LUSDToken',
       deploymentState
     )
 
@@ -254,31 +254,12 @@ class TestnetDeploymentHelper {
         proxyParams,
         this.troveManagerFactory
     )
-    !(await this.isInitialized(troveManager)) && await this.sendAndWaitForTransaction(
-      troveManager.initialize({gasPrice: this.configParams.GAS_PRICE})
-    )
     
     const activePool = await this.loadOrDeploy(
         this.activePoolFactory,
         `${token}ActivePool`,
         'ActivePool',
         deploymentState
-    )
-
-    const controllerParams = [
-        troveManager.address,
-        stabilityPool.address,
-        borrowerOperations.address,
-        governance.address,
-        this.configParams.EXTERNAL_ADDRS.ARTH, // TODO: need to add this addr in config params.
-        gasPool.address
-    ]
-    const controller = await this.loadOrDeploy(
-        this.coreControllerFactory,
-        `${token}Controller`,
-        'Controller',
-        deploymentState,
-        controllerParams
     )
 
     const stabilityPool = await this.loadOrDeploy(
@@ -347,6 +328,22 @@ class TestnetDeploymentHelper {
       multiTroveGetterParams
     )
 
+    const controllerParams = [
+        troveManager.address,
+        stabilityPool.address,
+        borrowerOperations.address,
+        governance.address,
+        arth.address, // TODO: need to add this addr in config params.
+        gasPool.address
+    ]
+    const controller = await this.loadOrDeploy(
+        this.coreControllerFactory,
+        `${token}Controller`,
+        'Controller',
+        deploymentState,
+        controllerParams
+    )
+
     if (!this.configParams.ETHERSCAN_BASE_URL) {
       console.log('- No Etherscan Url defined, skipping verification')
     } else {
@@ -359,7 +356,6 @@ class TestnetDeploymentHelper {
       await this.verifyContract(`ARTHStablecoin`, deploymentState)
       await this.verifyContract(`MahaToken`, deploymentState)
       await this.verifyContract(`${token}SortedTroves`, deploymentState)
-      await this.verifyContract(`${token}TroveManagerImplementation`, deploymentState)
       await this.verifyContract(`${token}TroveManager`, deploymentState, proxyParams)
       await this.verifyContract(`${token}ActivePool`, deploymentState)
       await this.verifyContract(`${token}StabilityPool`, deploymentState)
@@ -461,10 +457,6 @@ class TestnetDeploymentHelper {
     return owner == ZERO_ADDRESS
   }
 
-  async isInitialized(contract) {
-    return await contract.initialized();
-  }
-
   async connectCoreContracts(ARTHContracts, LQTYContracts, token) {
     const gasPrice = this.configParams.GAS_PRICE
 
@@ -487,12 +479,10 @@ class TestnetDeploymentHelper {
       ARTHContracts.mockAggregator.setPrevUpdateTime(Math.floor(Date.now() / 1000), { gasPrice }),
     )
 
-    await this.isOwnershipRenounced(ARTHContracts.sortedTroves) || 
+    await this.isOwnershipRenounced(ARTHContracts.priceFeed) || 
     await this.sendAndWaitForTransaction(
       ARTHContracts.priceFeed.setAddresses(
-        ARTHContracts.mockToken.address,
-        ARTHContracts.mockToken.address,
-        token === 'MAHA' ? ARTHContracts.mockPriceFeedPairOracle.address : ZERO_ADDRESS,
+        ZERO_ADDRESS,
         ARTHContracts.mockAggregator.address,
         ARTHContracts.gmuOracle.address,
         {gasPrice}
@@ -658,6 +648,7 @@ class TestnetDeploymentHelper {
   // --- Verify on Ethrescan ---
 
   async verifyContract(name, deploymentState, constructorArguments=[]) {
+      return;
     if (!deploymentState[name] || !deploymentState[name].address) {
       console.error(`- No deployment state for contract ${name}!!`)
       return
