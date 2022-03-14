@@ -239,20 +239,11 @@ class TestnetDeploymentHelper {
         deploymentState
     )
 
-    const troveManagerImplementation = await this.loadOrDeploy(
+    const troveManager = await this.loadOrDeploy(
       this.troveManagerFactory,
-      `${token}TroveManagerImplementation`,
+      `${token}TroveManager`,
       'TroveManager',
       deploymentState
-    )
-    const proxyParams = [troveManagerImplementation.address]
-    const troveManager = await this.loadOrDeploy(
-        this.proxyFactory,
-        `${token}TroveManager`,
-        'TroveManager',
-        deploymentState,
-        proxyParams,
-        this.troveManagerFactory
     )
     
     const activePool = await this.loadOrDeploy(
@@ -356,7 +347,7 @@ class TestnetDeploymentHelper {
       await this.verifyContract(`ARTHStablecoin`, deploymentState)
       await this.verifyContract(`MahaToken`, deploymentState)
       await this.verifyContract(`${token}SortedTroves`, deploymentState)
-      await this.verifyContract(`${token}TroveManager`, deploymentState, proxyParams)
+      await this.verifyContract(`${token}TroveManager`, deploymentState)
       await this.verifyContract(`${token}ActivePool`, deploymentState)
       await this.verifyContract(`${token}StabilityPool`, deploymentState)
       await this.verifyContract(`${token}GasPool`, deploymentState)
@@ -648,7 +639,6 @@ class TestnetDeploymentHelper {
   // --- Verify on Ethrescan ---
 
   async verifyContract(name, deploymentState, constructorArguments=[]) {
-      return;
     if (!deploymentState[name] || !deploymentState[name].address) {
       console.error(`- No deployment state for contract ${name}!!`)
       return
