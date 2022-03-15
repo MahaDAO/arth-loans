@@ -355,7 +355,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         singleLiquidation.collGasCompensation = _getCollGasCompensation(
             singleLiquidation.entireTroveColl
         );
-        singleLiquidation.LUSDGasCompensation = LUSD_GAS_COMPENSATION;
+        singleLiquidation.LUSDGasCompensation = governance.LUSD_GAS_COMPENSATION();
         uint256 collToLiquidate = singleLiquidation.entireTroveColl.sub(
             singleLiquidation.collGasCompensation
         );
@@ -406,7 +406,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         singleLiquidation.collGasCompensation = _getCollGasCompensation(
             singleLiquidation.entireTroveColl
         );
-        singleLiquidation.LUSDGasCompensation = LUSD_GAS_COMPENSATION;
+        singleLiquidation.LUSDGasCompensation = governance.LUSD_GAS_COMPENSATION();
         vars.collToLiquidate = singleLiquidation.entireTroveColl.sub(
             singleLiquidation.collGasCompensation
         );
@@ -436,7 +436,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
             emit TroveUpdated(_borrower, 0, 0, 0, TroveManagerOperation.liquidateInRecoveryMode);
 
             // If 100% < ICR < MCR, offset as much as possible, and redistribute the remainder
-        } else if ((_ICR > _100pct) && (_ICR < MCR)) {
+        } else if ((_ICR > _100pct) && (_ICR < governance.MCR())) {
             _movePendingTroveRewardsToActivePool(
                 _activePool,
                 _defaultPool,
@@ -471,7 +471,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
              * The remainder due to the capped rate will be claimable as collateral surplus.
              */
         } else if (
-            (_ICR >= MCR) && (_ICR < _TCR) && (singleLiquidation.entireTroveDebt <= _LUSDInStabPool)
+            (_ICR >= governance.MCR()) && (_ICR < _TCR) && (singleLiquidation.entireTroveDebt <= _LUSDInStabPool)
         ) {
             _movePendingTroveRewardsToActivePool(
                 _activePool,
@@ -556,13 +556,13 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         uint256 _entireTroveDebt,
         uint256 _entireTroveColl,
         uint256 _price
-    ) internal pure returns (LiquidationValues memory singleLiquidation) {
+    ) internal view returns (LiquidationValues memory singleLiquidation) {
         singleLiquidation.entireTroveDebt = _entireTroveDebt;
         singleLiquidation.entireTroveColl = _entireTroveColl;
-        uint256 collToOffset = _entireTroveDebt.mul(MCR).div(_price);
+        uint256 collToOffset = _entireTroveDebt.mul(governance.MCR()).div(_price);
 
         singleLiquidation.collGasCompensation = _getCollGasCompensation(collToOffset);
-        singleLiquidation.LUSDGasCompensation = LUSD_GAS_COMPENSATION;
+        singleLiquidation.LUSDGasCompensation = governance.LUSD_GAS_COMPENSATION();
 
         singleLiquidation.debtToOffset = _entireTroveDebt;
         singleLiquidation.collToSendToSP = collToOffset.sub(singleLiquidation.collGasCompensation);
@@ -684,7 +684,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
             if (!vars.backToNormalMode) {
                 // Break the loop if ICR is greater than MCR and Stability Pool is empty
-                if (vars.ICR >= MCR && vars.remainingLUSDInStabPool == 0) {
+                if (vars.ICR >= governance.MCR() && vars.remainingLUSDInStabPool == 0) {
                     break;
                 }
 
@@ -722,7 +722,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
                     vars.entireSystemDebt,
                     _price
                 );
-            } else if (vars.backToNormalMode && vars.ICR < MCR) {
+            } else if (vars.backToNormalMode && vars.ICR < governance.MCR()) {
                 singleLiquidation = _liquidateNormalMode(
                     _contractsCache.activePool,
                     _contractsCache.defaultPool,
@@ -759,7 +759,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
             vars.user = sortedTrovesCached.getLast();
             vars.ICR = getCurrentICR(vars.user, _price);
 
-            if (vars.ICR < MCR) {
+            if (vars.ICR < governance.MCR()) {
                 singleLiquidation = _liquidateNormalMode(
                     _activePool,
                     _defaultPool,
@@ -884,7 +884,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
             if (!vars.backToNormalMode) {
                 // Skip this trove if ICR is greater than MCR and Stability Pool is empty
-                if (vars.ICR >= MCR && vars.remainingLUSDInStabPool == 0) {
+                if (vars.ICR >= governance.MCR() && vars.remainingLUSDInStabPool == 0) {
                     continue;
                 }
 
@@ -919,7 +919,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
                     vars.entireSystemDebt,
                     _price
                 );
-            } else if (vars.backToNormalMode && vars.ICR < MCR) {
+            } else if (vars.backToNormalMode && vars.ICR < governance.MCR()) {
                 singleLiquidation = _liquidateNormalMode(
                     _activePool,
                     _defaultPool,
@@ -952,7 +952,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
             vars.user = _troveArray[vars.i];
             vars.ICR = getCurrentICR(vars.user, _price);
 
-            if (vars.ICR < MCR) {
+            if (vars.ICR < governance.MCR()) {
                 singleLiquidation = _liquidateNormalMode(
                     _activePool,
                     _defaultPool,
@@ -1048,7 +1048,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         // Determine the remaining amount (lot) to be redeemed, capped by the entire debt of the Trove minus the liquidation reserve
         singleRedemption.LUSDLot = LiquityMath._min(
             _maxLUSDamount,
-            Troves[_borrower].debt.sub(LUSD_GAS_COMPENSATION)
+            Troves[_borrower].debt.sub(governance.LUSD_GAS_COMPENSATION())
         );
 
         // Get the ETHLot of equivalent value in USD
@@ -1058,11 +1058,11 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         uint256 newDebt = (Troves[_borrower].debt).sub(singleRedemption.LUSDLot);
         uint256 newColl = (Troves[_borrower].coll).sub(singleRedemption.ETHLot);
 
-        if (newDebt == LUSD_GAS_COMPENSATION) {
+        if (newDebt == governance.LUSD_GAS_COMPENSATION()) {
             // No debt left in the Trove (except for the liquidation reserve), therefore the trove gets closed
             _removeStake(_borrower);
             _closeTrove(_borrower, Status.closedByRedemption);
-            _redeemCloseTrove(_contractsCache, _borrower, LUSD_GAS_COMPENSATION, newColl);
+            _redeemCloseTrove(_contractsCache, _borrower, governance.LUSD_GAS_COMPENSATION(), newColl);
             emit TroveUpdated(_borrower, 0, 0, 0, TroveManagerOperation.redeemCollateral);
         } else {
             uint256 newNICR = LiquityMath._computeNominalCR(newColl, newDebt);
@@ -1073,7 +1073,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
              *
              * If the resultant net debt of the partial is less than the minimum, net debt we bail.
              */
-            if (newNICR != _partialRedemptionHintNICR || _getNetDebt(newDebt) < MIN_NET_DEBT) {
+            if (newNICR != _partialRedemptionHintNICR || _getNetDebt(newDebt) < governance.MIN_NET_DEBT()) {
                 singleRedemption.cancelledPartial = true;
                 return singleRedemption;
             }
@@ -1131,13 +1131,13 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         if (
             _firstRedemptionHint == address(0) ||
             !_sortedTroves.contains(_firstRedemptionHint) ||
-            getCurrentICR(_firstRedemptionHint, _price) < MCR
+            getCurrentICR(_firstRedemptionHint, _price) < governance.MCR()
         ) {
             return false;
         }
 
         address nextTrove = _sortedTroves.getNext(_firstRedemptionHint);
-        return nextTrove == address(0) || getCurrentICR(nextTrove, _price) < MCR;
+        return nextTrove == address(0) || getCurrentICR(nextTrove, _price) < governance.MCR();
     }
 
     /* Send _LUSDamount LUSD to the system and redeem the corresponding amount of collateral from as many Troves as are needed to fill the redemption
@@ -1209,7 +1209,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
             currentBorrower = contractsCache.sortedTroves.getLast();
             // Find the first trove with ICR >= MCR
             while (
-                currentBorrower != address(0) && getCurrentICR(currentBorrower, totals.price) < MCR
+                currentBorrower != address(0) && getCurrentICR(currentBorrower, totals.price) < governance.MCR()
             ) {
                 currentBorrower = contractsCache.sortedTroves.getPrev(currentBorrower);
             }
@@ -1633,10 +1633,10 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         uint256 _entireSystemColl,
         uint256 _entireSystemDebt,
         uint256 _price
-    ) internal pure returns (bool) {
+    ) internal view returns (bool) {
         uint256 TCR = LiquityMath._computeCR(_entireSystemColl, _entireSystemDebt, _price);
 
-        return TCR < CCR;
+        return TCR < governance.CCR();
     }
 
     // --- Redemption fee functions ---
@@ -1716,8 +1716,8 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         return _calcBorrowingRate(_calcDecayedBaseRate());
     }
 
-    function _calcBorrowingRate(uint256 _baseRate) internal pure returns (uint256) {
-        return LiquityMath._min(BORROWING_FEE_FLOOR.add(_baseRate), MAX_BORROWING_FEE);
+    function _calcBorrowingRate(uint256 _baseRate) internal view returns (uint256) {
+        return LiquityMath._min(governance.BORROWING_FEE_FLOOR().add(_baseRate), MAX_BORROWING_FEE);
     }
 
     function getBorrowingFee(uint256 _LUSDDebt) external view override returns (uint256) {
@@ -1811,7 +1811,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     }
 
     function _requireTCRoverMCR(uint256 _price) internal view {
-        require(_getTCR(_price) >= MCR, "TroveManager: Cannot redeem when TCR < MCR");
+        require(_getTCR(_price) >= governance.MCR(), "TroveManager: Cannot redeem when TCR < MCR");
     }
 
     function _requireAfterBootstrapPeriod() internal view {

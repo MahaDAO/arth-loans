@@ -18,21 +18,25 @@ contract HintHelpers is LiquityBase, Ownable, CheckContract {
 
     event SortedTrovesAddressChanged(address _sortedTrovesAddress);
     event TroveManagerAddressChanged(address _troveManagerAddress);
+    event GovernanceAddressChanged(address _governanceAddress);
 
     // --- Dependency setters ---
 
-    function setAddresses(address _sortedTrovesAddress, address _troveManagerAddress)
+    function setAddresses(address _sortedTrovesAddress, address _troveManagerAddress, address _governanceAddress)
         external
         onlyOwner
     {
         checkContract(_sortedTrovesAddress);
         checkContract(_troveManagerAddress);
+        checkContract(_governanceAddress);
 
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
         troveManager = ITroveManager(_troveManagerAddress);
+        governance = IGovernance(_governanceAddress);
 
         emit SortedTrovesAddressChanged(_sortedTrovesAddress);
         emit TroveManagerAddressChanged(_troveManagerAddress);
+        emit GovernanceAddressChanged(_governanceAddress);
 
         _renounceOwnership();
     }
@@ -76,7 +80,7 @@ contract HintHelpers is LiquityBase, Ownable, CheckContract {
 
         while (
             currentTroveuser != address(0) &&
-            troveManager.getCurrentICR(currentTroveuser, _price) < MCR
+            troveManager.getCurrentICR(currentTroveuser, _price) < governance.MCR()
         ) {
             currentTroveuser = sortedTrovesCached.getPrev(currentTroveuser);
         }
@@ -93,10 +97,10 @@ contract HintHelpers is LiquityBase, Ownable, CheckContract {
             );
 
             if (netLUSDDebt > remainingLUSD) {
-                if (netLUSDDebt > MIN_NET_DEBT) {
+                if (netLUSDDebt > governance.MIN_NET_DEBT()) {
                     uint256 maxRedeemableLUSD = LiquityMath._min(
                         remainingLUSD,
-                        netLUSDDebt.sub(MIN_NET_DEBT)
+                        netLUSDDebt.sub(governance.MIN_NET_DEBT())
                     );
 
                     uint256 ETH = troveManager.getTroveColl(currentTroveuser).add(

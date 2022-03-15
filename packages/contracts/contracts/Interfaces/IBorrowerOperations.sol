@@ -101,5 +101,5 @@ interface IBorrowerOperations {
 
     function claimCollateral() external;
 
-    function getCompositeDebt(uint256 _debt) external pure returns (uint256);
+    function getCompositeDebt(uint256 _debt) external view returns (uint256);
 }
