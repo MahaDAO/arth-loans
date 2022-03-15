@@ -23,8 +23,8 @@ contract Governance is TransferableOwnable, IGovernance {
     string public constant NAME = "Governance";
     uint256 public constant _100pct = 1000000000000000000; // 1e18 == 100%
 
-    address public immutable troveManagerAddress;
-    address public immutable borrowerOperationAddress;
+    address public troveManagerAddress;
+    address public borrowerOperationAddress;
 
     // Maximum amount of debt that this deployment can have (used to limit exposure to volatile assets)
     // set this according to how much ever debt we'd like to accumulate; default is infinity
@@ -44,7 +44,7 @@ contract Governance is TransferableOwnable, IGovernance {
     uint256 private maxDebtCeiling = uint256(-1); // infinity
     uint256 private stabilityFee = 10000000000000000; // 1%
     
-    uint256 private immutable DEPLOYMENT_START_TIME;
+    uint256 private DEPLOYMENT_START_TIME;
 
     event AllowMintingChanged(bool oldFlag, bool newFlag, uint256 timestamp);
     event StabilityFeeChanged(uint256 oldValue, uint256 newValue, uint256 timestamp);
@@ -73,10 +73,20 @@ contract Governance is TransferableOwnable, IGovernance {
     uint256 public override MAX_BORROWING_FEE = (DECIMAL_PRECISION / 100) * 5; // 5%
     uint256 public override REDEMPTION_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5; // 0.5%
 
-    constructor(address _troveManagerAddress, address _borrowerOperationAddress) public {
+    bool public initialized = false;
+
+    function initialize(address _troveManagerAddress, address _borrowerOperationAddress) external {
+        require(!initialized, 'Contract already initialized');
+
         troveManagerAddress = _troveManagerAddress;
         borrowerOperationAddress = _borrowerOperationAddress;
         DEPLOYMENT_START_TIME = block.timestamp;
+
+        address msgSender = _msgSender();
+        _owner = msgSender;
+        emit OwnershipTransferred(address(0), msgSender);
+
+        initialized = true;
     }
 
     function setRedemptionFeeFloor(uint256 value) external override onlyOwner {
