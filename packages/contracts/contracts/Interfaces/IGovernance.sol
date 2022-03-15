@@ -8,6 +8,10 @@ import "../Dependencies/ISimpleERCFund.sol";
 import "../Dependencies/IUniswapPairOracle.sol";
 
 interface IGovernance {
+    function setRedemptionFeeFloor(uint256 value) external;
+    
+    function setMaxBorrowingFee(uint256 value) external;
+
     function setBorrowingFeeFloor(uint256 value) external;
 
     function setLUSDGasCompensation(uint256 value) external;
@@ -22,9 +26,13 @@ interface IGovernance {
     
     function CCR() external view returns (uint256);
 
+    function REDEMPTION_FEE_FLOOR() external view returns (uint256);
+
     function LUSD_GAS_COMPENSATION() external view returns (uint256);
 
     function MIN_NET_DEBT() external view returns (uint256);
+
+    function MAX_BORROWING_FEE() external view returns (uint256);
 
     function BORROWING_FEE_FLOOR() external view returns (uint256);
 
