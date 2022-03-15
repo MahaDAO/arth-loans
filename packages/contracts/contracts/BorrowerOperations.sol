@@ -118,9 +118,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _wethAddress,
         address _governanceAddress
     ) external override onlyOwner {
-        // This makes impossible to open a trove with zero withdrawn LUSD
-        assert(MIN_NET_DEBT > 0);
-
         checkContract(_troveManagerAddress);
         checkContract(_activePoolAddress);
         checkContract(_defaultPoolAddress);
@@ -142,6 +139,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         lusdToken = ILiquityLUSDToken(_lusdTokenAddress);
         weth = IERC20(_wethAddress);
         governance = IGovernance(_governanceAddress);
+
+        // This makes impossible to open a trove with zero withdrawn LUSD
+        assert(governance.MIN_NET_DEBT() > 0);
 
         emit TroveManagerAddressChanged(_troveManagerAddress);
         emit ActivePoolAddressChanged(_activePoolAddress);
@@ -254,8 +254,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
             contractsCache.activePool,
             contractsCache.lusdToken,
             gasPoolAddress,
-            LUSD_GAS_COMPENSATION,
-            LUSD_GAS_COMPENSATION
+            governance.LUSD_GAS_COMPENSATION(),
+            governance.LUSD_GAS_COMPENSATION()
         );
 
         emit TroveUpdated(
@@ -483,7 +483,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 coll = troveManagerCached.getTroveColl(msg.sender);
         uint256 debt = troveManagerCached.getTroveDebt(msg.sender);
 
-        _requireSufficientLUSDBalance(lusdTokenCached, msg.sender, debt.sub(LUSD_GAS_COMPENSATION));
+        _requireSufficientLUSDBalance(lusdTokenCached, msg.sender, debt.sub(governance.LUSD_GAS_COMPENSATION()));
 
         uint256 newTCR = _getNewTCRFromTroveChange(coll, false, debt, false, price);
         _requireNewTCRisAboveCCR(newTCR);
@@ -494,8 +494,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         emit TroveUpdated(msg.sender, 0, 0, 0, BorrowerOperation.closeTrove);
 
         // Burn the repaid LUSD from the user's balance and the gas compensation from the Gas Pool
-        _repayLUSD(activePoolCached, lusdTokenCached, msg.sender, debt.sub(LUSD_GAS_COMPENSATION));
-        _repayLUSD(activePoolCached, lusdTokenCached, gasPoolAddress, LUSD_GAS_COMPENSATION);
+        _repayLUSD(activePoolCached, lusdTokenCached, msg.sender, debt.sub(governance.LUSD_GAS_COMPENSATION()));
+        _repayLUSD(activePoolCached, lusdTokenCached, gasPoolAddress, governance.LUSD_GAS_COMPENSATION());
 
         // Send the collateral back to the user
         activePoolCached.sendETH(msg.sender, coll);
@@ -748,13 +748,13 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     function _requireICRisAboveMCR(uint256 _newICR) internal view {
         require(
-            _newICR >= MCR,
+            _newICR >= governance.MCR(),
             "BorrowerOps: An operation that would result in ICR < MCR is not permitted"
         );
     }
 
     function _requireICRisAboveCCR(uint256 _newICR) internal view {
-        require(_newICR >= CCR, "BorrowerOps: Operation must leave trove with ICR >= CCR");
+        require(_newICR >= governance.CCR(), "BorrowerOps: Operation must leave trove with ICR >= CCR");
     }
 
     function _requireNewICRisAboveOldICR(uint256 _newICR, uint256 _oldICR) internal pure {
@@ -766,21 +766,21 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     function _requireNewTCRisAboveCCR(uint256 _newTCR) internal view {
         require(
-            _newTCR >= CCR,
+            _newTCR >= governance.CCR(),
             "BorrowerOps: An operation that would result in TCR < CCR is not permitted"
         );
     }
 
     function _requireAtLeastMinNetDebt(uint256 _netDebt) internal view {
         require(
-            _netDebt >= MIN_NET_DEBT,
+            _netDebt >= governance.MIN_NET_DEBT(),
             "BorrowerOps: Trove's net debt must be greater than minimum"
         );
     }
 
     function _requireValidLUSDRepayment(uint256 _currentDebt, uint256 _debtRepayment) internal view {
         require(
-            _debtRepayment <= _currentDebt.sub(LUSD_GAS_COMPENSATION),
+            _debtRepayment <= _currentDebt.sub(governance.LUSD_GAS_COMPENSATION()),
             "BorrowerOps: Amount repaid must not be larger than the Trove's debt"
         );
     }
@@ -811,7 +811,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
             );
         } else {
             require(
-                _maxFeePercentage >= BORROWING_FEE_FLOOR && _maxFeePercentage <= DECIMAL_PRECISION,
+                _maxFeePercentage >= governance.BORROWING_FEE_FLOOR() && _maxFeePercentage <= DECIMAL_PRECISION,
                 "Max fee percentage must be between 0.5% and 100%"
             );
         }

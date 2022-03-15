@@ -55,6 +55,23 @@ contract Governance is TransferableOwnable, IGovernance {
     event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
     event FundAddressChanged(address oldAddress, address newAddress, uint256 timestamp);
     event SentToFund(address token, uint256 amount, uint256 timestamp, string reason);
+     event SetMCR(uint256 oldValue, uint256 newValue, uint256 timestamp);
+    event SetCCR(uint256 oldValue, uint256 newValue, uint256 timestamp);
+    event SetLUSDGasCompensation(uint256 oldValue, uint256 newValue, uint256 timestamp);
+    event SetMinNetDebt(uint256 oldValue, uint256 newValue, uint256 timestamp);
+    event SetBorrowingFeeFloor(uint256 oldValue, uint256 newValue, uint256 timestamp);
+    event SetMaxBorrowingFee(uint256 oldValue, uint256 newValue, uint256 timestamp);
+    event SetRedemptionFeeFloor(uint256 oldValue, uint256 newValue, uint256 timestamp);
+
+    uint256 public constant DECIMAL_PRECISION = 1e18;
+    uint256 public constant PERCENT_DIVISOR = 200; // dividing by 200 yields 0.5%
+    uint256 public override MCR = 1100000000000000000; // 110%
+    uint256 public override CCR = 1500000000000000000; // 150%
+    uint256 public override LUSD_GAS_COMPENSATION = 5e18;
+    uint256 public override MIN_NET_DEBT = 250e18;
+    uint256 public override BORROWING_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5; // 0.5%
+    uint256 public override MAX_BORROWING_FEE = (DECIMAL_PRECISION / 100) * 5; // 5%
+    uint256 public override REDEMPTION_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5;
 
     constructor(address _troveManagerAddress, address _borrowerOperationAddress) public {
         troveManagerAddress = _troveManagerAddress;
@@ -62,6 +79,48 @@ contract Governance is TransferableOwnable, IGovernance {
         DEPLOYMENT_START_TIME = block.timestamp;
     }
 
+    function setRedemptionFeeFloor(uint256 value) external override onlyOwner {
+        uint256 oldValue = REDEMPTION_FEE_FLOOR;
+        REDEMPTION_FEE_FLOOR = value;
+        emit SetRedemptionFeeFloor(oldValue, value, block.timestamp);
+    }
+
+    function setMaxBorrowingFee(uint256 value) external override onlyOwner {
+        uint256 oldValue = MAX_BORROWING_FEE;
+        MAX_BORROWING_FEE = value;
+        emit SetMaxBorrowingFee(oldValue, value, block.timestamp);
+    }
+
+    function setBorrowingFeeFloor(uint256 value) external override onlyOwner {
+        uint256 oldValue = BORROWING_FEE_FLOOR;
+        BORROWING_FEE_FLOOR = value;
+        emit SetBorrowingFeeFloor(oldValue, value, block.timestamp);
+    }
+
+    function setLUSDGasCompensation(uint256 value) external override onlyOwner {
+        uint256 oldValue = LUSD_GAS_COMPENSATION;
+        LUSD_GAS_COMPENSATION = value;
+        emit SetLUSDGasCompensation(oldValue, value, block.timestamp);
+    }
+
+    function setMinNetDebt(uint256 value) external override onlyOwner {
+        uint256 oldValue = MIN_NET_DEBT;
+        MIN_NET_DEBT = value;
+        emit SetMinNetDebt(oldValue, value, block.timestamp);
+    }
+
+    function setMCR(uint256 value) external override onlyOwner {
+        uint256 oldValue = MCR;
+        MCR = value;
+        emit SetMCR(oldValue, value, block.timestamp);
+    }
+
+    function setCCR(uint256 value) external override onlyOwner {
+        uint256 oldValue = CCR;
+        CCR = value;
+        emit SetCCR(oldValue, value, block.timestamp);
+    }
+    
     function setMaxDebtCeiling(uint256 _value) public onlyOwner {
         uint256 oldValue = maxDebtCeiling;
         maxDebtCeiling = _value;

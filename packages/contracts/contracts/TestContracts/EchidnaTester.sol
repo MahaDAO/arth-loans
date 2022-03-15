@@ -149,9 +149,9 @@ contract EchidnaTester {
             require(success);
         }
 
-        MCR = borrowerOperations.MCR();
-        CCR = borrowerOperations.CCR();
-        LUSD_GAS_COMPENSATION = borrowerOperations.LUSD_GAS_COMPENSATION();
+        MCR = governance.MCR();
+        CCR = governance.CCR();
+        LUSD_GAS_COMPENSATION = governance.LUSD_GAS_COMPENSATION();
         require(MCR > 0);
         require(CCR > 0);
 
