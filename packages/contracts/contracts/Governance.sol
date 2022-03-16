@@ -20,8 +20,8 @@ import "./Dependencies/ISimpleERCFund.sol";
 contract Governance is TransferableOwnable, IGovernance {
     using SafeMath for uint256;
 
-    string public constant NAME = "Governance";
-    uint256 public constant _100pct = 1000000000000000000; // 1e18 == 100%
+    string public NAME = "Governance";
+    uint256 public _100pct = 1000000000000000000; // 1e18 == 100%
 
     address public  troveManagerAddress;
     address public  borrowerOperationAddress;
@@ -63,8 +63,8 @@ contract Governance is TransferableOwnable, IGovernance {
     event SetMaxBorrowingFee(uint256 oldValue, uint256 newValue, uint256 timestamp);
     event SetRedemptionFeeFloor(uint256 oldValue, uint256 newValue, uint256 timestamp);
 
-    uint256 public constant DECIMAL_PRECISION = 1e18;
-    uint256 public constant PERCENT_DIVISOR = 200; // dividing by 200 yields 0.5%
+    uint256 public DECIMAL_PRECISION = 1e18;
+    uint256 public PERCENT_DIVISOR = 200; // dividing by 200 yields 0.5%
     uint256 public override MCR = 1100000000000000000; // 110%
     uint256 public override CCR = 1500000000000000000; // 150%
     uint256 public override LUSD_GAS_COMPENSATION = 5e18;
@@ -86,6 +86,22 @@ contract Governance is TransferableOwnable, IGovernance {
         _owner = msgSender;
         emit OwnershipTransferred(address(0), msgSender);
 
+        NAME = "Governance";
+        _100pct = 1000000000000000000; // 1e18 == 100%
+        allowMinting = true;
+        maxDebtCeiling = uint256(-1); // infinity
+        stabilityFee = 10000000000000000; // 1%
+        DECIMAL_PRECISION = 1e18;
+        PERCENT_DIVISOR = 200; // dividing by 200 yields 0.5%
+        MCR = 1100000000000000000; // 110%
+        CCR = 1500000000000000000; // 150%
+        LUSD_GAS_COMPENSATION = 5e18;
+        MIN_NET_DEBT = 250e18;
+        BORROWING_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5; // 0.5%
+        MAX_BORROWING_FEE = (DECIMAL_PRECISION / 100) * 5; // 5%
+        REDEMPTION_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5;
+        initialized = false;
+        
         initialized = true;
     }
 
