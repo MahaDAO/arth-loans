@@ -81,10 +81,26 @@ contract Governance is TransferableOwnable, IGovernance {
         troveManagerAddress = _troveManagerAddress;
         borrowerOperationAddress = _borrowerOperationAddress;
         DEPLOYMENT_START_TIME = block.timestamp;
-
+        
         address msgSender = _msgSender();
         _owner = msgSender;
         emit OwnershipTransferred(address(0), msgSender);
+
+        NAME = "Governance";
+        _100pct = 1000000000000000000;
+        allowMinting = true;
+        maxDebtCeiling = uint256(-1);
+        stabilityFee = 10000000000000000; // 1%
+        DECIMAL_PRECISION = 1e18;
+        PERCENT_DIVISOR = 200; // dividing by 200 yields 0.5%
+        MCR = 1100000000000000000; // 110%
+        CCR = 1500000000000000000; // 150%
+        LUSD_GAS_COMPENSATION = 5e18;
+        MIN_NET_DEBT = 250e18;
+        BORROWING_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5; // 0.5%
+        MAX_BORROWING_FEE = (DECIMAL_PRECISION / 100) * 5; // 5%
+        REDEMPTION_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 5; // 0.5%
+        initialized = false;
 
         initialized = true;
     }
