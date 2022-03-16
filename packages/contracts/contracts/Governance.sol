@@ -20,8 +20,8 @@ import "./Dependencies/ISimpleERCFund.sol";
 contract Governance is TransferableOwnable, IGovernance {
     using SafeMath for uint256;
 
-    string public constant NAME = "Governance";
-    uint256 public constant _100pct = 1000000000000000000; // 1e18 == 100%
+    string public NAME = "Governance";
+    uint256 public _100pct = 1000000000000000000; // 1e18 == 100%
 
     address public troveManagerAddress;
     address public borrowerOperationAddress;
@@ -63,8 +63,8 @@ contract Governance is TransferableOwnable, IGovernance {
     event SetMaxBorrowingFee(uint256 oldValue, uint256 newValue, uint256 timestamp);
     event SetRedemptionFeeFloor(uint256 oldValue, uint256 newValue, uint256 timestamp);
     
-    uint256 public constant DECIMAL_PRECISION = 1e18;
-    uint256 public constant PERCENT_DIVISOR = 200; // dividing by 200 yields 0.5%
+    uint256 public DECIMAL_PRECISION = 1e18;
+    uint256 public PERCENT_DIVISOR = 200; // dividing by 200 yields 0.5%
     uint256 public override MCR = 1100000000000000000; // 110%
     uint256 public override CCR = 1500000000000000000; // 150%
     uint256 public override LUSD_GAS_COMPENSATION = 5e18;
