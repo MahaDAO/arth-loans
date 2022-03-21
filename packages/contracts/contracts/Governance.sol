@@ -88,7 +88,7 @@ contract Governance is TransferableOwnable, IGovernance {
         emit StakingPoolChanged(oldPool, _newAddress, block.timestamp);
     }
 
-    function individualCR() external view override returns (bool, uint256) {
+    function individualCR(address account) external view override returns (bool, uint256) {
         // Checkif we are using crCurve. Also check if we are using lpPool and stakingPool.
         // Condition is !crCurve || (!lpPool && !stakingPool);
         if (address(crCurve) == address(0) || (address(lpPool) == address(0) && address(stakingPool) == address(0))) {
@@ -98,7 +98,7 @@ contract Governance is TransferableOwnable, IGovernance {
         uint256 lpPoolPercentShare;
         if (address(lpPool) != address(0)) {
             lpPoolPercentShare = lpPool
-                .balanceOf(msg.sender)
+                .balanceOf(account)
                 .mul(1e18)
                 .mul(100)
                 .div(lpPool.totalSupply());
@@ -107,7 +107,7 @@ contract Governance is TransferableOwnable, IGovernance {
         uint256 stakingPoolPercentShare;
         if (address(stakingPool) != address(0)) {
             stakingPoolPercentShare = stakingPool
-                .balanceOf(msg.sender)
+                .balanceOf(account)
                 .mul(1e18)
                 .mul(100)
                 .div(stakingPool.totalSupply());
