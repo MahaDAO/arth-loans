@@ -8,6 +8,8 @@ import "../Dependencies/ISimpleERCFund.sol";
 import "../Dependencies/IUniswapPairOracle.sol";
 
 interface IGovernance {
+    function individualCR() external view returns (bool, uint256);
+
     function getDeploymentStartTime() external view returns (uint256);
 
     function getMaxDebtCeiling() external view returns (uint256);
