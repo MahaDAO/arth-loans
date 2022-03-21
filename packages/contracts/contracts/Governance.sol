@@ -117,6 +117,8 @@ contract Governance is TransferableOwnable, IGovernance {
             ? lpPoolPercentShare 
             : stakingPoolPercentShare;
 
+        if (finalPercent == 0) return (false, 0);
+        
         return (true, crCurve.getY(finalPercent));        
     }
 
