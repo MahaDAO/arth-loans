@@ -89,8 +89,8 @@ contract Governance is TransferableOwnable, IGovernance {
     }
 
     function individualCR() external view override returns (bool, uint256) {
-        // Checkif we are using crCurve.
-        // Also check if we are using lpPool and stakingPool.
+        // Checkif we are using crCurve. Also check if we are using lpPool and stakingPool.
+        // Condition is !crCurve || (!lpPool && !stakingPool);
         if (address(crCurve) == address(0) || (address(lpPool) == address(0) && address(stakingPool) == address(0))) {
             return (false, 0);
         }
