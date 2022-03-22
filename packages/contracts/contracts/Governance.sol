@@ -48,8 +48,10 @@ contract Governance is TransferableOwnable, IGovernance {
 
     uint256 private maxDebtCeiling = uint256(-1); // infinity
     uint256 private stabilityFee = 10000000000000000; // 1%
-    
+
     uint256 private immutable DEPLOYMENT_START_TIME;
+    bool public allowFixedCR = true;
+    uint256 public fixedCR = 120e16;
 
     event CurveChanged(address oldAddress, address newAddress, uint256 timestamp);
     event StakingPoolChanged(address oldAddress, address newAddress, uint256 timestamp);
@@ -63,11 +65,25 @@ contract Governance is TransferableOwnable, IGovernance {
     event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
     event FundAddressChanged(address oldAddress, address newAddress, uint256 timestamp);
     event SentToFund(address token, uint256 amount, uint256 timestamp, string reason);
+    event ToggleAllowFixedCR(bool oldFlag, bool newFlag, uint256 timestamp);
+    event FixedCRChanged(uint256 oldValue, uint256 newValue, uint256 timestamp);
 
     constructor(address _troveManagerAddress, address _borrowerOperationAddress) public {
         troveManagerAddress = _troveManagerAddress;
         borrowerOperationAddress = _borrowerOperationAddress;
         DEPLOYMENT_START_TIME = block.timestamp;
+    }
+
+    function toggleAllowFixedCR() external onlyOwner {
+        bool oldValue = allowFixedCR;
+        allowFixedCR = !allowFixedCR;
+        emit ToggleAllowFixedCR(oldValue, allowFixedCR, block.timestamp);
+    }
+
+    function setFixedCR(uint256 value) external onlyOwner {
+        uint256 oldValue = fixedCR;
+        fixedCR = value;
+        emit FixedCRChanged(oldValue, value, block.timestamp);
     }
 
     function setLpPool(address _newAddress) external onlyOwner {
@@ -89,37 +105,41 @@ contract Governance is TransferableOwnable, IGovernance {
     }
 
     function individualCR(address account) external view override returns (bool, uint256) {
+        // Allow users have same cr, but it's different from trove's mcr/ccr.
+        if (allowFixedCR) {
+            return (true, fixedCR);
+        }
+
         // Checkif we are using crCurve. Also check if we are using lpPool and stakingPool.
         // Condition is !crCurve || (!lpPool && !stakingPool);
-        if (address(crCurve) == address(0) || (address(lpPool) == address(0) && address(stakingPool) == address(0))) {
+        if (
+            address(crCurve) == address(0) ||
+            (address(lpPool) == address(0) && address(stakingPool) == address(0))
+        ) {
             return (false, 0);
         }
 
         uint256 lpPoolPercentShare;
         if (address(lpPool) != address(0)) {
-            lpPoolPercentShare = lpPool
-                .balanceOf(account)
-                .mul(1e18)
-                .mul(100)
-                .div(lpPool.totalSupply());
+            lpPoolPercentShare = lpPool.balanceOf(account).mul(1e18).mul(100).div(
+                lpPool.totalSupply()
+            );
         }
 
         uint256 stakingPoolPercentShare;
         if (address(stakingPool) != address(0)) {
-            stakingPoolPercentShare = stakingPool
-                .balanceOf(account)
-                .mul(1e18)
-                .mul(100)
-                .div(stakingPool.totalSupply());
+            stakingPoolPercentShare = stakingPool.balanceOf(account).mul(1e18).mul(100).div(
+                stakingPool.totalSupply()
+            );
         }
 
-        uint256 finalPercent = lpPoolPercentShare > stakingPoolPercentShare 
-            ? lpPoolPercentShare 
+        uint256 finalPercent = lpPoolPercentShare > stakingPoolPercentShare
+            ? lpPoolPercentShare
             : stakingPoolPercentShare;
 
         if (finalPercent == 0) return (false, 0);
-        
-        return (true, crCurve.getY(finalPercent));        
+
+        return (true, crCurve.getY(finalPercent));
     }
 
     function setMaxDebtCeiling(uint256 _value) public onlyOwner {
@@ -211,7 +231,11 @@ contract Governance is TransferableOwnable, IGovernance {
     }
 
     // Amount of tokens have to be transferred to this addr before calling this func.
-    function sendToFund(address token, uint256 amount, string memory reason) external override {
+    function sendToFund(
+        address token,
+        uint256 amount,
+        string memory reason
+    ) external override {
         _requireCallerIsBOorTroveM();
 
         IERC20(token).approve(address(fund), amount);
