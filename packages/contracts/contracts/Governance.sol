@@ -21,11 +21,11 @@ import "./Interfaces/ICurve.sol";
 contract Governance is TransferableOwnable, IGovernance {
     using SafeMath for uint256;
 
-    string public constant NAME = "Governance";
-    uint256 public constant _100pct = 1000000000000000000; // 1e18 == 100%
+    string public NAME = "Governance";
+    uint256 public _100pct = 1000000000000000000; // 1e18 == 100%
 
-    address public immutable troveManagerAddress;
-    address public immutable borrowerOperationAddress;
+    address public troveManagerAddress;
+    address public borrowerOperationAddress;
 
     // Maximum amount of debt that this deployment can have (used to limit exposure to volatile assets)
     // set this according to how much ever debt we'd like to accumulate; default is infinity
@@ -49,7 +49,7 @@ contract Governance is TransferableOwnable, IGovernance {
     uint256 private maxDebtCeiling = uint256(-1); // infinity
     uint256 private stabilityFee = 10000000000000000; // 1%
 
-    uint256 private immutable DEPLOYMENT_START_TIME;
+    uint256 private DEPLOYMENT_START_TIME;
     bool public allowFixedCR = true;
     uint256 public fixedCR = 120e16;
 
@@ -68,10 +68,23 @@ contract Governance is TransferableOwnable, IGovernance {
     event ToggleAllowFixedCR(bool oldFlag, bool newFlag, uint256 timestamp);
     event FixedCRChanged(uint256 oldValue, uint256 newValue, uint256 timestamp);
 
-    constructor(address _troveManagerAddress, address _borrowerOperationAddress) public {
+    bool initialized = false;
+
+    function initialize(address _troveManagerAddress, address _borrowerOperationAddress) public {
+        require(!initialized, "Contract initialized");
+
+        NAME = "Governance";
+        allowMinting = true;
+        _100pct = 1000000000000000000; // 1e18 == 100%
+        maxDebtCeiling = uint256(-1); // infinity
+        stabilityFee = 10000000000000000; // 1%
         troveManagerAddress = _troveManagerAddress;
         borrowerOperationAddress = _borrowerOperationAddress;
         DEPLOYMENT_START_TIME = block.timestamp;
+        allowFixedCR = true;
+        fixedCR = 120e16;
+
+        initialized = true;
     }
 
     function toggleAllowFixedCR() external onlyOwner {
