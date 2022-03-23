@@ -8,6 +8,8 @@ import "../Dependencies/ISimpleERCFund.sol";
 import "../Dependencies/IUniswapPairOracle.sol";
 
 interface IGovernance {
+    function individualCR(address account) external view returns (bool, uint256);
+
     function getDeploymentStartTime() external view returns (uint256);
 
     function getMaxDebtCeiling() external view returns (uint256);
@@ -26,5 +28,9 @@ interface IGovernance {
 
     function chargeStabilityFee(address who, uint256 LUSDAmount) external;
 
-    function sendToFund(address token, uint256 amount, string memory reason) external;
+    function sendToFund(
+        address token,
+        uint256 amount,
+        string memory reason
+    ) external;
 }

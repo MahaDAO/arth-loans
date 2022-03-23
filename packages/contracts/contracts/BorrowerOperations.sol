@@ -747,14 +747,25 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     function _requireICRisAboveMCR(uint256 _newICR) internal view {
-        require(
-            _newICR >= MCR,
-            "BorrowerOps: An operation that would result in ICR < MCR is not permitted"
-        );
+        (bool hasSeperateCR, uint256 cr) = governance.individualCR(msg.sender);
+
+        if (!hasSeperateCR) {
+            require(
+                _newICR >= MCR,
+                "BorrowerOps: An operation that would result in ICR < MCR is not permitted"
+            );
+        } else {
+            require(_newICR >= cr, "BorrowerOps: invalid cr");
+        }
     }
 
     function _requireICRisAboveCCR(uint256 _newICR) internal view {
-        require(_newICR >= CCR, "BorrowerOps: Operation must leave trove with ICR >= CCR");
+        (bool hasSeperateCR, uint256 cr) = governance.individualCR(msg.sender);
+        if (!hasSeperateCR) {
+            require(_newICR >= CCR, "BorrowerOps: Operation must leave trove with ICR >= CCR");
+        } else {
+            require(_newICR >= cr, "BorrowerOps: invalid cr");
+        }
     }
 
     function _requireNewICRisAboveOldICR(uint256 _newICR, uint256 _oldICR) internal pure {
