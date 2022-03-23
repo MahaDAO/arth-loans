@@ -58,7 +58,8 @@ contract EchidnaTester {
         stabilityPool = new StabilityPool();
         gasPool = new GasPool();
         lusdToken = new LUSDToken();
-        governance = new Governance(address(troveManager), address(borrowerOperations));
+        governance = new Governance();
+        governance.initialize(address(troveManager), address(borrowerOperations));
         controller = new Controller(
             address(troveManager),
             address(stabilityPool),
@@ -261,7 +262,14 @@ contract EchidnaTester {
         address _frontEndTag
     ) public payable {
         uint256 actor = _i % NUMBER_OF_ACTORS;
-        echidnaProxies[actor].openTrovePrx(_ETH, _LUSDAmount, _upperHint, _lowerHint, _maxFee, _frontEndTag);
+        echidnaProxies[actor].openTrovePrx(
+            _ETH,
+            _LUSDAmount,
+            _upperHint,
+            _lowerHint,
+            _maxFee,
+            _frontEndTag
+        );
     }
 
     function addCollExt(uint256 _i, uint256 _ETH) external payable {
