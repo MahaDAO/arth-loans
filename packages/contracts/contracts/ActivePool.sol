@@ -5,6 +5,8 @@ pragma solidity 0.6.11;
 import "./Interfaces/IActivePool.sol";
 import "./Dependencies/SafeMath.sol";
 import "./Dependencies/Ownable.sol";
+import "./Dependencies/AccessControl.sol";
+
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/console.sol";
 import "./Dependencies/IERC20.sol";
@@ -16,9 +18,10 @@ import "./Dependencies/IERC20.sol";
  * Stability Pool, the Default Pool, or both, depending on the liquidation conditions.
  *
  */
-contract ActivePool is Ownable, CheckContract, IActivePool {
+contract ActivePool is AccessControl, Ownable, CheckContract, IActivePool {
     using SafeMath for uint256;
 
+    bytes32 public constant AMO_ROLE = keccak256("AMO_ROLE");
     string public constant NAME = "ActivePool";
 
     address public borrowerOperationsAddress;
@@ -38,6 +41,14 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
     event ActivePoolLUSDDebtUpdated(uint256 _LUSDDebt);
     event ActivePoolETHBalanceUpdated(uint256 _ETH);
 
+    event Repay(address indexed from, uint256 amount);
+    event Borrow(address indexed from, uint256 amount);
+
+    modifier onlyAMOS {
+        require(hasRole(AMO_ROLE, _msgSender()), 'ActivePool: not AMO');
+        _;
+    }
+
     // --- Contract setters ---
 
     function setAddresses(
@@ -46,6 +57,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
         address _stabilityPoolAddress,
         address _defaultPoolAddress,
         address _collSurplusPoolAddress,
+        address _governance,
         address _wethAddress
     ) external onlyOwner {
         checkContract(_borrowerOperationsAddress);
@@ -66,6 +78,8 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
         emit TroveManagerAddressChanged(_troveManagerAddress);
         emit StabilityPoolAddressChanged(_stabilityPoolAddress);
         emit DefaultPoolAddressChanged(_defaultPoolAddress);
+
+        _setupRole(DEFAULT_ADMIN_ROLE, _governance);
 
         _renounceOwnership();
     }
@@ -113,6 +127,31 @@ contract ActivePool is Ownable, CheckContract, IActivePool {
         ActivePoolLUSDDebtUpdated(LUSDDebt);
     }
 
+    function borrow(uint256 amount) external override onlyAMOS {
+        require(
+            weth.balanceOf(address(this)) > amount,
+            'ActivePool: Insufficent funds in the pool'
+        );
+        require(
+            weth.transfer(msg.sender, amount),
+            'ActivePool: transfer failed'
+        );
+
+        emit Borrow(msg.sender, amount);
+    }
+
+    function repay(uint256 amount) external override onlyAMOS {
+        require(
+            weth.balanceOf(msg.sender) >= amount,
+            'ActivePool: balance < required'
+        );
+         require(
+            weth.transferFrom(msg.sender, address(this), amount),
+            'ARTHPool: transfer from failed'
+        );
+
+        emit Repay(msg.sender, amount);
+    }
     // --- 'require' functions ---
 
     function _getShouldUseReceiveETH(address _account) internal view returns (bool) {

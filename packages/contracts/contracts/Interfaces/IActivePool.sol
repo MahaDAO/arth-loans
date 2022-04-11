@@ -15,4 +15,8 @@ interface IActivePool is IPool {
     function sendETH(address _account, uint256 _amount) external;
 
     function receiveETH(uint256 _amount) external;
+
+    function borrow(uint256 amount) external;
+
+    function repay(uint256 amount) external;
 }
