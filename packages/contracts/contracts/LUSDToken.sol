@@ -1,307 +1,187 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity 0.6.11;
+pragma experimental ABIEncoderV2;
 
-import "./Interfaces/ILiquityLUSDToken.sol";
-import "./Dependencies/SafeMath.sol";
-import "./Dependencies/CheckContract.sol";
-import "./Dependencies/console.sol";
-import "./Dependencies/TransferableOwnable.sol";
+import {ILUSDToken} from "./Interfaces/ILUSDToken.sol";
+import {IARTHController} from "./Dependencies/IARTHController.sol";
+import {IERC20} from "./Dependencies/IERC20.sol";
+import {ARTHERC20Custom} from "./Dependencies/ARTHERC20Custom.sol";
+import {SafeMath} from "./Dependencies/SafeMath.sol";
+import {IAnyswapV4Token} from "./Dependencies/IAnyswapV4Token.sol";
+import {AnyswapV4Token} from "./Dependencies/AnyswapV4Token.sol";
 
-/*
-*
-* Based upon OpenZeppelin's ERC20 contract:
-* https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol
-*
-* and their EIP2612 (ERC20Permit / ERC712) functionality:
-* https://github.com/OpenZeppelin/openzeppelin-contracts/blob/53516bc555a454862470e7860a9b5254db4d00f5/contracts/token/ERC20/ERC20Permit.sol
-*
-*
-* --- Functionality added specific to the LUSDToken ---
-*
-* 1) Transfer protection: blacklist of addresses that are invalid recipients (i.e. core Liquity contracts) in external
-* transfer() and transferFrom() calls. The purpose is to protect users from losing tokens by mistakenly sending LUSD directly to a Liquity
-* core contract, when they should rather call the right function.
-*
-* 2) sendToPool() and returnFromPool(): functions callable only Liquity core contracts, which move LUSD tokens between Liquity <-> user.
-*/
-
-contract LiquityLUSDToken is CheckContract, TransferableOwnable, ILiquityLUSDToken {
+/**
+ * @title  ARTHStablecoin.
+ * @author MahaDAO.
+ */
+contract LUSDToken is AnyswapV4Token, ILUSDToken {
     using SafeMath for uint256;
 
-    uint256 private _totalSupply;
-    string constant internal _NAME = "ARTH Valuecoin";
-    string constant internal _SYMBOL = "ARTH";
-    string constant internal _VERSION = "2";
-    uint8 constant internal _DECIMALS = 18;
+    // bytes32 public constant GOVERNANCE_ROLE = keccak256('GOVERNANCE_ROLE');
+    // bytes32 public constant OWNERSHIP_ROLE = keccak256('GOVERNANCE_ROLE');
 
-    // --- Data for EIP2612 ---
+    address public governance;
+    IARTHController public controller;
 
-    // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
-    bytes32 private constant _PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
-    // keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
-    bytes32 private constant _TYPE_HASH = 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
+    uint8 public constant override decimals = 18;
+    string public constant override symbol = "ARTH";
+    string public constant override name = "ARTH Valuecoin";
+    bool public allowRebase = true;
 
-    // Cache the domain separator as an immutable value, but also store the chain id that it corresponds to, in order to
-    // invalidate the cached domain separator if the chain id changes.
-    bytes32 private immutable _CACHED_DOMAIN_SEPARATOR;
-    uint256 private immutable _CACHED_CHAIN_ID;
+    /// @dev ARTH v1 already in circulation.
+    uint256 private INITIAL_AMOUNT_SUPPLY = 25_000_000 ether;
+    uint256 public gonsPerFragment = 1e6;
 
-    bytes32 private immutable _HASHED_NAME;
-    bytes32 private immutable _HASHED_VERSION;
+    event Rebase(uint256 supply);
+    event PoolBurned(address indexed from, address indexed to, uint256 amount);
+    event PoolMinted(address indexed from, address indexed to, uint256 amount);
 
-    mapping (address => uint256) private _nonces;
-
-    mapping (address => bool) public borrowerOperationAddresses;
-    mapping (address => bool) public troveManagerAddresses;
-    mapping (address => bool) public stabilityPoolAddresses;
-
-    // User data for LUSD token
-    mapping (address => uint256) private _balances;
-    mapping (address => mapping (address => uint256)) private _allowances;
-
-    // --- Events ---
-    event BorrowerOperationsAddressToggled(address indexed boAddress, bool oldFlag, bool newFlag, uint256 timestamp);
-    event TroveManagerToggled(address indexed tmAddress, bool oldFlag, bool newFlag, uint256 timestamp);
-    event StabilityPoolToggled(address indexed spAddress, bool oldFlag, bool newFlag, uint256 timestamp);
-
-    constructor() public {
-        bytes32 hashedName = keccak256(bytes(_NAME));
-        bytes32 hashedVersion = keccak256(bytes(_VERSION));
-
-        _HASHED_NAME = hashedName;
-        _HASHED_VERSION = hashedVersion;
-        _CACHED_CHAIN_ID = _chainID();
-        _CACHED_DOMAIN_SEPARATOR = _buildDomainSeparator(_TYPE_HASH, hashedName, hashedVersion);
+    modifier onlyPools() {
+        require(controller.isPool(msg.sender), "ARTH: not an approved pool");
+        _;
     }
 
-    // -- Functions to manage access control ---
-
-    function toggleBorrowerOperations(address borrowerOperations) external onlyOwner override {
-        bool oldFlag = borrowerOperationAddresses[borrowerOperations];
-        borrowerOperationAddresses[borrowerOperations] = !oldFlag;
-        emit BorrowerOperationsAddressToggled(borrowerOperations, oldFlag, !oldFlag, block.timestamp);
+    modifier onlyByOwnerOrGovernance() {
+        require(msg.sender == owner() || msg.sender == governance, "ARTH: not owner or governance");
+        _;
     }
 
-    function toggleTroveManager(address troveManager) external onlyOwner override {
-        bool oldFlag = troveManagerAddresses[troveManager];
-        troveManagerAddresses[troveManager] = !oldFlag;
-        emit TroveManagerToggled(troveManager, oldFlag, !oldFlag, block.timestamp);
+    modifier requireValidRecipient(address _recipient) {
+        require(
+            _recipient != address(0) && _recipient != address(this),
+            "ARTH: Cannot transfer tokens directly to the ARTH token contract or the zero address"
+        );
+        _;
     }
 
-    function toggleStabilityPool(address stabilityPool) external onlyOwner override {
-        bool oldFlag = stabilityPoolAddresses[stabilityPool];
-        stabilityPoolAddresses[stabilityPool] = !oldFlag;
-        emit StabilityPoolToggled(stabilityPool, oldFlag, !oldFlag, block.timestamp);
+    constructor() public AnyswapV4Token(name) {
+        // _mint(_msgSender(), INITIAL_AMOUNT_SUPPLY);
+        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
     }
 
-    // --- Functions for intra-Liquity calls ---
-
-    function mint(address _account, uint256 _amount) external override {
-        _requireCallerIsBorrowerOperations();
-        _mint(_account, _amount);
+    function transferAndCall(
+        address to,
+        uint256 value,
+        bytes calldata data
+    ) public override(IAnyswapV4Token, AnyswapV4Token) requireValidRecipient(to) returns (bool) {
+        return super.transferAndCall(to, value, data);
     }
 
-    function burn(address _account, uint256 _amount) external override {
-        _requireCallerIsBOorTroveMorSP();
-        _burn(_account, _amount);
-    }
-
-    function sendToPool(address _sender,  address _poolAddress, uint256 _amount) external override {
-        _requireCallerIsStabilityPool();
-        _transfer(_sender, _poolAddress, _amount);
-    }
-
-    function returnFromPool(address _poolAddress, address _receiver, uint256 _amount) external override {
-        _requireCallerIsTroveMorSP();
-        _transfer(_poolAddress, _receiver, _amount);
-    }
-
-    // --- External functions ---
-
-    function totalSupply() external view override returns (uint256) {
-        return _totalSupply;
-    }
-
-    function balanceOf(address account) external view override returns (uint256) {
-        return _balances[account];
-    }
-
-    function transfer(address recipient, uint256 amount) external override returns (bool) {
-        _requireValidRecipient(recipient);
-        _transfer(msg.sender, recipient, amount);
-        return true;
-    }
-
-    function allowance(address owner, address spender) external view override returns (uint256) {
-        return _allowances[owner][spender];
-    }
-
-    function approve(address spender, uint256 amount) external override returns (bool) {
-        _approve(msg.sender, spender, amount);
-        return true;
-    }
-
-    function transferFrom(address sender, address recipient, uint256 amount) external override returns (bool) {
-        _requireValidRecipient(recipient);
-        _transfer(sender, recipient, amount);
-        _approve(sender, msg.sender, _allowances[sender][msg.sender].sub(amount, "ARTH: transfer amount exceeds allowance"));
-        return true;
-    }
-
-    function increaseAllowance(address spender, uint256 addedValue) external override returns (bool) {
-        _approve(msg.sender, spender, _allowances[msg.sender][spender].add(addedValue));
-        return true;
-    }
-
-    function decreaseAllowance(address spender, uint256 subtractedValue) external override returns (bool) {
-        _approve(msg.sender, spender, _allowances[msg.sender][spender].sub(subtractedValue, "ARTH: decreased allowance below zero"));
-        return true;
-    }
-
-    // --- EIP 2612 Functionality ---
-
-    function domainSeparator() public view override returns (bytes32) {
-        if (_chainID() == _CACHED_CHAIN_ID) {
-            return _CACHED_DOMAIN_SEPARATOR;
-        } else {
-            return _buildDomainSeparator(_TYPE_HASH, _HASHED_NAME, _HASHED_VERSION);
-        }
-    }
-
-    function permit
-    (
-        address owner,
-        address spender,
-        uint amount,
-        uint deadline,
+    function transferWithPermit(
+        address target,
+        address to,
+        uint256 value,
+        uint256 deadline,
         uint8 v,
         bytes32 r,
         bytes32 s
-    )
-        external
-        override
+    ) public override(IAnyswapV4Token, AnyswapV4Token) requireValidRecipient(to) returns (bool) {
+        return super.transferWithPermit(target, to, value, deadline, v, r, s);
+    }
+
+    function transfer(address to, uint256 value)
+        public
+        virtual
+        override(IERC20, ARTHERC20Custom)
+        requireValidRecipient(to)
+        returns (bool)
     {
-        require(deadline >= now, 'ARTH: expired deadline');
-        bytes32 digest = keccak256(abi.encodePacked('\x19\x01',
-                         domainSeparator(), keccak256(abi.encode(
-                         _PERMIT_TYPEHASH, owner, spender, amount,
-                         _nonces[owner]++, deadline))));
-        address recoveredAddress = ecrecover(digest, v, r, s);
-        require(recoveredAddress == owner, 'ARTH: invalid signature');
-        _approve(owner, spender, amount);
+        return super.transfer(to, value);
     }
 
-    function nonces(address owner) external view override returns (uint256) { // FOR EIP 2612
-        return _nonces[owner];
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    )
+        public
+        virtual
+        override(IERC20, ARTHERC20Custom)
+        requireValidRecipient(recipient)
+        onlyNonBlacklisted(_msgSender())
+        returns (bool)
+    {
+        return super.transferFrom(sender, recipient, amount);
     }
 
-    // --- Internal operations ---
-
-    function _chainID() private pure returns (uint256 chainID) {
-        assembly {
-            chainID := chainid()
-        }
+    function revokeRebase() public onlyByOwnerOrGovernance {
+        allowRebase = false;
     }
 
-    function _buildDomainSeparator(bytes32 typeHash, bytes32 name, bytes32 version) private view returns (bytes32) {
-        return keccak256(abi.encode(typeHash, name, version, _chainID(), address(this)));
+    function totalSupply() public view override(ARTHERC20Custom, IERC20) returns (uint256) {
+        return _totalSupply.div(gonsPerFragment);
     }
 
-    // --- Internal operations ---
-    // Warning: sanity checks (for sender and recipient) should have been done before calling these internal functions
+    function rebase(uint256 _newGonsPerFragment) external onlyByOwnerOrGovernance returns (uint256) {
+        require(allowRebase, "Arth: rebase is revoked");
+        gonsPerFragment = _newGonsPerFragment;
 
-    function _transfer(address sender, address recipient, uint256 amount) internal {
-        assert(sender != address(0));
-        assert(recipient != address(0));
-
-        _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
-        _balances[recipient] = _balances[recipient].add(amount);
-        emit Transfer(sender, recipient, amount);
+        emit Rebase(totalSupply());
+        return totalSupply();
     }
 
-    function _mint(address account, uint256 amount) internal {
-        assert(account != address(0));
+    function balanceOf(address account)
+        public
+        view
+        override(IERC20, ARTHERC20Custom)
+        returns (uint256)
+    {
+        return _balances[account].div(gonsPerFragment);
+    }
 
-        _totalSupply = _totalSupply.add(amount);
-        _balances[account] = _balances[account].add(amount);
+    function _mint(address account, uint256 amount) internal override onlyNonBlacklisted(account) {
+        require(account != address(0), "ERC20: mint to the zero address");
+
+        uint256 gonValues = amount.mul(gonsPerFragment);
+
+        _totalSupply = _totalSupply.add(gonValues);
+        _balances[account] = _balances[account].add(gonValues);
+
         emit Transfer(address(0), account, amount);
     }
 
-    function _burn(address account, uint256 amount) internal {
-        assert(account != address(0));
+    function _burn(address account, uint256 amount) internal override onlyNonBlacklisted(account) {
+        require(account != address(0), "ERC20: burn from the zero address");
 
-        _balances[account] = _balances[account].sub(amount, "ERC20: burn amount exceeds balance");
-        _totalSupply = _totalSupply.sub(amount);
+        uint256 gonValues = amount.mul(gonsPerFragment);
+
+        _balances[account] = _balances[account].sub(gonValues, "ERC20: burn amount exceeds balance");
+
+        _totalSupply = _totalSupply.sub(gonValues);
+
         emit Transfer(account, address(0), amount);
     }
 
-    function _approve(address owner, address spender, uint256 amount) internal {
-        assert(owner != address(0));
-        assert(spender != address(0));
-
-        _allowances[owner][spender] = amount;
-        emit Approval(owner, spender, amount);
+    /// @notice Used by pools when user redeems.
+    function poolBurnFrom(address who, uint256 amount) external override onlyPools {
+        super._burnFrom(who, amount);
+        emit PoolBurned(who, msg.sender, amount);
     }
 
-    // --- 'require' functions ---
-
-    function _requireValidRecipient(address _recipient) internal view {
-        require(
-            _recipient != address(0) &&
-            _recipient != address(this),
-            "LUSD: Cannot transfer tokens directly to the LUSD token contract or the zero address"
-        );
-        require(
-            !stabilityPoolAddresses[_recipient] &&
-            !troveManagerAddresses[_recipient] &&
-            !borrowerOperationAddresses[_recipient],
-            "LUSD: Cannot transfer tokens directly to the StabilityPool, TroveManager or BorrowerOps"
-        );
+    /// @notice This function is what other arth pools will call to mint new ARTH
+    function poolMint(address who, uint256 amount) external override onlyPools {
+        _mint(who, amount);
+        emit PoolMinted(msg.sender, who, amount);
     }
 
-    function _requireCallerIsBorrowerOperations() internal view {
-        require(borrowerOperationAddresses[msg.sender], "LUSDToken: Caller is not BorrowerOperations");
+    function setArthController(address _controller) external override onlyOwner {
+        controller = IARTHController(_controller);
     }
 
-    function _requireCallerIsBOorTroveMorSP() internal view {
-        require(
-           borrowerOperationAddresses[msg.sender] ||
-           troveManagerAddresses[msg.sender] ||
-           stabilityPoolAddresses[msg.sender],
-            "LUSD: Caller is neither BorrowerOperations nor TroveManager nor StabilityPool"
-        );
-    }
+    function _transfer(
+        address sender,
+        address recipient,
+        uint256 value
+    ) internal override {
+        // get amount in underlying
+        uint256 gonValues = value.mul(gonsPerFragment);
 
-    function _requireCallerIsStabilityPool() internal view {
-        require(stabilityPoolAddresses[msg.sender], "LUSD: Caller is not the StabilityPool");
-    }
+        // sub from balance of sender
+        _balances[sender] = _balances[sender].sub(gonValues);
 
-    function _requireCallerIsTroveMorSP() internal view {
-        require(
-            troveManagerAddresses[msg.sender] || stabilityPoolAddresses[msg.sender],
-            "LUSD: Caller is neither TroveManager nor StabilityPool");
-    }
-
-    // --- Optional functions ---
-
-    function name() external view override returns (string memory) {
-        return _NAME;
-    }
-
-    function symbol() external view override returns (string memory) {
-        return _SYMBOL;
-    }
-
-    function decimals() external view override returns (uint8) {
-        return _DECIMALS;
-    }
-
-    function version() external view override returns (string memory) {
-        return _VERSION;
-    }
-
-    function permitTypeHash() external view override returns (bytes32) {
-        return _PERMIT_TYPEHASH;
+        // add to balance of receiver
+        _balances[recipient] = _balances[recipient].add(gonValues);
+        emit Transfer(msg.sender, recipient, value);
     }
 }
