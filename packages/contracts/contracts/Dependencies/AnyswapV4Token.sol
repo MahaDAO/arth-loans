@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 pragma experimental ABIEncoderV2;
 
 import {AccessControl} from "./AccessControl.sol";
@@ -62,7 +62,7 @@ abstract contract AnyswapV4Token is
         _;
     }
 
-    constructor(string memory name) internal {
+    constructor(string memory name) {
         uint256 chainId;
         assembly {
             chainId := chainid()

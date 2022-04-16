@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "../Dependencies/IERC20.sol";
 import "../Dependencies/IERC2612.sol";
 
-interface ILiquityLUSDToken is IERC20, IERC2612 { 
-    
+interface ILiquityLUSDToken is IERC20, IERC2612 {
+
     // --- Events ---
 
     event BorrowerOperationsAddressToggled(address borrowerOperations, bool oldFlag, bool newFlag, uint256 timestamp);

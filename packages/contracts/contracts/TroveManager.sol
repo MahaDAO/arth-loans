@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "./Interfaces/ITroveManager.sol";
 import "./Interfaces/IStabilityPool.sol";
@@ -14,6 +14,7 @@ import "./Interfaces/IGasPool.sol";
 import "./Interfaces/ILiquityLUSDToken.sol";
 
 contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
+    using SafeMath for uint256;
     string public constant NAME = "TroveManager";
 
     // --- Connected contract declarations ---
@@ -193,60 +194,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     }
 
     // --- Events ---
-
-    event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
-    event LUSDTokenAddressChanged(address _newLUSDTokenAddress);
-    event ActivePoolAddressChanged(address _activePoolAddress);
-    event DefaultPoolAddressChanged(address _defaultPoolAddress);
-    event StabilityPoolAddressChanged(address _stabilityPoolAddress);
-    event GasPoolAddressChanged(address _gasPoolAddress);
-    event CollSurplusPoolAddressChanged(address _collSurplusPoolAddress);
-    event SortedTrovesAddressChanged(address _sortedTrovesAddress);
-    event GovernanceAddressChanged(address _governanceAddress);
-    event WETHAddressChanged(address _wethAddress);
-
-    event RewardSnapshotDetailsUpdated(address owner, address newOwner, uint256 timestamp);
-    event TroveOwnersUpdated(address owner, address newOwner, uint256 idx, uint256 timestamp);
-    event Liquidation(
-        uint256 _liquidatedDebt,
-        uint256 _liquidatedColl,
-        uint256 _collGasCompensation,
-        uint256 _LUSDGasCompensation
-    );
-    event Redemption(
-        uint256 _attemptedLUSDAmount,
-        uint256 _actualLUSDAmount,
-        uint256 _ETHSent,
-        uint256 _ETHFee
-    );
-    event TroveUpdated(
-        address indexed _borrower,
-        uint256 _debt,
-        uint256 _coll,
-        uint256 _stake,
-        TroveManagerOperation _operation
-    );
-    event TroveLiquidated(
-        address indexed _borrower,
-        uint256 _debt,
-        uint256 _coll,
-        TroveManagerOperation _operation
-    );
-    event BaseRateUpdated(uint256 _baseRate);
-    event LastFeeOpTimeUpdated(uint256 _lastFeeOpTime);
-    event TotalStakesUpdated(uint256 _newTotalStakes);
-    event SystemSnapshotsUpdated(uint256 _totalStakesSnapshot, uint256 _totalCollateralSnapshot);
-    event LTermsUpdated(uint256 _L_ETH, uint256 _L_LUSDDebt);
-    event TroveSnapshotsUpdated(uint256 _L_ETH, uint256 _L_LUSDDebt);
-    event TroveIndexUpdated(address _borrower, uint256 _newIndex);
-
-    enum TroveManagerOperation {
-        applyPendingRewards,
-        liquidateInNormalMode,
-        liquidateInRecoveryMode,
-        redeemCollateral
-    }
-
     // --- Dependency setter ---
 
     function setAddresses(
@@ -1136,7 +1083,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
      * Note that if _amount is very large, this function can run out of gas, specially if traversed troves are small. This can be easily avoided by
      * splitting the total _amount in appropriate chunks and calling the function multiple times.
      *
-     * Param `_maxIterations` can also be provided, so the loop through Troves is capped (if it’s zero, it will be ignored).This makes it easier to
+     * Param `_maxIterations` can also be provided, so the loop through Troves is capped (if it's zero, it will be ignored).This makes it easier to
      * avoid OOG for the frontend, as only knowing approximately the average cost of an iteration is enough, without needing to know the “topology”
      * of the trove list. It also avoids the need to set the cap in stone in the contract, nor doing gas calculations, as both gas price and opcode
      * costs can vary.
@@ -1206,7 +1153,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
 
         // Loop through the Troves starting from the one with lowest collateral ratio until _amount of LUSD is exchanged for collateral
         if (_maxIterations == 0) {
-            _maxIterations = uint256(-1);
+            _maxIterations = uint256(999999999999999999999);
         }
         while (currentBorrower != address(0) && totals.remainingLUSD > 0 && _maxIterations > 0) {
             _maxIterations--;
@@ -1461,7 +1408,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
              * The following assert() holds true because:
              * - The system always contains >= 1 trove
              * - When we close or liquidate a trove, we redistribute the pending rewards, so if all troves were closed/liquidated,
-             * rewards would’ve been emptied and totalCollateralSnapshot would be zero too.
+             * rewards would've been emptied and totalCollateralSnapshot would be zero too.
              */
             assert(totalStakesSnapshot > 0);
             stake = _coll.mul(totalStakesSnapshot).div(totalCollateralSnapshot);
@@ -1587,7 +1534,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
      */
     function _removeTroveOwner(address _borrower, uint256 TroveOwnersArrayLength) internal {
         Status troveStatus = Troves[_borrower].status;
-        // It’s set in caller function `_closeTrove`
+        // It's set in caller function `_closeTrove`
         assert(troveStatus != Status.nonExistent && troveStatus != Status.active);
 
         uint128 index = Troves[_borrower].arrayIndex;

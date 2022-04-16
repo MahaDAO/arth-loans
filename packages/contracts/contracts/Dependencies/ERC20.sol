@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Taken from: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/solc-0.6/contracts/token/ERC20/ERC20.sol
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "./Context.sol";
 import "./IERC20.sol";
@@ -52,7 +52,7 @@ contract ERC20 is Context, IERC20 {
      * All three of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor(string memory name_, string memory symbol_) public {
+    constructor(string memory name_, string memory symbol_) {
         _name = name_;
         _symbol = symbol_;
         _decimals = 18;

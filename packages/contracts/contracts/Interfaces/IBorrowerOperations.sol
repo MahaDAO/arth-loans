@@ -1,21 +1,26 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 // Common interface for the Trove Manager.
 interface IBorrowerOperations {
+    enum BorrowerOperation {
+        openTrove,
+        closeTrove,
+        adjustTrove
+    }
     // --- Events ---
 
-    event GovernanceAddressChanged(address _governanceAddress);
+    event FrontEndRegistered(address indexed _frontEnd, uint256 timestamp);
     event TroveManagerAddressChanged(address _newTroveManagerAddress);
     event ActivePoolAddressChanged(address _activePoolAddress);
+    event GovernanceAddressChanged(address _governanceAddress);
     event DefaultPoolAddressChanged(address _defaultPoolAddress);
     event StabilityPoolAddressChanged(address _stabilityPoolAddress);
     event GasPoolAddressChanged(address _gasPoolAddress);
     event CollSurplusPoolAddressChanged(address _collSurplusPoolAddress);
     event SortedTrovesAddressChanged(address _sortedTrovesAddress);
     event LUSDTokenAddressChanged(address _lusdTokenAddress);
-    event LQTYStakingAddressChanged(address _lqtyStakingAddress);
 
     event TroveCreated(address indexed _borrower, uint256 arrayIndex);
     event TroveUpdated(
@@ -23,9 +28,10 @@ interface IBorrowerOperations {
         uint256 _debt,
         uint256 _coll,
         uint256 stake,
-        uint8 operation
+        BorrowerOperation operation
     );
     event LUSDBorrowingFeePaid(address indexed _borrower, uint256 _LUSDFee);
+
 
     // --- Functions ---
 

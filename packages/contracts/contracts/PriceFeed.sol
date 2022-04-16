@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "./Interfaces/IPriceFeed.sol";
@@ -11,7 +11,7 @@ import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/BaseMath.sol";
 import "./Dependencies/LiquityMath.sol";
-import "./Dependencies/console.sol";
+
 import "./Dependencies/IUniswapPairOracle.sol";
 import "./Dependencies/IERC20.sol";
 import "./Dependencies/IUMBOracle.sol";
@@ -49,7 +49,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     // --- Dependency setters ---
 
     function setAddresses(
-        address _priceAggregatorAddress, 
+        address _priceAggregatorAddress,
         address _gmuOracle,
         address _umbRegistry,
         bytes32 _umbFCDKey
@@ -80,7 +80,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
      * it uses the last good price seen by Liquity.
      *
      */
-    function fetchPrice() external override returns (uint256) {
+    function fetchPrice() external view override returns (uint256) {
         return _fetchPrice();
     }
 

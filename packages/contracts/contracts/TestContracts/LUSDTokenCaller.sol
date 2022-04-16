@@ -1,17 +1,14 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "../Interfaces/ILUSDToken.sol";
-import "../Interfaces/IController.sol";
 
 contract LUSDTokenCaller {
     ILUSDToken LUSD;
-    IController controller;
 
-    function setLUSD(ILUSDToken _LUSD, IController _controller) external {
+    function setLUSD(ILUSDToken _LUSD) external {
         LUSD = _LUSD;
-        controller = _controller;
     }
 
     function lusdMint(address _account, uint256 _amount) external {
@@ -27,7 +24,7 @@ contract LUSDTokenCaller {
         address _poolAddress,
         uint256 _amount
     ) external {
-        controller.sendToPool(_sender, _poolAddress, _amount);
+        // controller.sendToPool(_sender, _poolAddress, _amount);
     }
 
     // function lusdReturnFromPool(address _poolAddress, address _receiver, uint256 _amount ) external {

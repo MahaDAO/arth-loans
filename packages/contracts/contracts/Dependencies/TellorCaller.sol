@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "../Interfaces/ITellorCaller.sol";
 import "./ITellor.sol";
 import "./SafeMath.sol";
 /*
-* This contract has a single external function that calls Tellor: getTellorCurrentValue(). 
+* This contract has a single external function that calls Tellor: getTellorCurrentValue().
 *
-* The function is called by the Liquity contract PriceFeed.sol. If any of its inner calls to Tellor revert, 
+* The function is called by the Liquity contract PriceFeed.sol. If any of its inner calls to Tellor revert,
 * this function will revert, and PriceFeed will catch the failure and handle it accordingly.
 *
 * The function comes from Tellor's own wrapper contract, 'UsingTellor.sol':
@@ -20,7 +20,7 @@ contract TellorCaller is ITellorCaller {
 
     ITellor public tellor;
 
-    constructor (address _tellorMasterAddress) public {
+    constructor (address _tellorMasterAddress) {
         tellor = ITellor(_tellorMasterAddress);
     }
 

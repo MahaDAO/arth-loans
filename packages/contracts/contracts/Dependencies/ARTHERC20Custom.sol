@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import {IERC20} from "./IERC20.sol";
 import {TransferableOwnable} from "./TransferableOwnable.sol";
@@ -49,11 +49,6 @@ abstract contract ARTHERC20Custom is Pausable, IERC20, TransferableOwnable {
         require(!getIsBlacklisted(who), 'ERC20Custom: address is blacklisted');
         _;
     }
-
-    /**
-     * Constructor.
-     */
-    constructor() internal {}
 
     /**
      * @dev See {IERC20-totalSupply}.

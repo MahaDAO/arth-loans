@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "./Interfaces/IActivePool.sol";
 import "./Dependencies/SafeMath.sol";
@@ -8,7 +8,7 @@ import "./Dependencies/Ownable.sol";
 import "./Dependencies/AccessControl.sol";
 
 import "./Dependencies/CheckContract.sol";
-import "./Dependencies/console.sol";
+
 import "./Dependencies/IERC20.sol";
 
 /*
@@ -33,16 +33,6 @@ contract ActivePool is AccessControl, Ownable, CheckContract, IActivePool {
     IERC20 public weth;
     uint256 public ETH; // deposited ether tracker
     uint256 public LUSDDebt;
-
-    // --- Events ---
-
-    event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
-    event TroveManagerAddressChanged(address _newTroveManagerAddress);
-    event ActivePoolLUSDDebtUpdated(uint256 _LUSDDebt);
-    event ActivePoolETHBalanceUpdated(uint256 _ETH);
-
-    event Repay(address indexed from, uint256 amount);
-    event Borrow(address indexed from, uint256 amount);
 
     modifier onlyAMOS {
         require(hasRole(AMO_ROLE, _msgSender()), 'ActivePool: not AMO');

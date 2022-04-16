@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "./Context.sol";
 // MOdificaitons taken from: `https://github.com/FraxFinance/frax-solidity/blob/master/src/hardhat/contracts/Common/Ownable.sol`
@@ -24,7 +24,7 @@ contract Ownable is Context {
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    constructor () internal {
+    constructor () {
         address msgSender = _msgSender();
         _owner = msgSender;
         emit OwnershipTransferred(address(0), msgSender);
@@ -59,7 +59,7 @@ contract Ownable is Context {
      * NOTE: Renouncing ownership will leave the contract without an owner,
      * thereby removing any functionality that is only available to the owner.
      *
-     * NOTE: This function is not safe, as it doesn’t check owner is calling it.
+     * NOTE: This function is not safe, as it doesn't check owner is calling it.
      * Make sure you check it before calling it.
      */
     function _renounceOwnership() internal {

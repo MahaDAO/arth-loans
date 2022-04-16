@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "../Dependencies/SafeMath.sol";
 import "../Interfaces/ILQTYToken.sol";
@@ -42,7 +42,7 @@ contract LockupContract {
         address _lqtyTokenAddress,
         address _beneficiary,
         uint256 _unlockTime
-    ) public {
+    ) {
         lqtyToken = ILQTYToken(_lqtyTokenAddress);
 
         /*

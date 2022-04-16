@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "./Interfaces/IOracle.sol";
 import "./Dependencies/TransferableOwnable.sol";
@@ -11,7 +11,7 @@ contract GMUOracle is TransferableOwnable, IOracle {
 
     event PriceChange(uint256 timestamp, uint256 price);
 
-    constructor(uint256 startingPrice) public {
+    constructor(uint256 startingPrice) {
         price = startingPrice;
     }
 

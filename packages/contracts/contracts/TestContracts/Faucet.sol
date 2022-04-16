@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "../Dependencies/IERC20.sol";
 
@@ -11,7 +11,7 @@ interface IMintableERC20 is IERC20 {
 contract Faucet {
     IMintableERC20[] public tokens;
 
-    constructor(IMintableERC20[] memory tokens_) public {
+    constructor(IMintableERC20[] memory tokens_) {
         tokens = tokens_;
     }
 

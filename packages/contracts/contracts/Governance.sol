@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "./Dependencies/IERC20.sol";
 import "./Dependencies/IUniswapPairOracle.sol";
@@ -41,7 +41,7 @@ contract Governance is TransferableOwnable, IGovernance {
 
     IUniswapPairOracle private stabilityTokenPairOracle;
 
-    uint256 private maxDebtCeiling = uint256(-1); // infinity
+    uint256 private maxDebtCeiling = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff; // infinity
     uint256 private stabilityFee = 0; // 1%
 
     uint256 private immutable DEPLOYMENT_START_TIME;
@@ -56,7 +56,7 @@ contract Governance is TransferableOwnable, IGovernance {
     event FundAddressChanged(address oldAddress, address newAddress, uint256 timestamp);
     event SentToFund(address token, uint256 amount, uint256 timestamp, string reason);
 
-    constructor(address _troveManagerAddress, address _borrowerOperationAddress) public {
+    constructor(address _troveManagerAddress, address _borrowerOperationAddress) {
         troveManagerAddress = _troveManagerAddress;
         borrowerOperationAddress = _borrowerOperationAddress;
         DEPLOYMENT_START_TIME = block.timestamp;

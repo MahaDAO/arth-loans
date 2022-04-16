@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import {Context, TransferableOwnable} from "./TransferableOwnable.sol";
 
@@ -12,7 +12,7 @@ abstract contract Operator is Context, TransferableOwnable {
         address indexed newOperator
     );
 
-    constructor() internal {
+    constructor()  {
         _operator = _msgSender();
         emit OperatorTransferred(address(0), _operator);
     }

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
-//import "../Dependencies/console.sol";
+//
 import "../Dependencies/IERC20.sol";
 
 contract NonPayable {
@@ -10,7 +10,7 @@ contract NonPayable {
 
     IERC20 weth;
 
-    constructor(IERC20 token) public {
+    constructor(IERC20 token) {
         weth = token;
     }
 

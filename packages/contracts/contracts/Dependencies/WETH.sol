@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import {IWETH} from "./IWETH.sol";
 import {ERC20} from "./ERC20.sol";
@@ -10,7 +10,7 @@ contract WETH is IWETH, ERC20 {
     event Deposit(address indexed dst, uint256 wad);
     event Withdrawal(address indexed src, uint256 wad);
 
-    constructor() ERC20("Wrapped Ether", "WETH") public {}
+    constructor() ERC20("Wrapped Ether", "WETH") {}
 
     fallback() external payable {
         deposit();

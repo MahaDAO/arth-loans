@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "./Interfaces/IBorrowerOperations.sol";
 import "./Interfaces/ITroveManager.sol";
@@ -11,13 +11,12 @@ import "./Dependencies/LiquityBase.sol";
 import "./Dependencies/Ownable.sol";
 import "./Dependencies/IERC20.sol";
 import "./Dependencies/CheckContract.sol";
-import "./Dependencies/console.sol";
 import "./Interfaces/IGovernance.sol";
 import "./Interfaces/ILiquityLUSDToken.sol";
-import "./Interfaces/IController.sol";
 import "./Dependencies/ISimpleERCFund.sol";
 
 contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOperations {
+    using SafeMath for uint256;
     string public constant NAME = "BorrowerOperations";
 
     // --- Connected contract declarations ---
@@ -75,34 +74,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         IPriceFeed priceFeed;
     }
 
-    enum BorrowerOperation {
-        openTrove,
-        closeTrove,
-        adjustTrove
-    }
+
 
     mapping(address => bool) public frontEnds;
-
-    event FrontEndRegistered(address indexed _frontEnd, uint256 timestamp);
-    event TroveManagerAddressChanged(address _newTroveManagerAddress);
-    event ActivePoolAddressChanged(address _activePoolAddress);
-    event GovernanceAddressChanged(address _governanceAddress);
-    event DefaultPoolAddressChanged(address _defaultPoolAddress);
-    event StabilityPoolAddressChanged(address _stabilityPoolAddress);
-    event GasPoolAddressChanged(address _gasPoolAddress);
-    event CollSurplusPoolAddressChanged(address _collSurplusPoolAddress);
-    event SortedTrovesAddressChanged(address _sortedTrovesAddress);
-    event LUSDTokenAddressChanged(address _lusdTokenAddress);
-
-    event TroveCreated(address indexed _borrower, uint256 arrayIndex);
-    event TroveUpdated(
-        address indexed _borrower,
-        uint256 _debt,
-        uint256 _coll,
-        uint256 stake,
-        BorrowerOperation operation
-    );
-    event LUSDBorrowingFeePaid(address indexed _borrower, uint256 _LUSDFee);
 
     // --- Dependency setters ---
 

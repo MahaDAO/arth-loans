@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import {Proxy} from "./Proxy.sol";
 
@@ -10,16 +10,12 @@ contract UpgradableProxy is Proxy {
     bytes32 constant IMPLEMENTATION_SLOT = keccak256("mahadao.proxy.implementation");
     bytes32 constant OWNER_SLOT = keccak256("mahadao.proxy.owner");
 
-    constructor(address _proxyTo) public {
+    constructor(address _proxyTo)) {
         setProxyOwner(msg.sender);
         setImplementation(_proxyTo);
     }
 
     fallback() external payable {
-        delegatedFwd(loadImplementation(), msg.data);
-    }
-
-    receive() external payable {
         delegatedFwd(loadImplementation(), msg.data);
     }
 

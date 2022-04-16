@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "./Interfaces/IBorrowerOperations.sol";
 import "./Interfaces/IStabilityPool.sol";
@@ -13,7 +13,7 @@ import "./Dependencies/SafeMath.sol";
 import "./Dependencies/LiquitySafeMath128.sol";
 import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
-import "./Dependencies/console.sol";
+
 import "./Interfaces/IGovernance.sol";
 import "./Interfaces/ILiquityLUSDToken.sol";
 
@@ -52,7 +52,7 @@ import "./Interfaces/ILiquityLUSDToken.sol";
  * and the term d_t * (S - S_t)/P_t gives us the deposit's total accumulated ETH gain.
  *
  * Each liquidation updates the product P and sum S. After a series of liquidations, a compounded deposit and corresponding ETH gain
- * can be calculated using the initial deposit, the depositor’s snapshots of P and S, and the latest values of P and S.
+ * can be calculated using the initial deposit, the depositor's snapshots of P and S, and the latest values of P and S.
  *
  * Any time a depositor updates their deposit (withdrawal, top-up) their accumulated ETH gain is paid out, their new deposit is recorded
  * (based on their latest compounded deposit and modified by the withdrawal/top-up), and they receive new snapshots of the latest P and S.
@@ -147,6 +147,8 @@ import "./Interfaces/ILiquityLUSDToken.sol";
  *
  */
 contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
+        using SafeMath for uint256;
+
     using LiquitySafeMath128 for uint128;
 
     string public constant NAME = "StabilityPool";
@@ -235,42 +237,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
     // Error trackers for the error correction in the offset calculation
     uint256 public lastETHError_Offset;
     uint256 public lastLUSDLossError_Offset;
-
-    // --- Events ---
-
-    event StabilityPoolETHBalanceUpdated(uint256 _newBalance);
-    event StabilityPoolLUSDBalanceUpdated(uint256 _newBalance);
-    event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
-    event TroveManagerAddressChanged(address _newTroveManagerAddress);
-    event ActivePoolAddressChanged(address _newActivePoolAddress);
-    event DefaultPoolAddressChanged(address _newDefaultPoolAddress);
-    event LUSDTokenAddressChanged(address _newLUSDTokenAddress);
-    event SortedTrovesAddressChanged(address _newSortedTrovesAddress);
-    event CommunityIssuanceAddressChanged(address _newCommunityIssuanceAddress);
-
-    event P_Updated(uint256 _P);
-    event S_Updated(uint256 _S, uint128 _epoch, uint128 _scale);
-    event G_Updated(uint256 _G, uint128 _epoch, uint128 _scale);
-    event EpochUpdated(uint128 _currentEpoch);
-    event ScaleUpdated(uint128 _currentScale);
-
-    event FrontEndRegistered(address indexed _frontEnd, uint256 _kickbackRate);
-    event FrontEndTagSet(address indexed _depositor, address indexed _frontEnd);
-
-    event DepositSnapshotUpdated(address indexed _depositor, uint256 _P, uint256 _S, uint256 _G);
-    event FrontEndSnapshotUpdated(address indexed _frontEnd, uint256 _P, uint256 _G);
-    event UserDepositChanged(address indexed _depositor, uint256 _newDeposit);
-    event FrontEndStakeChanged(
-        address indexed _frontEnd,
-        uint256 _newFrontEndStake,
-        address _depositor
-    );
-
-    event ETHGainWithdrawn(address indexed _depositor, uint256 _ETH, uint256 _LUSDLoss);
-    event LQTYPaidToDepositor(address indexed _depositor, uint256 _LQTY);
-    event LQTYPaidToFrontEnd(address indexed _frontEnd, uint256 _LQTY);
-    event EtherSent(address _to, uint256 _amount);
-    event GovernanceAddressChanged(address _governanceAddress);
 
     // --- Contract setters ---
 

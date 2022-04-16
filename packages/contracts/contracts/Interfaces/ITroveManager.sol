@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "./IStabilityPool.sol";
 import "./ILiquityBase.sol";
@@ -8,9 +8,8 @@ import "../Interfaces/ILiquityLUSDToken.sol";
 
 // Common interface for the Trove Manager.
 interface ITroveManager is ILiquityBase {
-    // --- Events ---
 
-    event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
+
     event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
     event LUSDTokenAddressChanged(address _newLUSDTokenAddress);
     event ActivePoolAddressChanged(address _activePoolAddress);
@@ -19,25 +18,11 @@ interface ITroveManager is ILiquityBase {
     event GasPoolAddressChanged(address _gasPoolAddress);
     event CollSurplusPoolAddressChanged(address _collSurplusPoolAddress);
     event SortedTrovesAddressChanged(address _sortedTrovesAddress);
-    event WETHAddressChanged(address _wethAddressChanged);
     event GovernanceAddressChanged(address _governanceAddress);
+    event WETHAddressChanged(address _wethAddress);
 
-    event TroveOwnerDetailsUpdated(
-        address owner,
-        address newOwner,
-        uint256 timestamp
-    );
-    event RewardSnapshotDetailsUpdated(
-        address owner,
-        address newOwner,
-        uint256 timestamp
-    );
-    event TroveOwnersUpdated(
-        address owner, 
-        address newOwner, 
-        uint256 idx, 
-        uint256 timestamp
-    );
+    event RewardSnapshotDetailsUpdated(address owner, address newOwner, uint256 timestamp);
+    event TroveOwnersUpdated(address owner, address newOwner, uint256 idx, uint256 timestamp);
     event Liquidation(
         uint256 _liquidatedDebt,
         uint256 _liquidatedColl,
@@ -54,10 +39,15 @@ interface ITroveManager is ILiquityBase {
         address indexed _borrower,
         uint256 _debt,
         uint256 _coll,
-        uint256 stake,
-        uint8 operation
+        uint256 _stake,
+        TroveManagerOperation _operation
     );
-    event TroveLiquidated(address indexed _borrower, uint256 _debt, uint256 _coll, uint8 operation);
+    event TroveLiquidated(
+        address indexed _borrower,
+        uint256 _debt,
+        uint256 _coll,
+        TroveManagerOperation _operation
+    );
     event BaseRateUpdated(uint256 _baseRate);
     event LastFeeOpTimeUpdated(uint256 _lastFeeOpTime);
     event TotalStakesUpdated(uint256 _newTotalStakes);
@@ -65,6 +55,13 @@ interface ITroveManager is ILiquityBase {
     event LTermsUpdated(uint256 _L_ETH, uint256 _L_LUSDDebt);
     event TroveSnapshotsUpdated(uint256 _L_ETH, uint256 _L_LUSDDebt);
     event TroveIndexUpdated(address _borrower, uint256 _newIndex);
+
+    enum TroveManagerOperation {
+        applyPendingRewards,
+        liquidateInNormalMode,
+        liquidateInRecoveryMode,
+        redeemCollateral
+    }
 
     // --- Functions ---
 

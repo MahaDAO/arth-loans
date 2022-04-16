@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // NOTE: taken from `https://github.com/DecenterApps/defisaver-contracts/blob/master/contracts/utils/SafeERC20.sol`.
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "../Dependencies/ERC20.sol";
 import "./Address.sol";

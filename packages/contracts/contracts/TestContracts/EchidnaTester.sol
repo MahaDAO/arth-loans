@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "../TroveManager.sol";
 import "../BorrowerOperations.sol";
@@ -16,7 +16,7 @@ import "./EchidnaProxy.sol";
 import "../Dependencies/WETH.sol";
 import "../Governance.sol";
 
-//import "../Dependencies/console.sol";
+//
 
 // Run with:
 // rm -f fuzzTests/corpus/* # (optional)

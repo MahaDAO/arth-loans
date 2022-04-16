@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 /*
  * The Stability Pool holds LUSD tokens deposited by Stability Pool depositors.
@@ -38,7 +38,6 @@ interface IStabilityPool {
 
     event StabilityPoolETHBalanceUpdated(uint256 _newBalance);
     event StabilityPoolLUSDBalanceUpdated(uint256 _newBalance);
-    event GovernanceAddressChanged(address _governanceAddress);
     event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
     event TroveManagerAddressChanged(address _newTroveManagerAddress);
     event ActivePoolAddressChanged(address _newActivePoolAddress);
@@ -69,6 +68,7 @@ interface IStabilityPool {
     event LQTYPaidToDepositor(address indexed _depositor, uint256 _LQTY);
     event LQTYPaidToFrontEnd(address indexed _frontEnd, uint256 _LQTY);
     event EtherSent(address _to, uint256 _amount);
+    event GovernanceAddressChanged(address _governanceAddress);
 
     // --- Functions ---
 

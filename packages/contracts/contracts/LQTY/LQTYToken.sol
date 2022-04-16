@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.11;
+pragma solidity 0.8.0;
 
 import "../Dependencies/CheckContract.sol";
 import "../Dependencies/SafeMath.sol";
 import "../Interfaces/ILQTYToken.sol";
 import "../Interfaces/ILockupContractFactory.sol";
-import "../Dependencies/console.sol";
+
 
 /*
 * Based upon OpenZeppelin's ERC20 contract:
@@ -99,10 +99,6 @@ contract LQTYToken is CheckContract, ILQTYToken {
 
     // --- Events ---
 
-    event CommunityIssuanceAddressSet(address _communityIssuanceAddress);
-    event LQTYStakingAddressSet(address _lqtyStakingAddress);
-    event LockupContractFactoryAddressSet(address _lockupContractFactoryAddress);
-
     // --- Functions ---
 
     constructor(
@@ -112,7 +108,7 @@ contract LQTYToken is CheckContract, ILQTYToken {
         address _bountyAddress,
         address _lpRewardsAddress,
         address _multisigAddress
-    ) public {
+    ) {
         checkContract(_communityIssuanceAddress);
         checkContract(_lqtyStakingAddress);
         checkContract(_lockupFactoryAddress);
@@ -278,7 +274,7 @@ contract LQTYToken is CheckContract, ILQTYToken {
         bytes32 r,
         bytes32 s
     ) external override {
-        require(deadline >= now, "LQTY: expired deadline");
+        require(deadline >= block.timestamp, "LQTY: expired deadline");
         bytes32 digest = keccak256(
             abi.encodePacked(
                 "\x19\x01",
@@ -300,7 +296,7 @@ contract LQTYToken is CheckContract, ILQTYToken {
 
     // --- Internal operations ---
 
-    function _chainID() private pure returns (uint256 chainID) {
+    function _chainID() private view returns (uint256 chainID) {
         assembly {
             chainID := chainid()
         }
@@ -308,10 +304,10 @@ contract LQTYToken is CheckContract, ILQTYToken {
 
     function _buildDomainSeparator(
         bytes32 typeHash,
-        bytes32 name,
-        bytes32 version
+        bytes32 _name,
+        bytes32 _version
     ) private view returns (bytes32) {
-        return keccak256(abi.encode(typeHash, name, version, _chainID(), address(this)));
+        return keccak256(abi.encode(typeHash, _name, _version, _chainID(), address(this)));
     }
 
     function _transfer(
