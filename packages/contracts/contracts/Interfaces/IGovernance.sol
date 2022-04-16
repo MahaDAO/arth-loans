@@ -26,7 +26,7 @@ interface IGovernance {
 
     function getStabilityFeeToken() external view returns (IERC20);
 
-    function getStabilityTokenPairOracle() external view returns (IUniswapPairOracle);
+    function getStabilityTokenPairOracle() external view returns (IOracle);
 
     function getFund() external view returns (ISimpleERCFund);
 

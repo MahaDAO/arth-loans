@@ -3,10 +3,10 @@
 pragma solidity 0.8.0;
 
 import "./Dependencies/IERC20.sol";
-import "./Dependencies/IUniswapPairOracle.sol";
 import "./Dependencies/LiquityMath.sol";
 import "./Dependencies/BaseMath.sol";
 import "./Dependencies/TransferableOwnable.sol";
+import "./Interfaces/IOracle.sol";
 import "./Interfaces/IBurnableERC20.sol";
 import "./Interfaces/IGovernance.sol";
 import "./Dependencies/ISimpleERCFund.sol";
@@ -44,7 +44,7 @@ contract Governance is BaseMath, TransferableOwnable, IGovernance {
     // The fund which recieves all the fees.
     ISimpleERCFund private fund;
 
-    IUniswapPairOracle private stabilityTokenPairOracle;
+    IOracle private stabilityTokenPairOracle;
 
     uint256 private maxDebtCeiling = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff; // infinity
     uint256 private stabilityFee = 0; // 1%
@@ -60,6 +60,9 @@ contract Governance is BaseMath, TransferableOwnable, IGovernance {
     event StabilityFeeCharged(uint256 LUSDAmount, uint256 feeAmount, uint256 timestamp);
     event FundAddressChanged(address oldAddress, address newAddress, uint256 timestamp);
     event SentToFund(address token, uint256 amount, uint256 timestamp, string reason);
+    event RedemptionFeeFloorChanged(uint256 oldValue, uint256 newValue, uint256 timestamp);
+    event BorrowingFeeFloorChanged(uint256 oldValue, uint256 newValue, uint256 timestamp);
+    event MaxBorrowingFeeChanged(uint256 oldValue, uint256 newValue, uint256 timestamp);
 
     constructor(address _troveManagerAddress, address _borrowerOperationAddress) {
         troveManagerAddress = _troveManagerAddress;
@@ -71,6 +74,24 @@ contract Governance is BaseMath, TransferableOwnable, IGovernance {
         uint256 oldValue = maxDebtCeiling;
         maxDebtCeiling = _value;
         emit MaxDebtCeilingChanged(oldValue, _value, block.timestamp);
+    }
+
+    function setRedemptionFeeFloor(uint256 _value) public onlyOwner {
+        uint256 oldValue = REDEMPTION_FEE_FLOOR;
+        REDEMPTION_FEE_FLOOR = _value;
+        emit RedemptionFeeFloorChanged(oldValue, _value, block.timestamp);
+    }
+
+    function setBorrowingFeeFloor(uint256 _value) public onlyOwner {
+        uint256 oldValue = BORROWING_FEE_FLOOR;
+        BORROWING_FEE_FLOOR = _value;
+        emit BorrowingFeeFloorChanged(oldValue, _value, block.timestamp);
+    }
+
+    function setMaxBorrowingFee(uint256 _value) public onlyOwner {
+        uint256 oldValue = MAX_BORROWING_FEE;
+        MAX_BORROWING_FEE = _value;
+        emit MaxBorrowingFeeChanged(oldValue, _value, block.timestamp);
     }
 
     function setFund(address _newFund) public onlyOwner {
@@ -97,7 +118,7 @@ contract Governance is BaseMath, TransferableOwnable, IGovernance {
         emit StabilityFeeChanged(oldValue, _value, block.timestamp);
     }
 
-    function setStabilityFeeToken(address token, IUniswapPairOracle oracle) public onlyOwner {
+    function setStabilityFeeToken(address token, IOracle oracle) public onlyOwner {
         address oldAddress = address(stabilityFeeToken);
         stabilityFeeToken = IBurnableERC20(token);
         emit StabilityFeeTokenChanged(oldAddress, address(token), block.timestamp);
@@ -135,7 +156,7 @@ contract Governance is BaseMath, TransferableOwnable, IGovernance {
         return stabilityFee;
     }
 
-    function getStabilityTokenPairOracle() external view override returns (IUniswapPairOracle) {
+    function getStabilityTokenPairOracle() external view override returns (IOracle) {
         return stabilityTokenPairOracle;
     }
 
@@ -160,10 +181,7 @@ contract Governance is BaseMath, TransferableOwnable, IGovernance {
         ) return;
 
         uint256 stabilityFeeInLUSD = LUSDAmount.mul(stabilityFee).div(_100pct);
-        uint256 stabilityTokenPriceInLUSD = stabilityTokenPairOracle.consult(
-            address(stabilityFeeToken),
-            1e18
-        );
+        uint256 stabilityTokenPriceInLUSD = stabilityTokenPairOracle.getPrice();
         uint256 _stabilityFee = stabilityFeeInLUSD.mul(1e18).div(stabilityTokenPriceInLUSD);
 
         if (stabilityFee > 0) {

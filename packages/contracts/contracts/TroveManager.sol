@@ -37,8 +37,6 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
      * (1/2) = d^720 => d = (1/2)^(1/720)
      */
     uint256 public constant MINUTE_DECAY_FACTOR = 999037758833783000;
-    // uint256 public constant REDEMPTION_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 1; // 0.1%
-    // uint256 public constant MAX_BORROWING_FEE = (DECIMAL_PRECISION / 100) * 0; // 1%
 
     // During bootsrap period redemptions are not allowed
     uint256 public constant BOOTSTRAP_PERIOD = 7 days;
