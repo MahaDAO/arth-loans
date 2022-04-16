@@ -45,6 +45,7 @@ contract LQTYTokenTester is LQTYToken {
         uint256 amount
     ) external returns (bool) {
         _approve(owner, spender, amount);
+        return true;
     }
 
     function callInternalTransfer(
@@ -53,6 +54,7 @@ contract LQTYTokenTester is LQTYToken {
         uint256 amount
     ) external returns (bool) {
         _transfer(sender, recipient, amount);
+        return true;
     }
 
     function getChainId() external view returns (uint256 chainID) {

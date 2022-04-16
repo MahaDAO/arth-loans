@@ -10,7 +10,7 @@ contract UpgradableProxy is Proxy {
     bytes32 constant IMPLEMENTATION_SLOT = keccak256("mahadao.proxy.implementation");
     bytes32 constant OWNER_SLOT = keccak256("mahadao.proxy.owner");
 
-    constructor(address _proxyTo)) {
+    constructor(address _proxyTo) {
         setProxyOwner(msg.sender);
         setImplementation(_proxyTo);
     }

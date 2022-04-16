@@ -50,7 +50,7 @@ contract UniswapPairOracle is IUniswapPairOracle {
         address tokenB,
         address _ownerAddress,
         address _timelockAddress
-    ) public {
+    ) {
         IUniswapV2Pair _pair =
             IUniswapV2Pair(UniswapV2Library.pairFor(factory, tokenA, tokenB));
         pair = _pair;
@@ -70,9 +70,6 @@ contract UniswapPairOracle is IUniswapPairOracle {
         timelockAddress = _timelockAddress;
     }
 
-    /**
-     * External.
-     */
 
     function setOwner(address _ownerAddress) external onlyByOwnerOrGovernance {
         ownerAddress = _ownerAddress;

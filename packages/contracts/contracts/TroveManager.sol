@@ -1650,7 +1650,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     }
 
     function _calcBorrowingRate(uint256 _baseRate) internal view returns (uint256) {
-        return LiquityMath._min(BORROWING_FEE_FLOOR.add(_baseRate), MAX_BORROWING_FEE);
+        return LiquityMath._min(getBorrowingFeeFloor().add(_baseRate), MAX_BORROWING_FEE);
     }
 
     function getBorrowingFee(uint256 _LUSDDebt) external view override returns (uint256) {

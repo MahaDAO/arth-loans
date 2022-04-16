@@ -19,7 +19,7 @@ contract GMUOracle is TransferableOwnable, IOracle {
         return price;
     }
 
-    function getDecimalPercision() public view override returns (uint256) {
+    function getDecimalPercision() public pure override returns (uint256) {
         return 6;
     }
 

@@ -48,7 +48,7 @@ contract EchidnaTester {
 
     uint256 private numberOfTroves;
 
-    constructor() public payable {
+    constructor() {
         troveManager = new TroveManager();
         borrowerOperations = new BorrowerOperations();
         activePool = new ActivePool();
@@ -115,7 +115,6 @@ contract EchidnaTester {
             address(activePool),
             address(lusdToken),
             address(sortedTroves),
-            address(0),
             address(weth),
             address(governance)
         );
@@ -386,7 +385,7 @@ contract EchidnaTester {
         uint256 amount
     ) external returns (bool) {
         uint256 actor = _i % NUMBER_OF_ACTORS;
-        echidnaProxies[actor].transferPrx(recipient, amount);
+        return echidnaProxies[actor].transferPrx(recipient, amount);
     }
 
     function approveExt(
@@ -395,7 +394,7 @@ contract EchidnaTester {
         uint256 amount
     ) external returns (bool) {
         uint256 actor = _i % NUMBER_OF_ACTORS;
-        echidnaProxies[actor].approvePrx(spender, amount);
+        return echidnaProxies[actor].approvePrx(spender, amount);
     }
 
     function transferFromExt(
@@ -405,7 +404,7 @@ contract EchidnaTester {
         uint256 amount
     ) external returns (bool) {
         uint256 actor = _i % NUMBER_OF_ACTORS;
-        echidnaProxies[actor].transferFromPrx(sender, recipient, amount);
+        return echidnaProxies[actor].transferFromPrx(sender, recipient, amount);
     }
 
     function increaseAllowanceExt(
@@ -414,7 +413,7 @@ contract EchidnaTester {
         uint256 addedValue
     ) external returns (bool) {
         uint256 actor = _i % NUMBER_OF_ACTORS;
-        echidnaProxies[actor].increaseAllowancePrx(spender, addedValue);
+        return echidnaProxies[actor].increaseAllowancePrx(spender, addedValue);
     }
 
     function decreaseAllowanceExt(
@@ -423,7 +422,7 @@ contract EchidnaTester {
         uint256 subtractedValue
     ) external returns (bool) {
         uint256 actor = _i % NUMBER_OF_ACTORS;
-        echidnaProxies[actor].decreaseAllowancePrx(spender, subtractedValue);
+        return echidnaProxies[actor].decreaseAllowancePrx(spender, subtractedValue);
     }
 
     // PriceFeed

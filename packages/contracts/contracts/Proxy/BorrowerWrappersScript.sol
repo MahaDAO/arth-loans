@@ -33,7 +33,6 @@ contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, 
         address _lqtyStakingAddress,
         address _lqtyTokenAddress
     )
-        public
         BorrowerOperationsScript(IBorrowerOperations(_borrowerOperationsAddress))
         LQTYStakingScript(_lqtyStakingAddress)
     {

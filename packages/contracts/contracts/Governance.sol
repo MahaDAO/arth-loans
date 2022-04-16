@@ -5,6 +5,7 @@ pragma solidity 0.8.0;
 import "./Dependencies/IERC20.sol";
 import "./Dependencies/IUniswapPairOracle.sol";
 import "./Dependencies/LiquityMath.sol";
+import "./Dependencies/BaseMath.sol";
 import "./Dependencies/TransferableOwnable.sol";
 import "./Interfaces/IBurnableERC20.sol";
 import "./Interfaces/IGovernance.sol";
@@ -17,11 +18,13 @@ import "./Dependencies/ISimpleERCFund.sol";
  * When a trove makes an operation that applies its pending ETH and LUSD debt, its pending ETH and LUSD debt is moved
  * from the Default Pool to the Active Pool.
  */
-contract Governance is TransferableOwnable, IGovernance {
+contract Governance is BaseMath, TransferableOwnable, IGovernance {
     using SafeMath for uint256;
 
     string public constant NAME = "Governance";
     uint256 public constant _100pct = 1000000000000000000; // 1e18 == 100%
+
+    uint256 public BORROWING_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 0; // 0.1%
 
     address public immutable troveManagerAddress;
     address public immutable borrowerOperationAddress;
@@ -104,6 +107,10 @@ contract Governance is TransferableOwnable, IGovernance {
 
     function getDeploymentStartTime() external view override returns (uint256) {
         return DEPLOYMENT_START_TIME;
+    }
+
+    function getBorrowingFeeFloor() external view override returns (uint256) {
+        return BORROWING_FEE_FLOOR;
     }
 
     function getMaxDebtCeiling() external view override returns (uint256) {

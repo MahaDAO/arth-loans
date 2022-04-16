@@ -521,9 +521,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         governance.sendToFund(address(_lusdToken), _LUSDFeeToFund, "Borrowing fee triggered");
     }
 
-    function _getUSDValue(uint256 _coll, uint256 _price) internal view returns (uint256) {
+    function _getUSDValue(uint256 _coll, uint256 _price) internal pure returns (uint256) {
         uint256 usdValue = _price.mul(_coll).div(DECIMAL_PRECISION);
-
         return usdValue;
     }
 
@@ -785,7 +784,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
             );
         } else {
             require(
-                _maxFeePercentage >= BORROWING_FEE_FLOOR && _maxFeePercentage <= DECIMAL_PRECISION,
+                _maxFeePercentage >= getBorrowingFeeFloor() && _maxFeePercentage <= DECIMAL_PRECISION,
                 "Max fee percentage must be between 0.5% and 100%"
             );
         }

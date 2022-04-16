@@ -18,7 +18,7 @@ contract MockUniswapOracle is IUniswapPairOracle {
         return price;
     }
 
-    function canUpdate() external view override returns(bool) {
+    function canUpdate() external pure override returns(bool) {
         return true;
     }
 

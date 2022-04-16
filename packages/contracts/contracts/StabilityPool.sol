@@ -7,7 +7,6 @@ import "./Interfaces/IStabilityPool.sol";
 import "./Interfaces/IBorrowerOperations.sol";
 import "./Interfaces/ITroveManager.sol";
 import "./Interfaces/ISortedTroves.sol";
-import "./Interfaces/ICommunityIssuance.sol";
 import "./Dependencies/LiquityBase.sol";
 import "./Dependencies/SafeMath.sol";
 import "./Dependencies/LiquitySafeMath128.sol";
@@ -162,7 +161,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
     // Needed to check if there are pending liquidations
     ISortedTroves public sortedTroves;
 
-    ICommunityIssuance public communityIssuance;
 
     IERC20 public weth;
     uint256 public ETH; // deposited ether tracker
@@ -246,7 +244,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         address _activePoolAddress,
         address _lusdTokenAddress,
         address _sortedTrovesAddress,
-        address _communityIssuanceAddress,
         address _wethAddress,
         address _governanceAddress
     ) external override onlyOwner {
@@ -255,7 +252,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         checkContract(_activePoolAddress);
         checkContract(_lusdTokenAddress);
         checkContract(_sortedTrovesAddress);
-        checkContract(_communityIssuanceAddress);
         checkContract(_wethAddress);
         checkContract(_governanceAddress);
 
@@ -264,7 +260,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         activePool = IActivePool(_activePoolAddress);
         lusdToken = ILiquityLUSDToken(_lusdTokenAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
-        communityIssuance = ICommunityIssuance(_communityIssuanceAddress);
         weth = IERC20(_wethAddress);
         governance = IGovernance(_governanceAddress);
 
@@ -273,7 +268,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         emit ActivePoolAddressChanged(_activePoolAddress);
         emit LUSDTokenAddressChanged(_lusdTokenAddress);
         emit SortedTrovesAddressChanged(_sortedTrovesAddress);
-        emit CommunityIssuanceAddressChanged(_communityIssuanceAddress);
         emit GovernanceAddressChanged(_governanceAddress);
 
         _renounceOwnership();
@@ -306,10 +300,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
         uint256 initialDeposit = deposits[msg.sender].initialValue;
 
-        ICommunityIssuance communityIssuanceCached = communityIssuance;
-
-        // _triggerLQTYIssuance(communityIssuanceCached);
-
         if (initialDeposit == 0) {
             _setFrontEndTag(msg.sender, _frontEndTag);
         }
@@ -319,7 +309,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
         // First pay out any LQTY gains
         address frontEnd = deposits[msg.sender].frontEndTag;
-        // _payOutLQTYGains(communityIssuanceCached, msg.sender, frontEnd);
 
         // Update front end stake
         uint256 compoundedFrontEndStake = getCompoundedFrontEndStake(frontEnd);
@@ -354,11 +343,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         }
         uint256 initialDeposit = deposits[msg.sender].initialValue;
         _requireUserHasDeposit(initialDeposit);
-
-        ICommunityIssuance communityIssuanceCached = communityIssuance;
-
-        // _triggerLQTYIssuance(communityIssuanceCached);
-
         uint256 depositorETHGain = getDepositorETHGain(msg.sender);
 
         uint256 compoundedLUSDDeposit = getCompoundedLUSDDeposit(msg.sender);
@@ -367,7 +351,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
         // First pay out any LQTY gains
         address frontEnd = deposits[msg.sender].frontEndTag;
-        // _payOutLQTYGains(communityIssuanceCached, msg.sender, frontEnd);
 
         // Update front end stake
         uint256 compoundedFrontEndStake = getCompoundedFrontEndStake(frontEnd);
@@ -400,10 +383,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         _requireUserHasTrove(msg.sender);
         _requireUserHasETHGain(msg.sender);
 
-        ICommunityIssuance communityIssuanceCached = communityIssuance;
-
-        // _triggerLQTYIssuance(communityIssuanceCached);
-
         uint256 depositorETHGain = getDepositorETHGain(msg.sender);
 
         uint256 compoundedLUSDDeposit = getCompoundedLUSDDeposit(msg.sender);
@@ -411,7 +390,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
         // First pay out any LQTY gains
         address frontEnd = deposits[msg.sender].frontEndTag;
-        // _payOutLQTYGains(communityIssuanceCached, msg.sender, frontEnd);
 
         // Update front end stake
         uint256 compoundedFrontEndStake = getCompoundedFrontEndStake(frontEnd);
@@ -436,11 +414,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
     }
 
     // --- LQTY issuance functions ---
-
-    function _triggerLQTYIssuance(ICommunityIssuance _communityIssuance) internal {
-        uint256 LQTYIssuance = _communityIssuance.issueLQTY();
-        _updateG(LQTYIssuance);
-    }
 
     function _updateG(uint256 _LQTYIssuance) internal {
         uint256 totalLUSD = totalLUSDDeposits; // cached to save an SLOAD
@@ -499,8 +472,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         if (totalLUSD == 0 || _debtToOffset == 0) {
             return;
         }
-
-        // _triggerLQTYIssuance(communityIssuance);
 
         (uint256 ETHGainPerUnitStaked, uint256 LUSDLossPerUnitStaked) = _computeRewardsPerUnitStaked(
             _collToAdd,
@@ -947,24 +918,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         emit FrontEndSnapshotUpdated(_frontEnd, currentP, currentG);
     }
 
-    function _payOutLQTYGains(
-        ICommunityIssuance _communityIssuance,
-        address _depositor,
-        address _frontEnd
-    ) internal {
-        // Pay out front end's LQTY gain
-        if (_frontEnd != address(0)) {
-            uint256 frontEndLQTYGain = getFrontEndLQTYGain(_frontEnd);
-            _communityIssuance.sendLQTY(_frontEnd, frontEndLQTYGain);
-            emit LQTYPaidToFrontEnd(_frontEnd, frontEndLQTYGain);
-        }
-
-        // Pay out depositor's LQTY gain
-        uint256 depositorLQTYGain = getDepositorLQTYGain(_depositor);
-        _communityIssuance.sendLQTY(_depositor, depositorLQTYGain);
-        emit LQTYPaidToDepositor(_depositor, depositorLQTYGain);
-    }
-
     // --- 'require' functions ---
 
     function _requireCallerIsActivePool() internal view {
@@ -1022,7 +975,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         );
     }
 
-    function _requireValidKickbackRate(uint256 _kickbackRate) internal view {
+    function _requireValidKickbackRate(uint256 _kickbackRate) internal pure {
         require(
             _kickbackRate <= DECIMAL_PRECISION,
             "StabilityPool: Kickback rate must be in range [0,1]"

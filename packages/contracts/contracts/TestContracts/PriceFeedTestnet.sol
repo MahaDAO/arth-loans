@@ -18,7 +18,7 @@ contract PriceFeedTestnet is IPriceFeed {
         return _price;
     }
 
-    function fetchPrice() external override returns (uint256) {
+    function fetchPrice() external view override returns (uint256) {
         return _price;
     }
 

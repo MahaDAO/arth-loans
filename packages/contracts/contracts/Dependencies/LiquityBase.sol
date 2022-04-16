@@ -27,7 +27,7 @@ contract LiquityBase is BaseMath, ILiquityBase {
     uint256 public CCR = 1300000000000000000; // 130%
 
     // Amount of LUSD to be locked in gas pool on opening troves
-    uint256 public LUSD_GAS_COMPENSATION = 5e18;
+    uint256 public LUSD_GAS_COMPENSATION = 50e18;
 
     // Minimum amount of net LUSD debt a trove must have
     uint256 public MIN_NET_DEBT = 50e18;
@@ -35,13 +35,17 @@ contract LiquityBase is BaseMath, ILiquityBase {
 
     uint256 public PERCENT_DIVISOR = 200; // dividing by 200 yields 0.5%
 
-    uint256 public BORROWING_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 0; // 0.1%
+    // uint256 public BORROWING_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 0; // 0.1%
 
     IActivePool public activePool;
     IDefaultPool public defaultPool;
     IGovernance public governance;
 
     // --- Gas compensation functions ---
+
+    function getBorrowingFeeFloor() public view returns (uint256) {
+        return governance.getBorrowingFeeFloor();
+    }
 
     function getPriceFeed() public view override returns (IPriceFeed) {
         return governance.getPriceFeed();
@@ -89,7 +93,7 @@ contract LiquityBase is BaseMath, ILiquityBase {
         uint256 _fee,
         uint256 _amount,
         uint256 _maxFeePercentage
-    ) internal view {
+    ) internal pure {
         uint256 feePercentage = _fee.mul(DECIMAL_PRECISION).div(_amount);
         require(feePercentage <= _maxFeePercentage, "Fee exceeded provided maximum");
     }
