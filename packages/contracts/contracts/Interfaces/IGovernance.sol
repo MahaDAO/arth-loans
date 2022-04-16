@@ -5,7 +5,7 @@ pragma solidity 0.8.0;
 import "../Dependencies/IERC20.sol";
 import "./IPriceFeed.sol";
 import "../Dependencies/ISimpleERCFund.sol";
-import "../Dependencies/IUniswapPairOracle.sol";
+import "../Interfaces/IOracle.sol";
 
 interface IGovernance {
     function getDeploymentStartTime() external view returns (uint256);
