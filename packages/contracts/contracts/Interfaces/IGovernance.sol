@@ -12,6 +12,10 @@ interface IGovernance {
 
     function getBorrowingFeeFloor() external view returns (uint256);
 
+    function getRedemptionFeeFloor() external view returns (uint256);
+
+    function getMaxBorrowingFee() external view returns (uint256);
+
     function getMaxDebtCeiling() external view returns (uint256);
 
     function getAllowMinting() external view returns (bool);

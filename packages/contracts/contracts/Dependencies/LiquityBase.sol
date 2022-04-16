@@ -47,6 +47,14 @@ contract LiquityBase is BaseMath, ILiquityBase {
         return governance.getBorrowingFeeFloor();
     }
 
+    function getRedemptionFeeFloor() public view returns (uint256) {
+        return governance.getRedemptionFeeFloor();
+    }
+
+    function getMaxBorrowingFee() public view returns (uint256) {
+        return governance.getMaxBorrowingFee();
+    }
+
     function getPriceFeed() public view override returns (IPriceFeed) {
         return governance.getPriceFeed();
     }

@@ -37,8 +37,8 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
      * (1/2) = d^720 => d = (1/2)^(1/720)
      */
     uint256 public constant MINUTE_DECAY_FACTOR = 999037758833783000;
-    uint256 public constant REDEMPTION_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 1; // 0.1%
-    uint256 public constant MAX_BORROWING_FEE = (DECIMAL_PRECISION / 100) * 0; // 1%
+    // uint256 public constant REDEMPTION_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 1; // 0.1%
+    // uint256 public constant MAX_BORROWING_FEE = (DECIMAL_PRECISION / 100) * 0; // 1%
 
     // During bootsrap period redemptions are not allowed
     uint256 public constant BOOTSTRAP_PERIOD = 7 days;
@@ -1613,10 +1613,10 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         return _calcRedemptionRate(_calcDecayedBaseRate());
     }
 
-    function _calcRedemptionRate(uint256 _baseRate) internal pure returns (uint256) {
+    function _calcRedemptionRate(uint256 _baseRate) internal view returns (uint256) {
         return
             LiquityMath._min(
-                REDEMPTION_FEE_FLOOR.add(_baseRate),
+                getRedemptionFeeFloor().add(_baseRate),
                 DECIMAL_PRECISION // cap at a maximum of 100%
             );
     }
@@ -1650,7 +1650,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     }
 
     function _calcBorrowingRate(uint256 _baseRate) internal view returns (uint256) {
-        return LiquityMath._min(getBorrowingFeeFloor().add(_baseRate), MAX_BORROWING_FEE);
+        return LiquityMath._min(getBorrowingFeeFloor().add(_baseRate), getMaxBorrowingFee());
     }
 
     function getBorrowingFee(uint256 _LUSDDebt) external view override returns (uint256) {
@@ -1755,10 +1755,10 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         );
     }
 
-    function _requireValidMaxFeePercentage(uint256 _maxFeePercentage) internal pure {
+    function _requireValidMaxFeePercentage(uint256 _maxFeePercentage) internal view {
         require(
-            _maxFeePercentage >= REDEMPTION_FEE_FLOOR && _maxFeePercentage <= DECIMAL_PRECISION,
-            "Max fee percentage must be between 0.5% and 100%"
+            _maxFeePercentage >= getRedemptionFeeFloor() && _maxFeePercentage <= DECIMAL_PRECISION,
+            "Max fee percentage must be between min and 100%"
         );
     }
 

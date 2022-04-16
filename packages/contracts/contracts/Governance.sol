@@ -24,7 +24,9 @@ contract Governance is BaseMath, TransferableOwnable, IGovernance {
     string public constant NAME = "Governance";
     uint256 public constant _100pct = 1000000000000000000; // 1e18 == 100%
 
-    uint256 public BORROWING_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 0; // 0.1%
+    uint256 public BORROWING_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 0; // 0%
+    uint256 public REDEMPTION_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 1; // 0.1%
+    uint256 public MAX_BORROWING_FEE = (DECIMAL_PRECISION / 100) * 0; // 0%
 
     address public immutable troveManagerAddress;
     address public immutable borrowerOperationAddress;
@@ -111,6 +113,14 @@ contract Governance is BaseMath, TransferableOwnable, IGovernance {
 
     function getBorrowingFeeFloor() external view override returns (uint256) {
         return BORROWING_FEE_FLOOR;
+    }
+
+    function getRedemptionFeeFloor() external view override returns (uint256) {
+        return REDEMPTION_FEE_FLOOR;
+    }
+
+    function getMaxBorrowingFee() external view override returns (uint256) {
+        return MAX_BORROWING_FEE;
     }
 
     function getMaxDebtCeiling() external view override returns (uint256) {
