@@ -479,6 +479,7 @@ class MainnetDeploymentHelper {
           ARTHContracts.stabilityPool.address,
           ARTHContracts.defaultPool.address,
           ARTHContracts.collSurplusPool.address,
+          this.configParams.DEPLOYER_ADDRS.TIMELOCK,
           this.configParams.EXTERNAL_ADDRS[token],
           { gasPrice }
         )

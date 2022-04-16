@@ -1,4 +1,4 @@
-const configParams = require("./params/bsc.js");
+const configParams = require("./params/mainnet.js");
 const MainnetDeploymentHelper = require("../utils/maticMainnetDeploymentHelper.js");
 
 async function main() {

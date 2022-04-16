@@ -42,7 +42,7 @@ contract Governance is TransferableOwnable, IGovernance {
     IUniswapPairOracle private stabilityTokenPairOracle;
 
     uint256 private maxDebtCeiling = uint256(-1); // infinity
-    uint256 private stabilityFee = 10000000000000000; // 1%
+    uint256 private stabilityFee = 0; // 1%
 
     uint256 private immutable DEPLOYMENT_START_TIME;
 

@@ -5,19 +5,19 @@ pragma solidity 0.6.11;
 import "../TroveManager.sol";
 import "../BorrowerOperations.sol";
 import "../StabilityPool.sol";
-import "../LUSDToken.sol";
+import "../LiquityLUSDToken.sol";
 
 contract EchidnaProxy {
     TroveManager troveManager;
     BorrowerOperations borrowerOperations;
     StabilityPool stabilityPool;
-    LUSDToken lusdToken;
+    LiquityLUSDToken lusdToken;
 
     constructor(
         TroveManager _troveManager,
         BorrowerOperations _borrowerOperations,
         StabilityPool _stabilityPool,
-        LUSDToken _lusdToken
+        LiquityLUSDToken _lusdToken
     ) public {
         troveManager = _troveManager;
         borrowerOperations = _borrowerOperations;

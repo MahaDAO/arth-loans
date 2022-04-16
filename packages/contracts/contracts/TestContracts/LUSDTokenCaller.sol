@@ -15,11 +15,11 @@ contract LUSDTokenCaller {
     }
 
     function lusdMint(address _account, uint256 _amount) external {
-        LUSD.poolMint(_account, _amount);
+        // LUSD.poolMint(_account, _amount);
     }
 
     function lusdBurn(address _account, uint256 _amount) external {
-        LUSD.poolBurnFrom(_account, _amount);
+        // LUSD.poolBurnFrom(_account, _amount);
     }
 
     function lusdSendToPool(

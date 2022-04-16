@@ -9,12 +9,11 @@ import "../DefaultPool.sol";
 import "../StabilityPool.sol";
 import "../GasPool.sol";
 import "../CollSurplusPool.sol";
-import "../LUSDToken.sol";
+import "../LiquityLUSDToken.sol";
 import "./PriceFeedTestnet.sol";
 import "../SortedTroves.sol";
 import "./EchidnaProxy.sol";
 import "../Dependencies/WETH.sol";
-import "../Controller.sol";
 import "../Governance.sol";
 
 //import "../Dependencies/console.sol";
@@ -39,11 +38,10 @@ contract EchidnaTester {
     StabilityPool public stabilityPool;
     GasPool public gasPool;
     CollSurplusPool public collSurplusPool;
-    LUSDToken public lusdToken;
+    LiquityLUSDToken public lusdToken;
     PriceFeedTestnet priceFeedTestnet;
     SortedTroves sortedTroves;
     WETH public weth;
-    Controller public controller;
     Governance public governance;
 
     EchidnaProxy[NUMBER_OF_ACTORS] public echidnaProxies;
@@ -57,16 +55,8 @@ contract EchidnaTester {
         defaultPool = new DefaultPool();
         stabilityPool = new StabilityPool();
         gasPool = new GasPool();
-        lusdToken = new LUSDToken();
+        lusdToken = new LiquityLUSDToken();
         governance = new Governance(address(troveManager), address(borrowerOperations));
-        controller = new Controller(
-            address(troveManager),
-            address(stabilityPool),
-            address(borrowerOperations),
-            address(governance),
-            address(lusdToken),
-            address(gasPool)
-        );
 
         weth = new WETH();
         collSurplusPool = new CollSurplusPool();
@@ -113,6 +103,7 @@ contract EchidnaTester {
             address(stabilityPool),
             address(defaultPool),
             address(collSurplusPool),
+            address(0),
             address(weth)
         );
 

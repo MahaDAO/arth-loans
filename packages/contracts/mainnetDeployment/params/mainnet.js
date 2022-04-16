@@ -20,9 +20,9 @@ const waitFunction = async () => delay(90000); // Wait 90s.
 
 const TX_CONFIRMATIONS = 1;
 const GAS_PRICE = 30 * 1000000000; // 5.1 gwei
-const NETWORK_NAME = "ethereum";
-const COLLATERLAS = ["FXS"];
-const OUTPUT_FILE = "./output/ethereum.json";
+const NETWORK_NAME = "mainnet";
+const COLLATERLAS = ["WETH"];
+const OUTPUT_FILE = "./output/mainnet.json";
 const ETHERSCAN_BASE_URL = "https://etherscan.io/address";
 
 module.exports = {

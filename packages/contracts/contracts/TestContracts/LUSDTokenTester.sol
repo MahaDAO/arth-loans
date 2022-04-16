@@ -2,9 +2,9 @@
 
 pragma solidity 0.6.11;
 
-import "../LUSDToken.sol";
+import "../LiquityLUSDToken.sol";
 
-contract LUSDTokenTester is LUSDToken {
+contract LUSDTokenTester is LiquityLUSDToken {
     function unprotectedMint(address _account, uint256 _amount) external {
         // No check on caller here
 
