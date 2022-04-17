@@ -2,11 +2,12 @@ const zeroAddress = "0x" + "0".repeat(40);
 
 const EXTERNAL_ADDRS = {
   WETH: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-  FXS: "0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0"
+  FXS: "0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0",
+  CRV: "0xD533a949740bb3306d119CC777fa900bA034cd52"
 };
 
 const DEPLOYER_ADDRS = {
-  DEPLOYER: "0x6357EDbfE5aDA570005ceB8FAd3139eF5A8863CC", // TODO; change this addr
+  DEPLOYER: "0xAEFB39d1Bc9f5F506730005eC96FF10b4ded8DdA", // TODO; change this addr
   TIMELOCK: "0x6357EDbfE5aDA570005ceB8FAd3139eF5A8863CC" // TODO; change this addr
 };
 
@@ -21,7 +22,7 @@ const waitFunction = async () => delay(90000); // Wait 90s.
 const TX_CONFIRMATIONS = 1;
 const GAS_PRICE = 30 * 1000000000; // 5.1 gwei
 const NETWORK_NAME = "mainnet";
-const COLLATERLAS = ["WETH"];
+const COLLATERLAS = ["FXS"];
 const OUTPUT_FILE = "./output/mainnet.json";
 const ETHERSCAN_BASE_URL = "https://etherscan.io/address";
 

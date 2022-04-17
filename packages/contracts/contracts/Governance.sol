@@ -24,9 +24,9 @@ contract Governance is BaseMath, TransferableOwnable, IGovernance {
     string public constant NAME = "Governance";
     uint256 public constant _100pct = 1000000000000000000; // 1e18 == 100%
 
-    uint256 public BORROWING_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 0; // 0%
-    uint256 public REDEMPTION_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 1; // 0.1%
-    uint256 public MAX_BORROWING_FEE = (DECIMAL_PRECISION / 100) * 0; // 0%
+    uint256 private BORROWING_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 0; // 0%
+    uint256 private REDEMPTION_FEE_FLOOR = (DECIMAL_PRECISION / 1000) * 1; // 0.1%
+    uint256 private MAX_BORROWING_FEE = (DECIMAL_PRECISION / 100) * 0; // 0%
 
     address public immutable troveManagerAddress;
     address public immutable borrowerOperationAddress;
@@ -47,7 +47,7 @@ contract Governance is BaseMath, TransferableOwnable, IGovernance {
     IOracle private stabilityTokenPairOracle;
 
     uint256 private maxDebtCeiling = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff; // infinity
-    uint256 private stabilityFee = 0; // 1%
+    uint256 private stabilityFee = 0; // 0%
 
     uint256 private immutable DEPLOYMENT_START_TIME;
 

@@ -1,5 +1,5 @@
 const configParams = require("./params/mainnet.js");
-const MainnetDeploymentHelper = require("../utils/maticMainnetDeploymentHelper.js");
+const MainnetDeploymentHelper = require("../utils/mainnetDeploymentHelper.js");
 
 async function main() {
   const date = new Date();

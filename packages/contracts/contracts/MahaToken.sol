@@ -13,5 +13,5 @@ contract MahaToken is ERC20PresetMinterPauser {
     string public url = "https://mahadao.com";
     string public website = "https://mahadao.io";
 
-    constructor() public ERC20PresetMinterPauser("MahaDAO", "MAHA") {}
+    constructor() ERC20PresetMinterPauser("MahaDAO", "MAHA") {}
 }

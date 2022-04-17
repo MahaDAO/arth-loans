@@ -97,16 +97,15 @@ module.exports = {
     },
     bscTestnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545/",
-      accounts: [getSecret("DEPLOYER_PRIVATEKEY"), getSecret("ACCOUNT2_PRIVATEKEY")]
+      accounts: [getSecret("BSC_DEPLOYER_PRIVATEKEY")]
     },
     bsc: {
       url: "https://bsc-dataseed.binance.org/",
-      accounts: [getSecret("DEPLOYER_PRIVATEKEY"), getSecret("ACCOUNT2_PRIVATEKEY")]
+      accounts: [getSecret("BSC_DEPLOYER_PRIVATEKEY")]
     },
     mainnet: {
       url: "https://mainnet.infura.io/v3/69666afe933b4175afe4999170158a5f",
-      //   gasPrice: 150000000000,
-      accounts: [getSecret("DEPLOYER_PRIVATEKEY"), getSecret("ACCOUNT2_PRIVATEKEY")]
+      accounts: [getSecret("ETH_DEPLOYER_PRIVATEKEY")]
     },
     rinkeby: {
       url: alchemyUrlRinkeby(),
@@ -115,7 +114,10 @@ module.exports = {
     }
   },
   etherscan: {
-    apiKey: getSecret("ETHERSCAN_API_KEY")
+    apiKey: {
+      bsc: getSecret("BSCSCAN_API_KEY"),
+      mainnet: getSecret("ETHERSCAN_API_KEY")
+    }
   },
   mocha: { timeout: 12000000 },
   rpc: {
