@@ -56,11 +56,18 @@ contract EchidnaTester {
         stabilityPool = new StabilityPool();
         gasPool = new GasPool();
         lusdToken = new LiquityLUSDToken();
-        governance = new Governance(address(troveManager), address(borrowerOperations));
+        priceFeedTestnet = new PriceFeedTestnet();
+        governance = new Governance(
+            msg.sender,
+            address(troveManager),
+            address(borrowerOperations),
+            address(priceFeedTestnet),
+            address(0),
+            0
+        );
 
         weth = new WETH();
         collSurplusPool = new CollSurplusPool();
-        priceFeedTestnet = new PriceFeedTestnet();
 
         sortedTroves = new SortedTroves();
 

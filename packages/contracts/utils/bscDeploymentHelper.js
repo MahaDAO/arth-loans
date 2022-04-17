@@ -237,7 +237,15 @@ class MainnetDeploymentHelper {
       deploymentState
     );
 
-    const governanceParams = [troveManager.address, borrowerOperations.address];
+    const governanceParams = [
+      this.configParams.DEPLOYER_ADDRS.TIMELOCK,
+      troveManager.address,
+      borrowerOperations.address,
+      priceFeed.address,
+      ecosystemFund.address,
+      this.configParams.DEBT_CIELINGS[token]
+    ];
+
     const governance = await this.loadOrDeploy(
       this.governanceFactory,
       `${token}Governance`,
@@ -357,22 +365,12 @@ class MainnetDeploymentHelper {
   async connectCoreContracts(ARTHContracts, token) {
     const gasPrice = this.configParams.GAS_PRICE;
 
-    console.log("setting price feed in governance");
-    await this.sendAndWaitForTransaction(
-      ARTHContracts.governance.setPriceFeed(ARTHContracts.priceFeed.address, { gasPrice })
-    );
-
     // TODO: once redeem and all the pools and liquidity have been added on dex.
     // await this.sendAndWaitForTransaction(ARTHContracts.governance.setStabilityFeeToken(
     //     this.configParams.EXTERNAL_ADDRS.MahaToken,
     //     this.configParams.EXTERNAL_ADDRS.MAHA_ARTH_PAIR_ORACLE,
     //     {gasPrice}
     // ))
-
-    console.log("setting ecosystem fund in governance");
-    await this.sendAndWaitForTransaction(
-      ARTHContracts.governance.setFund(ARTHContracts.ecosystemFund.address, { gasPrice })
-    );
 
     // !(await ARTHContracts.arth.borrowerOperationAddresses(ARTHContracts.borrowerOperations.address)) &&
     // await this.sendAndWaitForTransaction(ARTHContracts.arth.toggleBorrowerOperations(

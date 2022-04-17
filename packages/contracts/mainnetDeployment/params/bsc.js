@@ -15,6 +15,13 @@ const PRICEFEED_CONFIGS = {
   "BUSDUSDC-APE-LP-S": "0x6852F8bB8a476fCAD8D6a54aF4a1A61B29146484"
 };
 
+const e18 = ethers.BigNumber.from(10).pow(18);
+
+const DEBT_CIELINGS = {
+  "BUSDUSDT-APE-LP-S": e18.mul(1000000), // 1mil
+  "BUSDUSDC-APE-LP-S": e18.mul(1000000) // 1mil
+};
+
 const delay = ms => new Promise(res => setTimeout(res, ms));
 const waitFunction = async () => delay(90000); // Wait 90s.
 
@@ -30,6 +37,7 @@ module.exports = {
   COLLATERLAS,
   EXTERNAL_ADDRS,
   DEPLOYER_ADDRS,
+  DEBT_CIELINGS,
   ...DEPLOYER_ADDRS,
   OUTPUT_FILE,
   waitFunction,
