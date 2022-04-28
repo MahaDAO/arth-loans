@@ -22,8 +22,7 @@ abstract contract RewardsDistributorRecipient {
     }
 }
 
-// NOTE: V2 allows setting of rewardsDuration in constructor
-contract IncentivePool is TransferableOwnable, RewardsDistributorRecipient, ReentrancyGuard, IIncentivePool {
+ contract IncentivePool is TransferableOwnable, RewardsDistributorRecipient, ReentrancyGuard, IIncentivePool {
     using SafeMath for uint256;
 
     /* ========== STATE VARIABLES ========== */

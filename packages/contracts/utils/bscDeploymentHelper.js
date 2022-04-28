@@ -22,6 +22,7 @@ class MainnetDeploymentHelper {
     this.activePoolFactory = await this.getFactory("ActivePool");
     this.governanceFactory = await this.getFactory("Governance");
     this.defaultPoolFactory = await this.getFactory("DefaultPool");
+    this.incentiveFactory = await this.getFactory("IncentivePool");
     this.hintHelpersFactory = await this.getFactory("HintHelpers");
     this.sortedTrovesFactory = await this.getFactory("SortedTroves");
     this.troveManagerFactory = await this.getFactory("TroveManager");
@@ -256,7 +257,7 @@ class MainnetDeploymentHelper {
     ];
 
     const incentivePool = await this.loadOrDeploy(
-      this.governanceFactory,
+      this.incentiveFactory,
       `${token}IncentivePool`,
       "IncentivePool",
       deploymentState,
@@ -302,6 +303,7 @@ class MainnetDeploymentHelper {
       stabilityPool,
       gasPool,
       defaultPool,
+      incentivePool,
       collSurplusPool,
       borrowerOperations,
       hintHelpers,
