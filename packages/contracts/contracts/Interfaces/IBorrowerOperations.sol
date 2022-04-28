@@ -45,7 +45,8 @@ interface IBorrowerOperations {
         address _sortedTrovesAddress,
         address _lusdTokenAddress,
         address _wethAddress,
-        address _governanceAddress
+        address _governanceAddress,
+        address _incentive
     ) external;
 
     function registerFrontEnd() external;

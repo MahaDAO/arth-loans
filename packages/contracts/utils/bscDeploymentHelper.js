@@ -21,7 +21,6 @@ class MainnetDeploymentHelper {
     this.gmuOracleFactory = await this.getFactory("GMUOracle");
     this.activePoolFactory = await this.getFactory("ActivePool");
     this.governanceFactory = await this.getFactory("Governance");
-    this.lqtyStakingFactory = await this.getFactory("LQTYStaking");
     this.defaultPoolFactory = await this.getFactory("DefaultPool");
     this.hintHelpersFactory = await this.getFactory("HintHelpers");
     this.sortedTrovesFactory = await this.getFactory("SortedTroves");
@@ -131,14 +130,8 @@ class MainnetDeploymentHelper {
       console.log(`------ Deploying contracts for ${token} collateral ------`);
       const coreContracts = await this.deployLiquityCore(deploymentState, token);
       console.log(`- Done deploying ARTH contracts`);
-      // const LQTYContracts = await this.deployLQTYContractsMainnet(deploymentState, token);
-      // console.log(`- Done deploying LQTY contracts`);
       await this.connectCoreContracts(coreContracts, token);
       console.log(`- Done connecting ARTH contracts`);
-      // await this.connectLQTYContractsMainnet(LQTYContracts);
-      console.log(`- Done connecting LQTY contracts`);
-      // await this.connectLQTYContractsToCoreMainnet(LQTYContracts, coreContracts, token);
-      console.log(`- Done connecting ARTH & LQTY contracts`);
       console.log(`------ Done deploying contracts for ${token} collateral ------`);
       console.log();
     }
@@ -254,6 +247,22 @@ class MainnetDeploymentHelper {
       governanceParams
     );
 
+    const incentiveParams = [
+      this.configParams.DEPLOYER_ADDRS.DEPLOYER, // address _rewardsDistributor,
+      this.configParams.EXTERNAL_ADDRS.MAHA, // address _rewardsToken,
+      troveManager.address, // address _troveManager,
+      86400 * 30, // uint256 _rewardsDuration,
+      this.configParams.DEPLOYER_ADDRS.TIMELOCK // address _timelock
+    ];
+
+    const incentivePool = await this.loadOrDeploy(
+      this.governanceFactory,
+      `${token}IncentivePool`,
+      "IncentivePool",
+      deploymentState,
+      incentiveParams
+    );
+
     const multiTroveGetterParams = [troveManager.address, sortedTroves.address];
     const multiTroveGetter = await this.loadOrDeploy(
       this.multiTroveGetterFactory,
@@ -279,6 +288,7 @@ class MainnetDeploymentHelper {
       await this.verifyContract(`${token}BorrowerOperations`, deploymentState);
       await this.verifyContract(`${token}HintHelpers`, deploymentState);
       await this.verifyContract(`${token}PriceFeed`, deploymentState);
+      await this.verifyContract(`${token}IncentivePool`, deploymentState, incentiveParams);
       await this.verifyContract(`${token}Governance`, deploymentState, governanceParams);
       await this.verifyContract(`${token}MultiTroveGetter`, deploymentState, multiTroveGetterParams);
     }
@@ -299,59 +309,6 @@ class MainnetDeploymentHelper {
       priceFeed,
       ecosystemFund,
       gmuOracle
-    };
-  }
-
-  async deployLQTYContractsMainnet(deploymentState, token) {
-    const lqtyStaking = await this.loadOrDeploy(
-      this.lqtyStakingFactory,
-      `${token}LQTYStaking`,
-      "LQTYStaking",
-      deploymentState
-    );
-    const lockupContractFactory = await this.loadOrDeploy(
-      this.lockupContractFactoryFactory,
-      `${token}LockupContractFactory`,
-      `LockupContractFactory`,
-      deploymentState
-    );
-    const communityIssuance = await this.loadOrDeploy(
-      this.communityIssuanceFactory,
-      `${token}CommunityIssuance`,
-      `CommunityIssuance`,
-      deploymentState
-    );
-
-    const lqtyTokenParams = [
-      communityIssuance.address,
-      lqtyStaking.address,
-      lockupContractFactory.address,
-      this.deployerWallet.address,
-      this.deployerWallet.address,
-      this.deployerWallet.address
-    ];
-    const lqtyToken = await this.loadOrDeploy(
-      this.lqtyTokenFactory,
-      `${token}LQTYToken`,
-      "LQTYToken",
-      deploymentState,
-      lqtyTokenParams
-    );
-
-    if (!this.configParams.ETHERSCAN_BASE_URL) {
-      console.log("- No Etherscan Url defined, skipping verification");
-    } else {
-      await this.verifyContract(`${token}LQTYStaking`, deploymentState);
-      await this.verifyContract(`${token}LockupContractFactory`, deploymentState);
-      await this.verifyContract(`${token}CommunityIssuance`, deploymentState);
-      await this.verifyContract(`${token}LQTYToken`, deploymentState, lqtyTokenParams);
-    }
-
-    return {
-      lqtyStaking,
-      lockupContractFactory,
-      communityIssuance,
-      lqtyToken
     };
   }
 
@@ -435,6 +392,7 @@ class MainnetDeploymentHelper {
           ARTHContracts.arth.address,
           this.configParams.EXTERNAL_ADDRS[token],
           ARTHContracts.governance.address,
+          ARTHContracts.incentivePool.address,
           { gasPrice }
         )
       ));
@@ -503,43 +461,6 @@ class MainnetDeploymentHelper {
         ARTHContracts.hintHelpers.setAddresses(
           ARTHContracts.sortedTroves.address,
           ARTHContracts.troveManager.address,
-          { gasPrice }
-        )
-      ));
-  }
-
-  async connectLQTYContractsMainnet(LQTYContracts) {
-    const gasPrice = this.configParams.GAS_PRICE;
-
-    (await this.isOwnershipRenounced(LQTYContracts.lqtyStaking)) ||
-      (await this.sendAndWaitForTransaction(
-        LQTYContracts.lockupContractFactory.setLQTYTokenAddress(LQTYContracts.lqtyToken.address, {
-          gasPrice
-        })
-      ));
-  }
-
-  async connectLQTYContractsToCoreMainnet(LQTYContracts, ARTHContracts, token) {
-    const gasPrice = this.configParams.GAS_PRICE;
-
-    (await this.isOwnershipRenounced(LQTYContracts.lqtyStaking)) ||
-      (await this.sendAndWaitForTransaction(
-        LQTYContracts.lqtyStaking.setAddresses(
-          LQTYContracts.lqtyToken.address,
-          ARTHContracts.arth.address,
-          ARTHContracts.troveManager.address,
-          ARTHContracts.borrowerOperations.address,
-          ARTHContracts.activePool.address,
-          this.configParams.EXTERNAL_ADDRS[token],
-          { gasPrice }
-        )
-      ));
-
-    (await this.isOwnershipRenounced(LQTYContracts.communityIssuance)) ||
-      (await this.sendAndWaitForTransaction(
-        LQTYContracts.communityIssuance.setAddresses(
-          LQTYContracts.lqtyToken.address,
-          ARTHContracts.stabilityPool.address,
           { gasPrice }
         )
       ));

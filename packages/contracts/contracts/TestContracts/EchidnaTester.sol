@@ -13,6 +13,7 @@ import "../LiquityLUSDToken.sol";
 import "./PriceFeedTestnet.sol";
 import "../SortedTroves.sol";
 import "./EchidnaProxy.sol";
+import "../IncentivePool.sol";
 import "../Dependencies/WETH.sol";
 import "../Governance.sol";
 
@@ -42,6 +43,7 @@ contract EchidnaTester {
     PriceFeedTestnet priceFeedTestnet;
     SortedTroves sortedTroves;
     WETH public weth;
+    IncentivePool public pool;
     Governance public governance;
 
     EchidnaProxy[NUMBER_OF_ACTORS] public echidnaProxies;
@@ -57,6 +59,13 @@ contract EchidnaTester {
         gasPool = new GasPool();
         lusdToken = new LiquityLUSDToken();
         priceFeedTestnet = new PriceFeedTestnet();
+        pool = new IncentivePool(
+            msg.sender,
+            address(lusdToken),
+            address(troveManager),
+            86400 * 30,
+            address(0)
+        );
         governance = new Governance(
             msg.sender,
             address(troveManager),
@@ -101,7 +110,8 @@ contract EchidnaTester {
             address(sortedTroves),
             address(lusdToken),
             address(weth),
-            address(governance)
+            address(governance),
+            address(pool)
         );
 
         activePool.setAddresses(

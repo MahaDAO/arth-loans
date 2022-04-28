@@ -9,9 +9,10 @@ import "./Interfaces/ISortedTroves.sol";
 import "./Interfaces/ILQTYStaking.sol";
 import "./Dependencies/LiquityBase.sol";
 import "./Dependencies/Ownable.sol";
+import "./Interfaces/IIncentivePool.sol";
 import "./Dependencies/IERC20.sol";
-import "./Dependencies/CheckContract.sol";
 import "./Interfaces/IGovernance.sol";
+import "./Dependencies/CheckContract.sol";
 import "./Interfaces/ILiquityLUSDToken.sol";
 import "./Dependencies/ISimpleERCFund.sol";
 
@@ -21,6 +22,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     // --- Connected contract declarations ---
 
+    IIncentivePool public incentivePool;
     ITroveManager public troveManager;
 
     address stabilityPoolAddress;
@@ -90,7 +92,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _sortedTrovesAddress,
         address _lusdTokenAddress,
         address _wethAddress,
-        address _governanceAddress
+        address _governanceAddress,
+        address _incentivePool
     ) external override onlyOwner {
         // This makes impossible to open a trove with zero withdrawn LUSD
         assert(MIN_NET_DEBT > 0);
@@ -116,6 +119,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         lusdToken = ILiquityLUSDToken(_lusdTokenAddress);
         weth = IERC20(_wethAddress);
         governance = IGovernance(_governanceAddress);
+        incentivePool = IIncentivePool(_incentivePool);
 
         emit TroveManagerAddressChanged(_troveManagerAddress);
         emit ActivePoolAddressChanged(_activePoolAddress);
@@ -240,6 +244,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
             BorrowerOperation.openTrove
         );
         emit LUSDBorrowingFeePaid(msg.sender, vars.LUSDFee);
+
+        incentivePool.updateBalance(msg.sender);
     }
 
     // Send ETH as collateral to a trove
@@ -440,6 +446,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
             _isDebtIncrease,
             vars.netDebtChange
         );
+
+        incentivePool.updateBalance(msg.sender);
     }
 
     function closeTrove() external override {
@@ -473,6 +481,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
         // Send the collateral back to the user
         activePoolCached.sendETH(msg.sender, coll);
+        incentivePool.updateBalance(msg.sender);
     }
 
     /**
