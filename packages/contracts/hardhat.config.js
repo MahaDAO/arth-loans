@@ -107,6 +107,14 @@ module.exports = {
       url: "https://mainnet.infura.io/v3/69666afe933b4175afe4999170158a5f",
       accounts: [getSecret("ETH_DEPLOYER_PRIVATEKEY")]
     },
+    ftmTestnet: {
+      url: "https://rpc.testnet.fantom.network/",
+      accounts: [getSecret("FTM_DEPLOYER_PRIVATEKEY")]
+    },
+    avaxTestnet: {
+      url: "https://api.avax-test.network/ext/bc/C/rpc",
+      accounts: [getSecret("AVAX_DEPLOYER_PRIVATEKEY")]
+    },
     rinkeby: {
       url: alchemyUrlRinkeby(),
       gas: 10000000, // tx gas limit
