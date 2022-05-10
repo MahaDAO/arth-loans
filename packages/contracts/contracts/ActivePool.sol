@@ -8,7 +8,7 @@ import "./Dependencies/Ownable.sol";
 import "./Dependencies/AccessControl.sol";
 
 import "./Dependencies/CheckContract.sol";
-import "./Dependencies/IGovernance.sol";
+import "./Interfaces/IGovernance.sol";
 import "./Dependencies/IERC20.sol";
 
 /*

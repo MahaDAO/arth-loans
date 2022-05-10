@@ -78,7 +78,6 @@ contract DailySupplyValidator is ISupplyValidator, CheckContract, TransferableOw
     }
 
     function _resetSupplyMintedToday() internal {
-        uint256 oldValue = supplyMintedToday;
         supplyMintedToday = 0;
         emit SupplyMintedTodayReset(block.timestamp);
     }

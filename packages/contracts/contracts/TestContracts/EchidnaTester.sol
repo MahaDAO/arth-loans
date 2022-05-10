@@ -121,7 +121,8 @@ contract EchidnaTester {
             address(defaultPool),
             address(collSurplusPool),
             address(0),
-            address(weth)
+            address(weth),
+            address(governance)
         );
 
         defaultPool.setAddresses(address(troveManager), address(activePool), address(weth));
