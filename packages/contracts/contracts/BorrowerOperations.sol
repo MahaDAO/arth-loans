@@ -515,6 +515,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
                 // Else split and send half to fund and half to frontend.
                 uint256 feeToFrontEnd = LUSDFee.mul(50).div(100);
                 uint256 remainingFee = LUSDFee.sub(feeToFrontEnd);
+                require(governance.getAllowMinting(), "Minting not allowed");
                 _lusdToken.mint(_frontEndTag, feeToFrontEnd); // send half to frontend.
                 _sendFeeToFund(_lusdToken, remainingFee); // And reamining half to fund.
             }
@@ -524,6 +525,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     function _sendFeeToFund(ILiquityLUSDToken _lusdToken, uint256 _LUSDFeeToFund) internal {
+        require(governance.getAllowMinting(), "Minting not allowed");
+
         // 1. Mint the fee tokens to governance.
         _lusdToken.mint(address(governance), _LUSDFeeToFund);
         // 2. The governance nows has the fee tokens, and hence can be sent to funds by governance.
@@ -606,6 +609,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 _netDebtIncrease
     ) internal {
         _activePool.increaseLUSDDebt(_netDebtIncrease);
+        require(governance.getAllowMinting(), "Minting not allowed");
         _lusdToken.mint(_account, _LUSDAmount);
     }
 
