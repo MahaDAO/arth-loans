@@ -8,7 +8,7 @@ import "./Dependencies/Ownable.sol";
 import "./Dependencies/AccessControl.sol";
 
 import "./Dependencies/CheckContract.sol";
-
+import "./Dependencies/IGovernance.sol";
 import "./Dependencies/IERC20.sol";
 
 /*
@@ -31,6 +31,8 @@ contract ActivePool is AccessControl, Ownable, CheckContract, IActivePool {
     address public collSurplusPoolAddress;
 
     IERC20 public weth;
+    IGovernance public governanceContract;
+
     uint256 public ETH; // deposited ether tracker
     uint256 public LUSDDebt;
 
@@ -48,7 +50,8 @@ contract ActivePool is AccessControl, Ownable, CheckContract, IActivePool {
         address _defaultPoolAddress,
         address _collSurplusPoolAddress,
         address _governance,
-        address _wethAddress
+        address _wethAddress,
+        address _governanceContract
     ) external onlyOwner {
         checkContract(_borrowerOperationsAddress);
         checkContract(_troveManagerAddress);
@@ -56,6 +59,7 @@ contract ActivePool is AccessControl, Ownable, CheckContract, IActivePool {
         checkContract(_defaultPoolAddress);
         checkContract(_wethAddress);
         checkContract(_collSurplusPoolAddress);
+        checkContract(_governanceContract);
 
         borrowerOperationsAddress = _borrowerOperationsAddress;
         troveManagerAddress = _troveManagerAddress;
@@ -63,7 +67,9 @@ contract ActivePool is AccessControl, Ownable, CheckContract, IActivePool {
         defaultPoolAddress = _defaultPoolAddress;
         collSurplusPoolAddress = _collSurplusPoolAddress;
         weth = IERC20(_wethAddress);
+        governanceContract = IGovernance(_governanceContract);
 
+        emit GovernanceContractChanged(_governanceContract);
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
         emit TroveManagerAddressChanged(_troveManagerAddress);
         emit StabilityPoolAddressChanged(_stabilityPoolAddress);
@@ -108,6 +114,10 @@ contract ActivePool is AccessControl, Ownable, CheckContract, IActivePool {
     function increaseLUSDDebt(uint256 _amount) external override {
         _requireCallerIsBOorTroveM();
         LUSDDebt = LUSDDebt.add(_amount);
+        require(
+            LUSDDebt < governanceContract.getMaxDebtCeiling(),
+            "Max debt ceiling reached"
+        );
         ActivePoolLUSDDebtUpdated(LUSDDebt);
     }
 

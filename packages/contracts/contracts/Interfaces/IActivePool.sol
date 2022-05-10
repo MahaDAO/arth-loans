@@ -5,6 +5,7 @@ pragma solidity 0.8.0;
 import "./IPool.sol";
 
 interface IActivePool is IPool {
+    event GovernanceContractChanged(address _newGovernanceAddress);
     event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
     event TroveManagerAddressChanged(address _newTroveManagerAddress);
     event ActivePoolLUSDDebtUpdated(uint256 _LUSDDebt);
