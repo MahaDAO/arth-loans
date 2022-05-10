@@ -5,7 +5,7 @@ pragma solidity 0.8.0;
 import "./Interfaces/ILiquityLUSDToken.sol";
 import "./Dependencies/SafeMath.sol";
 import "./Dependencies/CheckContract.sol";
-
+import "./Interfaces/ISupplyValidator.sol";
 import "./Dependencies/TransferableOwnable.sol";
 
 /*
@@ -62,6 +62,7 @@ contract LiquityLUSDToken is CheckContract, TransferableOwnable, ILiquityLUSDTok
 
     // --- Events ---
 
+    ISupplyValidator public dailySupplyValidator;
 
     constructor() {
         bytes32 hashedName = keccak256(bytes(_NAME));
@@ -74,6 +75,12 @@ contract LiquityLUSDToken is CheckContract, TransferableOwnable, ILiquityLUSDTok
     }
 
     // -- Functions to manage access control ---
+
+    function setDailySupplyValidator(address validator) external onlyOwner override {
+        address oldValidator = address(dailySupplyValidator);
+        dailySupplyValidator = ISupplyValidator(validator);
+        emit DailySupplyValidatorChanged(oldValidator, validator, block.timestamp);
+    }
 
     function toggleBorrowerOperations(address borrowerOperations) external onlyOwner override {
         bool oldFlag = borrowerOperationAddresses[borrowerOperations];
@@ -97,11 +104,13 @@ contract LiquityLUSDToken is CheckContract, TransferableOwnable, ILiquityLUSDTok
 
     function mint(address _account, uint256 _amount) external override {
         _requireCallerIsBorrowerOperations();
+        dailySupplyValidator.validateMintAndUpdate(_amount);
         _mint(_account, _amount);
     }
 
     function burn(address _account, uint256 _amount) external override {
         _requireCallerIsBOorTroveMorSP();
+        dailySupplyValidator.updateBurntSupply(_amount);
         _burn(_account, _amount);
     }
 

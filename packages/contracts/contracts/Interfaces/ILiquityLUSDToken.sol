@@ -8,7 +8,8 @@ import "../Dependencies/IERC2612.sol";
 interface ILiquityLUSDToken is IERC20, IERC2612 {
 
     // --- Events ---
-
+    
+    event DailySupplyValidatorChanged(address oldValidator, address newValidator, uint256 timestamp);
     event BorrowerOperationsAddressToggled(address borrowerOperations, bool oldFlag, bool newFlag, uint256 timestamp);
     event TroveManagerToggled(address troveManager, bool oldFlag, bool newFlag, uint256 timestamp);
     event StabilityPoolToggled(address stabilityPool, bool oldFlag, bool newFlag, uint256 timestamp);
@@ -16,6 +17,7 @@ interface ILiquityLUSDToken is IERC20, IERC2612 {
     event LUSDTokenBalanceUpdated(address _user, uint _amount);
 
     // --- Functions ---
+    function setDailySupplyValidator(address validator) external;
 
     function toggleBorrowerOperations(address borrowerOperations) external;
 
