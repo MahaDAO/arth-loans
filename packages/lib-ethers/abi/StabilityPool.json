@@ -44,19 +44,6 @@
       {
         "indexed": false,
         "internalType": "address",
-        "name": "_newCoreControllerAddress",
-        "type": "address"
-      }
-    ],
-    "name": "CoreControllerAddressChanged",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
         "name": "_newDefaultPoolAddress",
         "type": "address"
       }
@@ -472,19 +459,6 @@
   },
   {
     "inputs": [],
-    "name": "BORROWING_FEE_FLOOR",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "CCR",
     "outputs": [
       {
@@ -645,32 +619,6 @@
     "outputs": [
       {
         "internalType": "contract IBorrowerOperations",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "communityIssuance",
-    "outputs": [
-      {
-        "internalType": "contract ICommunityIssuance",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "coreController",
-    "outputs": [
-      {
-        "internalType": "contract IController",
         "name": "",
         "type": "address"
       }
@@ -911,6 +859,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getBorrowingFeeFloor",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -1046,12 +1007,38 @@
   },
   {
     "inputs": [],
+    "name": "getMaxBorrowingFee",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getPriceFeed",
     "outputs": [
       {
         "internalType": "contract IPriceFeed",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getRedemptionFeeFloor",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -1140,7 +1127,7 @@
     "name": "lusdToken",
     "outputs": [
       {
-        "internalType": "contract ILUSDToken",
+        "internalType": "contract IARTHValuecoin",
         "name": "",
         "type": "address"
       }
@@ -1252,22 +1239,12 @@
       },
       {
         "internalType": "address",
-        "name": "_communityIssuanceAddress",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
         "name": "_wethAddress",
         "type": "address"
       },
       {
         "internalType": "address",
         "name": "_governanceAddress",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_coreControllerAddress",
         "type": "address"
       }
     ],

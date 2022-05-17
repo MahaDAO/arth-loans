@@ -212,7 +212,6 @@ export class ReadableEthersLiquity implements ReadableLiquity {
   /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getPrice} */
   getPrice(overrides?: EthersCallOverrides): Promise<Decimal> {
     const { priceFeed } = _getContracts(this.connection);
-
     return priceFeed.callStatic.fetchPrice({ ...overrides }).then(decimalify);
   }
 
@@ -221,9 +220,10 @@ export class ReadableEthersLiquity implements ReadableLiquity {
     const { activePool } = _getContracts(this.connection);
 
     const [activeCollateral, activeDebt] = await Promise.all(
-      [activePool.getETH({ ...overrides }), activePool.getLUSDDebt({ ...overrides })].map(
-        getBigNumber => getBigNumber.then(decimalify)
-      )
+      [
+        activePool.getETH({ ...overrides }),
+        activePool.getLUSDDebt({ ...overrides })
+      ].map(getBigNumber => getBigNumber.then(decimalify))
     );
 
     return new Trove(activeCollateral, activeDebt);
@@ -234,9 +234,10 @@ export class ReadableEthersLiquity implements ReadableLiquity {
     const { defaultPool } = _getContracts(this.connection);
 
     const [liquidatedCollateral, closedDebt] = await Promise.all(
-      [defaultPool.getETH({ ...overrides }), defaultPool.getLUSDDebt({ ...overrides })].map(
-        getBigNumber => getBigNumber.then(decimalify)
-      )
+      [
+        defaultPool.getETH({ ...overrides }),
+        defaultPool.getLUSDDebt({ ...overrides })
+      ].map(getBigNumber => getBigNumber.then(decimalify))
     );
 
     return new Trove(liquidatedCollateral, closedDebt);
@@ -260,13 +261,17 @@ export class ReadableEthersLiquity implements ReadableLiquity {
     address ??= _requireAddress(this.connection);
     const { stabilityPool } = _getContracts(this.connection);
 
-    const [{ frontEndTag, initialValue }, currentLUSD, collateralGain, lqtyReward] =
-      await Promise.all([
-        stabilityPool.deposits(address, { ...overrides }),
-        stabilityPool.getCompoundedLUSDDeposit(address, { ...overrides }),
-        stabilityPool.getDepositorETHGain(address, { ...overrides }),
-        stabilityPool.getDepositorLQTYGain(address, { ...overrides })
-      ]);
+    const [
+      { frontEndTag, initialValue },
+      currentLUSD,
+      collateralGain,
+      lqtyReward
+    ] = await Promise.all([
+      stabilityPool.deposits(address, { ...overrides }),
+      stabilityPool.getCompoundedLUSDDeposit(address, { ...overrides }),
+      stabilityPool.getDepositorETHGain(address, { ...overrides }),
+      stabilityPool.getDepositorLQTYGain(address, { ...overrides })
+    ]);
 
     return new StabilityDeposit(
       decimalify(initialValue),
@@ -275,17 +280,6 @@ export class ReadableEthersLiquity implements ReadableLiquity {
       decimalify(lqtyReward),
       frontEndTag
     );
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getRemainingStabilityPoolLQTYReward} */
-  async getRemainingStabilityPoolLQTYReward(overrides?: EthersCallOverrides): Promise<Decimal> {
-    const { communityIssuance } = _getContracts(this.connection);
-
-    const issuanceCap = this.connection.totalStabilityPoolLQTYReward;
-    const totalLQTYIssued = decimalify(await communityIssuance.totalLQTYIssued({ ...overrides }));
-
-    // totalLQTYIssued approaches but never reaches issuanceCap
-    return issuanceCap.sub(totalLQTYIssued);
   }
 
   /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getLUSDInStabilityPool} */
@@ -298,85 +292,9 @@ export class ReadableEthersLiquity implements ReadableLiquity {
   /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getLUSDBalance} */
   getLUSDBalance(address?: string, overrides?: EthersCallOverrides): Promise<Decimal> {
     address ??= _requireAddress(this.connection);
-    const { lusdToken } = _getContracts(this.connection);
+    const { arthToken } = _getContracts(this.connection);
 
-    return lusdToken.balanceOf(address, { ...overrides }).then(decimalify);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getLQTYBalance} */
-  getLQTYBalance(address?: string, overrides?: EthersCallOverrides): Promise<Decimal> {
-    address ??= _requireAddress(this.connection);
-    const { lqtyToken } = _getContracts(this.connection);
-
-    return lqtyToken.balanceOf(address, { ...overrides }).then(decimalify);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getUniTokenBalance} */
-  getUniTokenBalance(address?: string, overrides?: EthersCallOverrides): Promise<Decimal> {
-    address ??= _requireAddress(this.connection);
-    const { uniToken } = _getContracts(this.connection);
-
-    return uniToken.balanceOf(address, { ...overrides }).then(decimalify);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getUniTokenAllowance} */
-  getUniTokenAllowance(address?: string, overrides?: EthersCallOverrides): Promise<Decimal> {
-    address ??= _requireAddress(this.connection);
-    const { uniToken, unipool } = _getContracts(this.connection);
-
-    return uniToken.allowance(address, unipool.address, { ...overrides }).then(decimalify);
-  }
-
-  /** @internal */
-  async _getRemainingLiquidityMiningLQTYRewardCalculator(
-    overrides?: EthersCallOverrides
-  ): Promise<(blockTimestamp: number) => Decimal> {
-    const { unipool } = _getContracts(this.connection);
-
-    const [totalSupply, rewardRate, periodFinish, lastUpdateTime] = await Promise.all([
-      unipool.totalSupply({ ...overrides }),
-      unipool.rewardRate({ ...overrides }).then(decimalify),
-      unipool.periodFinish({ ...overrides }).then(numberify),
-      unipool.lastUpdateTime({ ...overrides }).then(numberify)
-    ]);
-
-    return (blockTimestamp: number) =>
-      rewardRate.mul(
-        Math.max(0, periodFinish - (totalSupply.isZero() ? lastUpdateTime : blockTimestamp))
-      );
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getRemainingLiquidityMiningLQTYReward} */
-  async getRemainingLiquidityMiningLQTYReward(overrides?: EthersCallOverrides): Promise<Decimal> {
-    const [calculateRemainingLQTY, blockTimestamp] = await Promise.all([
-      this._getRemainingLiquidityMiningLQTYRewardCalculator(overrides),
-      _getBlockTimestamp(this.connection, overrides?.blockTag)
-    ]);
-
-    return calculateRemainingLQTY(blockTimestamp);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getLiquidityMiningStake} */
-  getLiquidityMiningStake(address?: string, overrides?: EthersCallOverrides): Promise<Decimal> {
-    address ??= _requireAddress(this.connection);
-    const { unipool } = _getContracts(this.connection);
-
-    return unipool.balanceOf(address, { ...overrides }).then(decimalify);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getTotalStakedUniTokens} */
-  getTotalStakedUniTokens(overrides?: EthersCallOverrides): Promise<Decimal> {
-    const { unipool } = _getContracts(this.connection);
-
-    return unipool.totalSupply({ ...overrides }).then(decimalify);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getLiquidityMiningLQTYReward} */
-  getLiquidityMiningLQTYReward(address?: string, overrides?: EthersCallOverrides): Promise<Decimal> {
-    address ??= _requireAddress(this.connection);
-    const { unipool } = _getContracts(this.connection);
-
-    return unipool.earned(address, { ...overrides }).then(decimalify);
+    return arthToken.balanceOf(address, { ...overrides }).then(decimalify);
   }
 
   /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getCollateralSurplusBalance} */
@@ -465,29 +383,6 @@ export class ReadableEthersLiquity implements ReadableLiquity {
     return createFees(blockTimestamp, total.collateralRatioIsBelowCritical(price));
   }
 
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getLQTYStake} */
-  async getLQTYStake(address?: string, overrides?: EthersCallOverrides): Promise<LQTYStake> {
-    address ??= _requireAddress(this.connection);
-    const { lqtyStaking } = _getContracts(this.connection);
-
-    const [stakedLQTY, collateralGain, lusdGain] = await Promise.all(
-      [
-        lqtyStaking.stakes(address, { ...overrides }),
-        lqtyStaking.getPendingETHGain(address, { ...overrides }),
-        lqtyStaking.getPendingLUSDGain(address, { ...overrides })
-      ].map(getBigNumber => getBigNumber.then(decimalify))
-    );
-
-    return new LQTYStake(stakedLQTY, collateralGain, lusdGain);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getTotalStakedLQTY} */
-  async getTotalStakedLQTY(overrides?: EthersCallOverrides): Promise<Decimal> {
-    const { lqtyStaking } = _getContracts(this.connection);
-
-    return lqtyStaking.totalLQTYStaked({ ...overrides }).then(decimalify);
-  }
-
   /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getFrontendStatus} */
   async getFrontendStatus(
     address?: string,
@@ -532,8 +427,7 @@ export interface ReadableEthersLiquityWithStore<T extends LiquityStore = Liquity
 }
 
 class BlockPolledLiquityStoreBasedCache
-  implements _LiquityReadCache<[overrides?: EthersCallOverrides]>
-{
+  implements _LiquityReadCache<[overrides?: EthersCallOverrides]> {
   private _store: BlockPolledLiquityStore;
 
   constructor(store: BlockPolledLiquityStore) {
@@ -716,8 +610,7 @@ class BlockPolledLiquityStoreBasedCache
 
 class _BlockPolledReadableEthersLiquity
   extends _CachedReadableLiquity<[overrides?: EthersCallOverrides]>
-  implements ReadableEthersLiquityWithStore<BlockPolledLiquityStore>
-{
+  implements ReadableEthersLiquityWithStore<BlockPolledLiquityStore> {
   readonly connection: EthersLiquityConnection;
   readonly store: BlockPolledLiquityStore;
 

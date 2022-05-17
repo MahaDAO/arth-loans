@@ -4,7 +4,6 @@ import { Decimal } from "./Decimal";
 import { StabilityDeposit } from "./StabilityDeposit";
 import { Trove, TroveWithPendingRedistribution, UserTrove } from "./Trove";
 import { Fees } from "./Fees";
-import { LQTYStake } from "./LQTYStake";
 import { FrontendStatus } from "./ReadableLiquity";
 
 /**
@@ -27,27 +26,6 @@ export interface LiquityStoreBaseState {
 
   /** User's LUSD token balance. */
   lusdBalance: Decimal;
-
-  /** User's LQTY token balance. */
-  lqtyBalance: Decimal;
-
-  /** User's Uniswap ETH/LUSD LP token balance. */
-  uniTokenBalance: Decimal;
-
-  /** The liquidity mining contract's allowance of user's Uniswap ETH/LUSD LP tokens. */
-  uniTokenAllowance: Decimal;
-
-  /** Remaining LQTY that will be collectively rewarded to liquidity miners. */
-  remainingLiquidityMiningLQTYReward: Decimal;
-
-  /** Amount of Uniswap ETH/LUSD LP tokens the user has staked in liquidity mining. */
-  liquidityMiningStake: Decimal;
-
-  /** Total amount of Uniswap ETH/LUSD LP tokens currently staked in liquidity mining. */
-  totalStakedUniTokens: Decimal;
-
-  /** Amount of LQTY the user has earned through mining liquidity. */
-  liquidityMiningLQTYReward: Decimal;
 
   /**
    * Amount of leftover collateral available for withdrawal to the user.
@@ -92,12 +70,6 @@ export interface LiquityStoreBaseState {
 
   /** @internal */
   _feesInNormalMode: Fees;
-
-  /** User's LQTY stake. */
-  lqtyStake: LQTYStake;
-
-  /** Total amount of LQTY currently staked. */
-  totalStakedLQTY: Decimal;
 
   /** @internal */
   _riskiestTroveBeforeRedistribution: TroveWithPendingRedistribution;
@@ -190,10 +162,7 @@ const showFrontendStatus = (x: FrontendStatus) =>
     ? '{ status: "unregistered" }'
     : `{ status: "registered", kickbackRate: ${x.kickbackRate} }`;
 
-const wrap =
-  <A extends unknown[], R>(f: (...args: A) => R) =>
-  (...args: A) =>
-    f(...args);
+const wrap = <A extends unknown[], R>(f: (...args: A) => R) => (...args: A) => f(...args);
 
 const difference = <T>(a: T, b: T) =>
   Object.fromEntries(
@@ -362,53 +331,6 @@ export abstract class LiquityStore<T = unknown> {
         baseStateUpdate.lusdBalance
       ),
 
-      lqtyBalance: this._updateIfChanged(
-        eq,
-        "lqtyBalance",
-        baseState.lqtyBalance,
-        baseStateUpdate.lqtyBalance
-      ),
-
-      uniTokenBalance: this._updateIfChanged(
-        eq,
-        "uniTokenBalance",
-        baseState.uniTokenBalance,
-        baseStateUpdate.uniTokenBalance
-      ),
-
-      uniTokenAllowance: this._updateIfChanged(
-        eq,
-        "uniTokenAllowance",
-        baseState.uniTokenAllowance,
-        baseStateUpdate.uniTokenAllowance
-      ),
-
-      remainingLiquidityMiningLQTYReward: this._silentlyUpdateIfChanged(
-        eq,
-        baseState.remainingLiquidityMiningLQTYReward,
-        baseStateUpdate.remainingLiquidityMiningLQTYReward
-      ),
-
-      liquidityMiningStake: this._updateIfChanged(
-        eq,
-        "liquidityMiningStake",
-        baseState.liquidityMiningStake,
-        baseStateUpdate.liquidityMiningStake
-      ),
-
-      totalStakedUniTokens: this._updateIfChanged(
-        eq,
-        "totalStakedUniTokens",
-        baseState.totalStakedUniTokens,
-        baseStateUpdate.totalStakedUniTokens
-      ),
-
-      liquidityMiningLQTYReward: this._silentlyUpdateIfChanged(
-        eq,
-        baseState.liquidityMiningLQTYReward,
-        baseStateUpdate.liquidityMiningLQTYReward
-      ),
-
       collateralSurplusBalance: this._updateIfChanged(
         eq,
         "collateralSurplusBalance",
@@ -458,20 +380,6 @@ export abstract class LiquityStore<T = unknown> {
         equals,
         baseState._feesInNormalMode,
         baseStateUpdate._feesInNormalMode
-      ),
-
-      lqtyStake: this._updateIfChanged(
-        equals,
-        "lqtyStake",
-        baseState.lqtyStake,
-        baseStateUpdate.lqtyStake
-      ),
-
-      totalStakedLQTY: this._updateIfChanged(
-        eq,
-        "totalStakedLQTY",
-        baseState.totalStakedLQTY,
-        baseStateUpdate.totalStakedLQTY
       ),
 
       _riskiestTroveBeforeRedistribution: this._silentlyUpdateIfChanged(

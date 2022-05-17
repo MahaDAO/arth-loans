@@ -31,19 +31,6 @@
       {
         "indexed": false,
         "internalType": "address",
-        "name": "_coreControllerAddress",
-        "type": "address"
-      }
-    ],
-    "name": "CoreControllerAddressChanged",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
         "name": "_defaultPoolAddress",
         "type": "address"
       }
@@ -94,19 +81,6 @@
       }
     ],
     "name": "GovernanceAddressChanged",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "_lqtyStakingAddress",
-        "type": "address"
-      }
-    ],
-    "name": "LQTYStakingAddressChanged",
     "type": "event"
   },
   {
@@ -247,26 +221,13 @@
       },
       {
         "indexed": false,
-        "internalType": "enum BorrowerOperations.BorrowerOperation",
+        "internalType": "enum IBorrowerOperations.BorrowerOperation",
         "name": "operation",
         "type": "uint8"
       }
     ],
     "name": "TroveUpdated",
     "type": "event"
-  },
-  {
-    "inputs": [],
-    "name": "BORROWING_FEE_FLOOR",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
   },
   {
     "inputs": [],
@@ -467,19 +428,6 @@
   },
   {
     "inputs": [],
-    "name": "coreController",
-    "outputs": [
-      {
-        "internalType": "contract IController",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "defaultPool",
     "outputs": [
       {
@@ -512,12 +460,12 @@
   },
   {
     "inputs": [],
-    "name": "gasPool",
+    "name": "getBorrowingFeeFloor",
     "outputs": [
       {
-        "internalType": "contract IGasPool",
+        "internalType": "uint256",
         "name": "",
-        "type": "address"
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -539,7 +487,7 @@
         "type": "uint256"
       }
     ],
-    "stateMutability": "pure",
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -570,6 +518,19 @@
   },
   {
     "inputs": [],
+    "name": "getMaxBorrowingFee",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getPriceFeed",
     "outputs": [
       {
@@ -583,10 +544,36 @@
   },
   {
     "inputs": [],
+    "name": "getRedemptionFeeFloor",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "governance",
     "outputs": [
       {
         "internalType": "contract IGovernance",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "incentivePool",
+    "outputs": [
+      {
+        "internalType": "contract IIncentivePool",
         "name": "",
         "type": "address"
       }
@@ -612,7 +599,7 @@
     "name": "lusdToken",
     "outputs": [
       {
-        "internalType": "contract ILUSDToken",
+        "internalType": "contract IARTHValuecoin",
         "name": "",
         "type": "address"
       }
@@ -783,7 +770,7 @@
       },
       {
         "internalType": "address",
-        "name": "_coreControllerAddress",
+        "name": "_incentivePool",
         "type": "address"
       }
     ],

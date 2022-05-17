@@ -48,7 +48,7 @@ import {
   _requireSigner
 } from "./EthersLiquityConnection";
 
-import { _priceFeedIsTestnet, _uniTokenIsMock } from "./contracts";
+import { _priceFeedIsTestnet } from "./contracts";
 import { logsToString } from "./parseLogs";
 import { ReadableEthersLiquity } from "./ReadableEthersLiquity";
 
@@ -63,10 +63,7 @@ const defaultRedemptionRateSlippageTolerance = Decimal.from(0.001); // 0.1%
 
 const noDetails = () => undefined;
 
-const compose =
-  <T, U, V>(f: (_: U) => V, g: (_: T) => U) =>
-  (_: T) =>
-    f(g(_));
+const compose = <T, U, V>(f: (_: U) => V, g: (_: T) => U) => (_: T) => f(g(_));
 
 const id = <T>(t: T) => t;
 
@@ -124,8 +121,7 @@ function* generateTrials(totalNumberOfTrials: number) {
  */
 export class SentEthersLiquityTransaction<T = unknown>
   implements
-    SentLiquityTransaction<EthersTransactionResponse, LiquityReceipt<EthersTransactionReceipt, T>>
-{
+    SentLiquityTransaction<EthersTransactionResponse, LiquityReceipt<EthersTransactionReceipt, T>> {
   /** Ethers' representation of a sent transaction. */
   readonly rawSentTransaction: EthersTransactionResponse;
 
@@ -181,8 +177,7 @@ export class SentEthersLiquityTransaction<T = unknown>
  */
 export class PopulatedEthersLiquityTransaction<T = unknown>
   implements
-    PopulatedLiquityTransaction<EthersPopulatedTransaction, SentEthersLiquityTransaction<T>>
-{
+    PopulatedLiquityTransaction<EthersPopulatedTransaction, SentEthersLiquityTransaction<T>> {
   /** Unsigned transaction object populated by Ethers. */
   readonly rawPopulatedTransaction: EthersPopulatedTransaction;
 
@@ -222,8 +217,7 @@ export class PopulatedEthersRedemption
       EthersPopulatedTransaction,
       EthersTransactionResponse,
       EthersTransactionReceipt
-    >
-{
+    > {
   /** {@inheritDoc @mahadao/arth-lib-base#PopulatedRedemption.attemptedLUSDAmount} */
   readonly attemptedLUSDAmount: Decimal;
 
@@ -303,8 +297,7 @@ export class PopulatableEthersLiquity
       EthersTransactionReceipt,
       EthersTransactionResponse,
       EthersPopulatedTransaction
-    >
-{
+    > {
   private readonly _readable: ReadableEthersLiquity;
 
   constructor(readable: ReadableEthersLiquity) {
@@ -352,14 +345,14 @@ export class PopulatableEthersLiquity
   private async _wrapTroveClosure(
     rawPopulatedTransaction: EthersPopulatedTransaction
   ): Promise<PopulatedEthersLiquityTransaction<TroveClosureDetails>> {
-    const { activePool, lusdToken } = _getContracts(this._readable.connection);
+    const { activePool, arthToken } = _getContracts(this._readable.connection);
 
     return new PopulatedEthersLiquityTransaction(
       rawPopulatedTransaction,
       this._readable.connection,
 
       ({ logs, from: userAddress }) => {
-        const [repayLUSD] = lusdToken
+        const [repayLUSD] = arthToken
           .extractEvents(logs, "Transfer")
           .filter(({ args: { from, to } }) => from === userAddress && to === AddressZero)
           .map(({ args: { value } }) => decimalify(value));
@@ -463,7 +456,7 @@ export class PopulatableEthersLiquity
   private async _wrapStabilityDepositWithdrawal(
     rawPopulatedTransaction: EthersPopulatedTransaction
   ): Promise<PopulatedEthersLiquityTransaction<StabilityDepositChangeDetails>> {
-    const { stabilityPool, lusdToken } = _getContracts(this._readable.connection);
+    const { stabilityPool, arthToken } = _getContracts(this._readable.connection);
 
     return new PopulatedEthersLiquityTransaction(
       rawPopulatedTransaction,
@@ -472,7 +465,7 @@ export class PopulatableEthersLiquity
       ({ logs, from: userAddress }) => {
         const gainsWithdrawalDetails = this._extractStabilityPoolGainsWithdrawalDetails(logs);
 
-        const [withdrawLUSD] = lusdToken
+        const [withdrawLUSD] = arthToken
           .extractEvents(logs, "Transfer")
           .filter(({ args: { from, to } }) => from === stabilityPool.address && to === userAddress)
           .map(({ args: { value } }) => decimalify(value));
@@ -573,13 +566,18 @@ export class PopulatableEthersLiquity
     const { hintHelpers } = _getContracts(this._readable.connection);
     const price = await this._readable.getPrice();
 
-    const { firstRedemptionHint, partialRedemptionHintNICR, truncatedLUSDamount } =
-      await hintHelpers.getRedemptionHints(amount.hex, price.hex, _redeemMaxIterations);
+    const {
+      firstRedemptionHint,
+      partialRedemptionHintNICR,
+      truncatedLUSDamount
+    } = await hintHelpers.getRedemptionHints(amount.hex, price.hex, _redeemMaxIterations);
 
-    const [partialRedemptionUpperHint, partialRedemptionLowerHint] =
-      partialRedemptionHintNICR.isZero()
-        ? [AddressZero, AddressZero]
-        : await this._findHintsForNominalCollateralRatio(decimalify(partialRedemptionHintNICR));
+    const [
+      partialRedemptionUpperHint,
+      partialRedemptionLowerHint
+    ] = partialRedemptionHintNICR.isZero()
+      ? [AddressZero, AddressZero]
+      : await this._findHintsForNominalCollateralRatio(decimalify(partialRedemptionHintNICR));
 
     return [
       decimalify(truncatedLUSDamount),
@@ -618,7 +616,8 @@ export class PopulatableEthersLiquity
         maxBorrowingRate.hex,
         borrowLUSD.hex,
         depositCollateral.hex,
-        ...(await this._findHints(newTrove))
+        ...(await this._findHints(newTrove)),
+        AddressZero
       )
     );
   }
@@ -794,7 +793,7 @@ export class PopulatableEthersLiquity
         { ...overrides },
         addGasForLQTYIssuance,
         depositLUSD.hex,
-        frontendTag ?? this._readable.connection.frontendTag ?? AddressZero
+        AddressZero
       )
     );
   }
@@ -859,28 +858,10 @@ export class PopulatableEthersLiquity
     amount: Decimalish,
     overrides?: EthersTransactionOverrides
   ): Promise<PopulatedEthersLiquityTransaction<void>> {
-    const { lusdToken } = _getContracts(this._readable.connection);
+    const { arthToken } = _getContracts(this._readable.connection);
 
     return this._wrapSimpleTransaction(
-      await lusdToken.estimateAndPopulate.transfer(
-        { ...overrides },
-        id,
-        toAddress,
-        Decimal.from(amount).hex
-      )
-    );
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#PopulatableLiquity.sendLQTY} */
-  async sendLQTY(
-    toAddress: string,
-    amount: Decimalish,
-    overrides?: EthersTransactionOverrides
-  ): Promise<PopulatedEthersLiquityTransaction<void>> {
-    const { lqtyToken } = _getContracts(this._readable.connection);
-
-    return this._wrapSimpleTransaction(
-      await lqtyToken.estimateAndPopulate.transfer(
+      await arthToken.estimateAndPopulate.transfer(
         { ...overrides },
         id,
         toAddress,
@@ -898,13 +879,15 @@ export class PopulatableEthersLiquity
     const { troveManager } = _getContracts(this._readable.connection);
     const attemptedLUSDAmount = Decimal.from(amount);
 
-    const [fees, total, [truncatedAmount, firstRedemptionHint, ...partialHints]] = await Promise.all(
-      [
-        this._readable.getFees(),
-        this._readable.getTotal(),
-        this._findRedemptionHints(attemptedLUSDAmount)
-      ]
-    );
+    const [
+      fees,
+      total,
+      [truncatedAmount, firstRedemptionHint, ...partialHints]
+    ] = await Promise.all([
+      this._readable.getFees(),
+      this._readable.getTotal(),
+      this._findRedemptionHints(attemptedLUSDAmount)
+    ]);
 
     if (truncatedAmount.isZero) {
       throw new Error(
@@ -957,37 +940,6 @@ export class PopulatableEthersLiquity
     return populateRedemption(attemptedLUSDAmount, maxRedemptionRate, truncatedAmount, partialHints);
   }
 
-  /** {@inheritDoc @mahadao/arth-lib-base#PopulatableLiquity.stakeLQTY} */
-  async stakeLQTY(
-    amount: Decimalish,
-    overrides?: EthersTransactionOverrides
-  ): Promise<PopulatedEthersLiquityTransaction<void>> {
-    const { lqtyStaking } = _getContracts(this._readable.connection);
-
-    return this._wrapSimpleTransaction(
-      await lqtyStaking.estimateAndPopulate.stake({ ...overrides }, id, Decimal.from(amount).hex)
-    );
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#PopulatableLiquity.unstakeLQTY} */
-  async unstakeLQTY(
-    amount: Decimalish,
-    overrides?: EthersTransactionOverrides
-  ): Promise<PopulatedEthersLiquityTransaction<void>> {
-    const { lqtyStaking } = _getContracts(this._readable.connection);
-
-    return this._wrapSimpleTransaction(
-      await lqtyStaking.estimateAndPopulate.unstake({ ...overrides }, id, Decimal.from(amount).hex)
-    );
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#PopulatableLiquity.withdrawGainsFromStaking} */
-  withdrawGainsFromStaking(
-    overrides?: EthersTransactionOverrides
-  ): Promise<PopulatedEthersLiquityTransaction<void>> {
-    return this.unstakeLQTY(Decimal.ZERO, overrides);
-  }
-
   /** {@inheritDoc @mahadao/arth-lib-base#PopulatableLiquity.registerFrontend} */
   async registerFrontend(
     kickbackRate: Decimalish,
@@ -1000,103 +952,6 @@ export class PopulatableEthersLiquity
         { ...overrides },
         id,
         Decimal.from(kickbackRate).hex
-      )
-    );
-  }
-
-  /** @internal */
-  async _mintUniToken(
-    amount: Decimalish,
-    address?: string,
-    overrides?: EthersTransactionOverrides
-  ): Promise<PopulatedEthersLiquityTransaction<void>> {
-    address ??= _requireAddress(this._readable.connection, overrides);
-    const { uniToken } = _getContracts(this._readable.connection);
-
-    if (!_uniTokenIsMock(uniToken)) {
-      throw new Error("_mintUniToken() unavailable on this deployment of Liquity");
-    }
-
-    return this._wrapSimpleTransaction(
-      await uniToken.estimateAndPopulate.mint(
-        { ...overrides },
-        id,
-        address,
-        Decimal.from(amount).hex
-      )
-    );
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#PopulatableLiquity.approveUniTokens} */
-  async approveUniTokens(
-    allowance?: Decimalish,
-    overrides?: EthersTransactionOverrides
-  ): Promise<PopulatedEthersLiquityTransaction<void>> {
-    const { uniToken, unipool } = _getContracts(this._readable.connection);
-
-    return this._wrapSimpleTransaction(
-      await uniToken.estimateAndPopulate.approve(
-        { ...overrides },
-        id,
-        unipool.address,
-        Decimal.from(allowance ?? Decimal.INFINITY).hex
-      )
-    );
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#PopulatableLiquity.stakeUniTokens} */
-  async stakeUniTokens(
-    amount: Decimalish,
-    overrides?: EthersTransactionOverrides
-  ): Promise<PopulatedEthersLiquityTransaction<void>> {
-    const { unipool } = _getContracts(this._readable.connection);
-
-    return this._wrapSimpleTransaction(
-      await unipool.estimateAndPopulate.stake(
-        { ...overrides },
-        addGasForUnipoolRewardUpdate,
-        Decimal.from(amount).hex
-      )
-    );
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#PopulatableLiquity.unstakeUniTokens} */
-  async unstakeUniTokens(
-    amount: Decimalish,
-    overrides?: EthersTransactionOverrides
-  ): Promise<PopulatedEthersLiquityTransaction<void>> {
-    const { unipool } = _getContracts(this._readable.connection);
-
-    return this._wrapSimpleTransaction(
-      await unipool.estimateAndPopulate.withdraw(
-        { ...overrides },
-        addGasForUnipoolRewardUpdate,
-        Decimal.from(amount).hex
-      )
-    );
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#PopulatableLiquity.withdrawLQTYRewardFromLiquidityMining} */
-  async withdrawLQTYRewardFromLiquidityMining(
-    overrides?: EthersTransactionOverrides
-  ): Promise<PopulatedEthersLiquityTransaction<void>> {
-    const { unipool } = _getContracts(this._readable.connection);
-
-    return this._wrapSimpleTransaction(
-      await unipool.estimateAndPopulate.claimReward({ ...overrides }, addGasForUnipoolRewardUpdate)
-    );
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#PopulatableLiquity.exitLiquidityMining} */
-  async exitLiquidityMining(
-    overrides?: EthersTransactionOverrides
-  ): Promise<PopulatedEthersLiquityTransaction<void>> {
-    const { unipool } = _getContracts(this._readable.connection);
-
-    return this._wrapSimpleTransaction(
-      await unipool.estimateAndPopulate.withdrawAndClaim(
-        { ...overrides },
-        addGasForUnipoolRewardUpdate
       )
     );
   }
