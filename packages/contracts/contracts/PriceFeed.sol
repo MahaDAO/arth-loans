@@ -61,6 +61,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
         umbRegistry = IUMBRegistry(_umbRegistry);
         priceAggregator = AggregatorV3Interface(_priceAggregatorAddress);
         gmuOracle = IOracle(_gmuOracle);
+
         umbFCDKey = _umbFCDKey;
 
         _renounceOwnership();
@@ -80,7 +81,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
      * it uses the last good price seen by Liquity.
      *
      */
-    function fetchPrice() external view override returns (uint256) {
+    function fetchPrice() external override returns (uint256) {
         return _fetchPrice();
     }
 
@@ -88,7 +89,6 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
 
     function _fetchPrice() internal view returns (uint256) {
         if (address(priceAggregator) == address(0)) return _fetchWithUMB();
-
         return _fetchWithChainlink();
     }
 

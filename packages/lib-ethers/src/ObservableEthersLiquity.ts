@@ -167,8 +167,8 @@ export class ObservableEthersLiquity implements ObservableLiquity {
   watchLUSDInStabilityPool(
     onLUSDInStabilityPoolChanged: (lusdInStabilityPool: Decimal) => void
   ): () => void {
-    const { lusdToken, stabilityPool } = _getContracts(this._readable.connection);
-    const { Transfer } = lusdToken.filters;
+    const { arthToken, stabilityPool } = _getContracts(this._readable.connection);
+    const { Transfer } = arthToken.filters;
 
     const transferLUSDFromStabilityPool = Transfer(stabilityPool.address);
     const transferLUSDToStabilityPool = Transfer(null, stabilityPool.address);
@@ -179,19 +179,19 @@ export class ObservableEthersLiquity implements ObservableLiquity {
       this._readable.getLUSDInStabilityPool({ blockTag }).then(onLUSDInStabilityPoolChanged);
     });
 
-    stabilityPoolLUSDFilters.forEach(filter => lusdToken.on(filter, stabilityPoolLUSDListener));
+    stabilityPoolLUSDFilters.forEach(filter => arthToken.on(filter, stabilityPoolLUSDListener));
 
     return () =>
       stabilityPoolLUSDFilters.forEach(filter =>
-        lusdToken.removeListener(filter, stabilityPoolLUSDListener)
+        arthToken.removeListener(filter, stabilityPoolLUSDListener)
       );
   }
 
   watchLUSDBalance(onLUSDBalanceChanged: (balance: Decimal) => void, address?: string): () => void {
     address ??= _requireAddress(this._readable.connection);
 
-    const { lusdToken } = _getContracts(this._readable.connection);
-    const { Transfer } = lusdToken.filters;
+    const { arthToken } = _getContracts(this._readable.connection);
+    const { Transfer } = arthToken.filters;
     const transferLUSDFromUser = Transfer(address);
     const transferLUSDToUser = Transfer(null, address);
 
@@ -201,9 +201,9 @@ export class ObservableEthersLiquity implements ObservableLiquity {
       this._readable.getLUSDBalance(address, { blockTag }).then(onLUSDBalanceChanged);
     });
 
-    lusdTransferFilters.forEach(filter => lusdToken.on(filter, lusdTransferListener));
+    lusdTransferFilters.forEach(filter => arthToken.on(filter, lusdTransferListener));
 
     return () =>
-      lusdTransferFilters.forEach(filter => lusdToken.removeListener(filter, lusdTransferListener));
+      lusdTransferFilters.forEach(filter => arthToken.removeListener(filter, lusdTransferListener));
   }
 }

@@ -381,17 +381,6 @@ export interface TransactableLiquity {
   sendLUSD(toAddress: string, amount: Decimalish): Promise<void>;
 
   /**
-   * Send LQTY tokens to an address.
-   *
-   * @param toAddress - Address of receipient.
-   * @param amount - Amount of LQTY to send.
-   *
-   * @throws
-   * Throws {@link TransactionFailedError} in case of transaction failure.
-   */
-  sendLQTY(toAddress: string, amount: Decimalish): Promise<void>;
-
-  /**
    * Redeem LUSD to native currency (e.g. Ether) at face value.
    *
    * @param amount - Amount of LUSD to be redeemed.
@@ -418,97 +407,6 @@ export interface TransactableLiquity {
    * Throws {@link TransactionFailedError} in case of transaction failure.
    */
   claimCollateralSurplus(): Promise<void>;
-
-  /**
-   * Stake LQTY to start earning fee revenue or increase existing stake.
-   *
-   * @param amount - Amount of LQTY to add to new or existing stake.
-   *
-   * @throws
-   * Throws {@link TransactionFailedError} in case of transaction failure.
-   *
-   * @remarks
-   * As a side-effect, the transaction will also pay out an existing LQTY stake's
-   * {@link @mahadao/arth-lib-base#LQTYStake.collateralGain | collateral gain} and
-   * {@link @mahadao/arth-lib-base#LQTYStake.lusdGain | LUSD gain}.
-   */
-  stakeLQTY(amount: Decimalish): Promise<void>;
-
-  /**
-   * Withdraw LQTY from staking.
-   *
-   * @param amount - Amount of LQTY to withdraw.
-   *
-   * @throws
-   * Throws {@link TransactionFailedError} in case of transaction failure.
-   *
-   * @remarks
-   * As a side-effect, the transaction will also pay out the LQTY stake's
-   * {@link @mahadao/arth-lib-base#LQTYStake.collateralGain | collateral gain} and
-   * {@link @mahadao/arth-lib-base#LQTYStake.lusdGain | LUSD gain}.
-   */
-  unstakeLQTY(amount: Decimalish): Promise<void>;
-
-  /**
-   * Withdraw {@link @mahadao/arth-lib-base#LQTYStake.collateralGain | collateral gain} and
-   * {@link @mahadao/arth-lib-base#LQTYStake.lusdGain | LUSD gain} from LQTY stake.
-   *
-   * @throws
-   * Throws {@link TransactionFailedError} in case of transaction failure.
-   */
-  withdrawGainsFromStaking(): Promise<void>;
-
-  /**
-   * Allow the liquidity mining contract to use Uniswap ETH/LUSD LP tokens for
-   * {@link @mahadao/arth-lib-base#TransactableLiquity.stakeUniTokens | staking}.
-   *
-   * @param allowance - Maximum amount of LP tokens that will be transferrable to liquidity mining
-   *                    (`2^256 - 1` by default).
-   *
-   * @remarks
-   * Must be performed before calling
-   * {@link @mahadao/arth-lib-base#TransactableLiquity.stakeUniTokens | stakeUniTokens()}.
-   *
-   * @throws
-   * Throws {@link TransactionFailedError} in case of transaction failure.
-   */
-  approveUniTokens(allowance?: Decimalish): Promise<void>;
-
-  /**
-   * Stake Uniswap ETH/LUSD LP tokens to participate in liquidity mining and earn LQTY.
-   *
-   * @param amount - Amount of LP tokens to add to new or existing stake.
-   *
-   * @throws
-   * Throws {@link TransactionFailedError} in case of transaction failure.
-   */
-  stakeUniTokens(amount: Decimalish): Promise<void>;
-
-  /**
-   * Withdraw Uniswap ETH/LUSD LP tokens from liquidity mining.
-   *
-   * @param amount - Amount of LP tokens to withdraw.
-   *
-   * @throws
-   * Throws {@link TransactionFailedError} in case of transaction failure.
-   */
-  unstakeUniTokens(amount: Decimalish): Promise<void>;
-
-  /**
-   * Withdraw LQTY that has been earned by mining liquidity.
-   *
-   * @throws
-   * Throws {@link TransactionFailedError} in case of transaction failure.
-   */
-  withdrawLQTYRewardFromLiquidityMining(): Promise<void>;
-
-  /**
-   * Withdraw all staked LP tokens from liquidity mining and claim reward.
-   *
-   * @throws
-   * Throws {@link TransactionFailedError} in case of transaction failure.
-   */
-  exitLiquidityMining(): Promise<void>;
 
   /**
    * Register current wallet address as a Liquity frontend.

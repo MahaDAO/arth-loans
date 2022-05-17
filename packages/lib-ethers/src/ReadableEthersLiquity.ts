@@ -5,7 +5,6 @@ import {
   Fees,
   FrontendStatus,
   LiquityStore,
-  LQTYStake,
   ReadableLiquity,
   StabilityDeposit,
   Trove,
@@ -66,7 +65,7 @@ const userTroveStatusFrom = (backendStatus: BackendTroveStatus): UserTroveStatus
     : panic(new Error(`invalid backendStatus ${backendStatus}`));
 
 const decimalify = (bigNumber: BigNumber) => Decimal.fromBigNumberString(bigNumber.toHexString());
-const numberify = (bigNumber: BigNumber) => bigNumber.toNumber();
+// const numberify = (bigNumber: BigNumber) => bigNumber.toNumber();
 const convertToDate = (timestamp: number) => new Date(timestamp * 1000);
 
 const validSortingOptions = ["ascendingCollateralRatio", "descendingCollateralRatio"];
@@ -504,12 +503,6 @@ class BlockPolledLiquityStoreBasedCache
     }
   }
 
-  getRemainingStabilityPoolLQTYReward(overrides?: EthersCallOverrides): Decimal | undefined {
-    if (this._blockHit(overrides)) {
-      return this._store.state.remainingStabilityPoolLQTYReward;
-    }
-  }
-
   getLUSDInStabilityPool(overrides?: EthersCallOverrides): Decimal | undefined {
     if (this._blockHit(overrides)) {
       return this._store.state.lusdInStabilityPool;
@@ -519,51 +512,6 @@ class BlockPolledLiquityStoreBasedCache
   getLUSDBalance(address?: string, overrides?: EthersCallOverrides): Decimal | undefined {
     if (this._userHit(address, overrides)) {
       return this._store.state.lusdBalance;
-    }
-  }
-
-  getLQTYBalance(address?: string, overrides?: EthersCallOverrides): Decimal | undefined {
-    if (this._userHit(address, overrides)) {
-      return this._store.state.lqtyBalance;
-    }
-  }
-
-  getUniTokenBalance(address?: string, overrides?: EthersCallOverrides): Decimal | undefined {
-    if (this._userHit(address, overrides)) {
-      return this._store.state.uniTokenBalance;
-    }
-  }
-
-  getUniTokenAllowance(address?: string, overrides?: EthersCallOverrides): Decimal | undefined {
-    if (this._userHit(address, overrides)) {
-      return this._store.state.uniTokenAllowance;
-    }
-  }
-
-  getRemainingLiquidityMiningLQTYReward(overrides?: EthersCallOverrides): Decimal | undefined {
-    if (this._blockHit(overrides)) {
-      return this._store.state.remainingLiquidityMiningLQTYReward;
-    }
-  }
-
-  getLiquidityMiningStake(address?: string, overrides?: EthersCallOverrides): Decimal | undefined {
-    if (this._userHit(address, overrides)) {
-      return this._store.state.liquidityMiningStake;
-    }
-  }
-
-  getTotalStakedUniTokens(overrides?: EthersCallOverrides): Decimal | undefined {
-    if (this._blockHit(overrides)) {
-      return this._store.state.totalStakedUniTokens;
-    }
-  }
-
-  getLiquidityMiningLQTYReward(
-    address?: string,
-    overrides?: EthersCallOverrides
-  ): Decimal | undefined {
-    if (this._userHit(address, overrides)) {
-      return this._store.state.liquidityMiningLQTYReward;
     }
   }
 
@@ -579,18 +527,6 @@ class BlockPolledLiquityStoreBasedCache
   getFees(overrides?: EthersCallOverrides): Fees | undefined {
     if (this._blockHit(overrides)) {
       return this._store.state.fees;
-    }
-  }
-
-  getLQTYStake(address?: string, overrides?: EthersCallOverrides): LQTYStake | undefined {
-    if (this._userHit(address, overrides)) {
-      return this._store.state.lqtyStake;
-    }
-  }
-
-  getTotalStakedLQTY(overrides?: EthersCallOverrides): Decimal | undefined {
-    if (this._blockHit(overrides)) {
-      return this._store.state.totalStakedLQTY;
     }
   }
 

@@ -147,7 +147,7 @@ export interface _LiquityContracts {
   defaultPool: DefaultPool;
   hintHelpers: HintHelpers;
   multiTroveGetter: MultiTroveGetter;
-  priceFeed: PriceFeed | PriceFeedTestnet;
+  priceFeed: PriceFeed;
   sortedTroves: SortedTroves;
   stabilityPool: StabilityPool;
   gasPool: GasPool;

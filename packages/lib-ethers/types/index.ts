@@ -395,7 +395,6 @@ interface PriceFeedCalls {
   DECIMAL_PRECISION(_overrides?: CallOverrides): Promise<BigNumber>;
   NAME(_overrides?: CallOverrides): Promise<string>;
   TARGET_DIGITS(_overrides?: CallOverrides): Promise<BigNumber>;
-  fetchPrice(_overrides?: CallOverrides): Promise<BigNumber>;
   gmuOracle(_overrides?: CallOverrides): Promise<string>;
   isOwner(_overrides?: CallOverrides): Promise<boolean>;
   owner(_overrides?: CallOverrides): Promise<string>;
@@ -405,6 +404,7 @@ interface PriceFeedCalls {
 }
 
 interface PriceFeedTransactions {
+  fetchPrice(_overrides?: Overrides): Promise<BigNumber>;
   setAddresses(_priceAggregatorAddress: string, _gmuOracle: string, _umbRegistry: string, _umbFCDKey: BytesLike, _overrides?: Overrides): Promise<void>;
 }
 

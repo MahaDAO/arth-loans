@@ -75,7 +75,7 @@ const addGasForPotentialListTraversal = (gas: BigNumber) => gas.add(25000);
 
 const addGasForLQTYIssuance = (gas: BigNumber) => gas.add(50000);
 
-const addGasForUnipoolRewardUpdate = (gas: BigNumber) => gas.add(20000);
+// const addGasForUnipoolRewardUpdate = (gas: BigNumber) => gas.add(20000);
 
 // To get the best entropy available, we'd do something like:
 //
