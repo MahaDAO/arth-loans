@@ -2,21 +2,21 @@
 
 pragma solidity 0.8.0;
 
-import "../Interfaces/ILUSDToken.sol";
+import "../Interfaces/IARTHValuecoin.sol";
 
 contract LUSDTokenCaller {
-    ILUSDToken LUSD;
+    IARTHValuecoin LUSD;
 
-    function setLUSD(ILUSDToken _LUSD) external {
+    function setLUSD(IARTHValuecoin _LUSD) external {
         LUSD = _LUSD;
     }
 
     function lusdMint(address _account, uint256 _amount) external {
-        // LUSD.poolMint(_account, _amount);
+        LUSD.mint(_account, _amount);
     }
 
     function lusdBurn(address _account, uint256 _amount) external {
-        // LUSD.poolBurnFrom(_account, _amount);
+        LUSD.burn(_account, _amount);(_account, _amount);
     }
 
     function lusdSendToPool(
@@ -24,10 +24,10 @@ contract LUSDTokenCaller {
         address _poolAddress,
         uint256 _amount
     ) external {
-        // controller.sendToPool(_sender, _poolAddress, _amount);
+        LUSD.sendToPool(_sender, _poolAddress, _amount);
     }
 
-    // function lusdReturnFromPool(address _poolAddress, address _receiver, uint256 _amount ) external {
-    //     LUSD.returnFromPool(_poolAddress, _receiver, _amount);
-    // }
+    function lusdReturnFromPool(address _poolAddress, address _receiver, uint256 _amount ) external {
+        LUSD.returnFromPool(_poolAddress, _receiver, _amount);
+    }
 }

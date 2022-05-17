@@ -14,7 +14,7 @@ import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 
 import "./Interfaces/IGovernance.sol";
-import "./Interfaces/ILiquityLUSDToken.sol";
+import "./Interfaces/IARTHValuecoin.sol";
 
 /*
  * The Stability Pool holds LUSD tokens deposited by Stability Pool depositors.
@@ -156,7 +156,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
     ITroveManager public troveManager;
 
-    ILiquityLUSDToken public lusdToken;
+    IARTHValuecoin public lusdToken;
 
     // Needed to check if there are pending liquidations
     ISortedTroves public sortedTroves;
@@ -258,7 +258,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         borrowerOperations = IBorrowerOperations(_borrowerOperationsAddress);
         troveManager = ITroveManager(_troveManagerAddress);
         activePool = IActivePool(_activePoolAddress);
-        lusdToken = ILiquityLUSDToken(_lusdTokenAddress);
+        lusdToken = IARTHValuecoin(_lusdTokenAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
         weth = IERC20(_wethAddress);
         governance = IGovernance(_governanceAddress);

@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.0;
 
-import "./Interfaces/ILiquityLUSDToken.sol";
+import "./Interfaces/IARTHValuecoin.sol";
 import "./Dependencies/SafeMath.sol";
 import "./Dependencies/CheckContract.sol";
 
@@ -17,16 +17,16 @@ import "./Dependencies/TransferableOwnable.sol";
 * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/53516bc555a454862470e7860a9b5254db4d00f5/contracts/token/ERC20/ERC20Permit.sol
 *
 *
-* --- Functionality added specific to the LUSDToken ---
+* --- Functionality added specific to the ARTHToken ---
 *
 * 1) Transfer protection: blacklist of addresses that are invalid recipients (i.e. core Liquity contracts) in external
-* transfer() and transferFrom() calls. The purpose is to protect users from losing tokens by mistakenly sending LUSD directly to a Liquity
+* transfer() and transferFrom() calls. The purpose is to protect users from losing tokens by mistakenly sending ARTH directly to a Liquity
 * core contract, when they should rather call the right function.
 *
-* 2) sendToPool() and returnFromPool(): functions callable only Liquity core contracts, which move LUSD tokens between Liquity <-> user.
+* 2) sendToPool() and returnFromPool(): functions callable only Liquity core contracts, which move ARTH tokens between Liquity <-> user.
 */
 
-contract LiquityLUSDToken is CheckContract, TransferableOwnable, ILiquityLUSDToken {
+contract ARTHValuecoin is CheckContract, TransferableOwnable, IARTHValuecoin {
     using SafeMath for uint256;
 
     uint256 private _totalSupply;
@@ -56,7 +56,7 @@ contract LiquityLUSDToken is CheckContract, TransferableOwnable, ILiquityLUSDTok
     mapping (address => bool) public troveManagerAddresses;
     mapping (address => bool) public stabilityPoolAddresses;
 
-    // User data for LUSD token
+    // User data for ARTH token
     mapping (address => uint256) private _balances;
     mapping (address => mapping (address => uint256)) private _allowances;
 
@@ -180,13 +180,13 @@ contract LiquityLUSDToken is CheckContract, TransferableOwnable, ILiquityLUSDTok
         external
         override
     {
-        require(deadline >= block.timestamp, 'LUSD: expired deadline');
+        require(deadline >= block.timestamp, 'ARTH: expired deadline');
         bytes32 digest = keccak256(abi.encodePacked('\x19\x01',
                          domainSeparator(), keccak256(abi.encode(
                          _PERMIT_TYPEHASH, owner, spender, amount,
                          _nonces[owner]++, deadline))));
         address recoveredAddress = ecrecover(digest, v, r, s);
-        require(recoveredAddress == owner, 'LUSD: invalid signature');
+        require(recoveredAddress == owner, 'ARTH: invalid signature');
         _approve(owner, spender, amount);
     }
 
@@ -213,7 +213,7 @@ contract LiquityLUSDToken is CheckContract, TransferableOwnable, ILiquityLUSDTok
         assert(sender != address(0));
         assert(recipient != address(0));
 
-        _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
+        _balances[sender] = _balances[sender].sub(amount, "ARTH: transfer amount exceeds balance");
         _balances[recipient] = _balances[recipient].add(amount);
         emit Transfer(sender, recipient, amount);
     }
@@ -229,7 +229,7 @@ contract LiquityLUSDToken is CheckContract, TransferableOwnable, ILiquityLUSDTok
     function _burn(address account, uint256 amount) internal {
         assert(account != address(0));
 
-        _balances[account] = _balances[account].sub(amount, "ERC20: burn amount exceeds balance");
+        _balances[account] = _balances[account].sub(amount, "ARTH: burn amount exceeds balance");
         _totalSupply = _totalSupply.sub(amount);
         emit Transfer(account, address(0), amount);
     }
@@ -248,18 +248,18 @@ contract LiquityLUSDToken is CheckContract, TransferableOwnable, ILiquityLUSDTok
         require(
             _recipient != address(0) &&
             _recipient != address(this),
-            "LUSD: Cannot transfer tokens directly to the LUSD token contract or the zero address"
+            "ARTH: Cannot transfer tokens directly to the ARTH token contract or the zero address"
         );
         require(
             !stabilityPoolAddresses[_recipient] &&
             !troveManagerAddresses[_recipient] &&
             !borrowerOperationAddresses[_recipient],
-            "LUSD: Cannot transfer tokens directly to the StabilityPool, TroveManager or BorrowerOps"
+            "ARTH: Cannot transfer tokens directly to the StabilityPool, TroveManager or BorrowerOps"
         );
     }
 
     function _requireCallerIsBorrowerOperations() internal view {
-        require(borrowerOperationAddresses[msg.sender], "LUSDToken: Caller is not BorrowerOperations");
+        require(borrowerOperationAddresses[msg.sender], "ARTH: Caller is not BorrowerOperations");
     }
 
     function _requireCallerIsBOorTroveMorSP() internal view {
@@ -267,18 +267,18 @@ contract LiquityLUSDToken is CheckContract, TransferableOwnable, ILiquityLUSDTok
            borrowerOperationAddresses[msg.sender] ||
            troveManagerAddresses[msg.sender] ||
            stabilityPoolAddresses[msg.sender],
-            "LUSD: Caller is neither BorrowerOperations nor TroveManager nor StabilityPool"
+            "ARTH: Caller is neither BorrowerOperations nor TroveManager nor StabilityPool"
         );
     }
 
     function _requireCallerIsStabilityPool() internal view {
-        require(stabilityPoolAddresses[msg.sender], "LUSD: Caller is not the StabilityPool");
+        require(stabilityPoolAddresses[msg.sender], "ARTH: Caller is not the StabilityPool");
     }
 
     function _requireCallerIsTroveMorSP() internal view {
         require(
             troveManagerAddresses[msg.sender] || stabilityPoolAddresses[msg.sender],
-            "LUSD: Caller is neither TroveManager nor StabilityPool");
+            "ARTH: Caller is neither TroveManager nor StabilityPool");
     }
 
     // --- Optional functions ---

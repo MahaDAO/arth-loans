@@ -9,7 +9,7 @@ import "../DefaultPool.sol";
 import "../StabilityPool.sol";
 import "../GasPool.sol";
 import "../CollSurplusPool.sol";
-import "../LiquityLUSDToken.sol";
+import "../ARTHValuecoin.sol";
 import "./PriceFeedTestnet.sol";
 import "../SortedTroves.sol";
 import "./EchidnaProxy.sol";
@@ -39,7 +39,7 @@ contract EchidnaTester {
     StabilityPool public stabilityPool;
     GasPool public gasPool;
     CollSurplusPool public collSurplusPool;
-    LiquityLUSDToken public lusdToken;
+    ARTHValuecoin public lusdToken;
     PriceFeedTestnet priceFeedTestnet;
     SortedTroves sortedTroves;
     WETH public weth;
@@ -57,7 +57,7 @@ contract EchidnaTester {
         defaultPool = new DefaultPool();
         stabilityPool = new StabilityPool();
         gasPool = new GasPool();
-        lusdToken = new LiquityLUSDToken();
+        lusdToken = new ARTHValuecoin();
         priceFeedTestnet = new PriceFeedTestnet();
         pool = new IncentivePool(
             msg.sender,

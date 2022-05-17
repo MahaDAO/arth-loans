@@ -11,7 +11,7 @@ import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Interfaces/IGovernance.sol";
 import "./Interfaces/IGasPool.sol";
-import "./Interfaces/ILiquityLUSDToken.sol";
+import "./Interfaces/IARTHValuecoin.sol";
 
 contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     using SafeMath for uint256;
@@ -24,7 +24,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     IStabilityPool public override stabilityPool;
     address gasPoolAddress;
     ICollSurplusPool collSurplusPool;
-    ILiquityLUSDToken public override lusdToken;
+    IARTHValuecoin public override lusdToken;
 
     // A doubly linked list of Troves, sorted by their sorted by their collateral ratios
     ISortedTroves public sortedTroves;
@@ -165,7 +165,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     struct ContractsCache {
         IActivePool activePool;
         IDefaultPool defaultPool;
-        ILiquityLUSDToken lusdToken;
+        IARTHValuecoin lusdToken;
         ISortedTroves sortedTroves;
         ICollSurplusPool collSurplusPool;
         address gasPoolAddress;
@@ -224,7 +224,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         stabilityPool = IStabilityPool(_stabilityPoolAddress);
         gasPoolAddress = _gasPoolAddress;
         collSurplusPool = ICollSurplusPool(_collSurplusPoolAddress);
-        lusdToken = ILiquityLUSDToken(_lusdTokenAddress);
+        lusdToken = IARTHValuecoin(_lusdTokenAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
         governance = IGovernance(_governanceAddress);
 
@@ -516,7 +516,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
         ContractsCache memory contractsCache = ContractsCache(
             activePool,
             defaultPool,
-            ILiquityLUSDToken(address(0)),
+            IARTHValuecoin(address(0)),
             sortedTroves,
             ICollSurplusPool(address(0)),
             address(0),
@@ -1720,7 +1720,7 @@ contract TroveManager is LiquityBase, Ownable, CheckContract, ITroveManager {
     }
 
     function _requireLUSDBalanceCoversRedemption(
-        ILiquityLUSDToken _lusdToken,
+        IARTHValuecoin _lusdToken,
         address _redeemer,
         uint256 _amount
     ) internal view {

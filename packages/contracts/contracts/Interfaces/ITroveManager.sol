@@ -4,7 +4,7 @@ pragma solidity 0.8.0;
 
 import "./IStabilityPool.sol";
 import "./ILiquityBase.sol";
-import "../Interfaces/ILiquityLUSDToken.sol";
+import "../Interfaces/IARTHValuecoin.sol";
 
 // Common interface for the Trove Manager.
 interface ITroveManager is ILiquityBase {
@@ -80,7 +80,7 @@ interface ITroveManager is ILiquityBase {
 
     function stabilityPool() external view returns (IStabilityPool);
 
-    function lusdToken() external view returns (ILiquityLUSDToken);
+    function lusdToken() external view returns (IARTHValuecoin);
 
     function getTroveOwnersCount() external view returns (uint256);
 

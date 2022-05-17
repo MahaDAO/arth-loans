@@ -5,7 +5,7 @@ pragma solidity 0.8.0;
 import "../Dependencies/IERC20.sol";
 import "../Dependencies/IERC2612.sol";
 
-interface ILiquityLUSDToken is IERC20, IERC2612 {
+interface IARTHValuecoin is IERC20, IERC2612 {
 
     // --- Events ---
 
