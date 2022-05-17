@@ -6,15 +6,11 @@ import { Interface, ParamType } from "@ethersproject/abi";
 import ActivePool from "../../contracts/artifacts/contracts/ActivePool.sol/ActivePool.json";
 import BorrowerOperations from "../../contracts/artifacts/contracts/BorrowerOperations.sol/BorrowerOperations.json";
 import CollSurplusPool from "../../contracts/artifacts/contracts/CollSurplusPool.sol/CollSurplusPool.json";
-import CommunityIssuance from "../../contracts/artifacts/contracts/LQTY/CommunityIssuance.sol/CommunityIssuance.json";
 import DefaultPool from "../../contracts/artifacts/contracts/DefaultPool.sol/DefaultPool.json";
 import GasPool from "../../contracts/artifacts/contracts/GasPool.sol/GasPool.json";
 import HintHelpers from "../../contracts/artifacts/contracts/HintHelpers.sol/HintHelpers.json";
 import IERC20 from "../../contracts/artifacts/@openzeppelin/contracts/token/ERC20/IERC20.sol/IERC20.json";
-import LockupContractFactory from "../../contracts/artifacts/contracts/LQTY/LockupContractFactory.sol/LockupContractFactory.json";
 import ARTHValuecoin from "../../contracts/artifacts/contracts/ARTHValuecoin.sol/ARTHValuecoin.json";
-import LQTYStaking from "../../contracts/artifacts/contracts/LQTY/LQTYStaking.sol/LQTYStaking.json";
-import LQTYToken from "../../contracts/artifacts/contracts/LQTY/LQTYToken.sol/LQTYToken.json";
 import MultiTroveGetter from "../../contracts/artifacts/contracts/MultiTroveGetter.sol/MultiTroveGetter.json";
 import PriceFeed from "../../contracts/artifacts/contracts/PriceFeed.sol/PriceFeed.json";
 import PriceFeedTestnet from "../../contracts/artifacts/contracts/TestContracts/PriceFeedTestnet.sol/PriceFeedTestnet.json";
@@ -144,15 +140,11 @@ const contractArtifacts = [
   ActivePool,
   BorrowerOperations,
   CollSurplusPool,
-  CommunityIssuance,
   DefaultPool,
   GasPool,
   HintHelpers,
   IERC20,
-  LockupContractFactory,
   ARTHValuecoin,
-  LQTYStaking,
-  LQTYToken,
   MultiTroveGetter,
   PriceFeed,
   PriceFeedTestnet,
