@@ -10,8 +10,7 @@
       "**/@graphprotocol/*",
       "**/jest*",
       "**/@babel/*",
-      "**/babel*",
-      "**/react-scripts"
+      "**/babel*"
     ]
   },
   "release": {
@@ -51,7 +50,6 @@
     "prepare:contracts": "yarn workspace @mahadao/arth-contracts prepare",
     "prepare:lib-base": "yarn workspace @mahadao/arth-lib-base prepare",
     "prepare:lib-ethers": "yarn workspace @mahadao/arth-lib-ethers prepare",
-    "prepare:lib-react": "yarn workspace @mahadao/arth-lib-react prepare",
     "prepare:lib-subgraph": "yarn workspace @mahadao/arth-lib-subgraph prepare",
     "prepare:providers": "yarn workspace @mahadao/arth-providers prepare",
     "prepare:docs": "run-s docs",

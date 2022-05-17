@@ -8,6 +8,6 @@
 
 |  Package | Description |
 |  --- | --- |
-|  [@arthloans/lib-base](./lib-base.md) |  |
-|  [@arthloans/lib-ethers](./lib-ethers.md) |  |
+|  [@mahadao/arth-lib-base](./arth-lib-base.md) |  |
+|  [@mahadao/arth-lib-ethers](./arth-lib-ethers.md) |  |
 

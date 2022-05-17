@@ -7,7 +7,6 @@ import {
   FrontendStatus,
   LiquidationDetails,
   LiquityStore,
-  LQTYStake,
   RedemptionDetails,
   StabilityDeposit,
   StabilityDepositChangeDetails,
@@ -199,11 +198,6 @@ export class EthersLiquity implements ReadableEthersLiquity, TransactableLiquity
     return this._readable.getStabilityDeposit(address, overrides);
   }
 
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getRemainingStabilityPoolLQTYReward} */
-  getRemainingStabilityPoolLQTYReward(overrides?: EthersCallOverrides): Promise<Decimal> {
-    return this._readable.getRemainingStabilityPoolLQTYReward(overrides);
-  }
-
   /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getLUSDInStabilityPool} */
   getLUSDInStabilityPool(overrides?: EthersCallOverrides): Promise<Decimal> {
     return this._readable.getLUSDInStabilityPool(overrides);
@@ -212,48 +206,6 @@ export class EthersLiquity implements ReadableEthersLiquity, TransactableLiquity
   /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getLUSDBalance} */
   getLUSDBalance(address?: string, overrides?: EthersCallOverrides): Promise<Decimal> {
     return this._readable.getLUSDBalance(address, overrides);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getLQTYBalance} */
-  getLQTYBalance(address?: string, overrides?: EthersCallOverrides): Promise<Decimal> {
-    return this._readable.getLQTYBalance(address, overrides);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getUniTokenBalance} */
-  getUniTokenBalance(address?: string, overrides?: EthersCallOverrides): Promise<Decimal> {
-    return this._readable.getUniTokenBalance(address, overrides);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getUniTokenAllowance} */
-  getUniTokenAllowance(address?: string, overrides?: EthersCallOverrides): Promise<Decimal> {
-    return this._readable.getUniTokenAllowance(address, overrides);
-  }
-
-  /** @internal */
-  _getRemainingLiquidityMiningLQTYRewardCalculator(
-    overrides?: EthersCallOverrides
-  ): Promise<(blockTimestamp: number) => Decimal> {
-    return this._readable._getRemainingLiquidityMiningLQTYRewardCalculator(overrides);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getRemainingLiquidityMiningLQTYReward} */
-  getRemainingLiquidityMiningLQTYReward(overrides?: EthersCallOverrides): Promise<Decimal> {
-    return this._readable.getRemainingLiquidityMiningLQTYReward(overrides);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getLiquidityMiningStake} */
-  getLiquidityMiningStake(address?: string, overrides?: EthersCallOverrides): Promise<Decimal> {
-    return this._readable.getLiquidityMiningStake(address, overrides);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getTotalStakedUniTokens} */
-  getTotalStakedUniTokens(overrides?: EthersCallOverrides): Promise<Decimal> {
-    return this._readable.getTotalStakedUniTokens(overrides);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getLiquidityMiningLQTYReward} */
-  getLiquidityMiningLQTYReward(address?: string, overrides?: EthersCallOverrides): Promise<Decimal> {
-    return this._readable.getLiquidityMiningLQTYReward(address, overrides);
   }
 
   /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getCollateralSurplusBalance} */
@@ -284,16 +236,6 @@ export class EthersLiquity implements ReadableEthersLiquity, TransactableLiquity
   /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getFees} */
   getFees(overrides?: EthersCallOverrides): Promise<Fees> {
     return this._readable.getFees(overrides);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getLQTYStake} */
-  getLQTYStake(address?: string, overrides?: EthersCallOverrides): Promise<LQTYStake> {
-    return this._readable.getLQTYStake(address, overrides);
-  }
-
-  /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getTotalStakedLQTY} */
-  getTotalStakedLQTY(overrides?: EthersCallOverrides): Promise<Decimal> {
-    return this._readable.getTotalStakedLQTY(overrides);
   }
 
   /** {@inheritDoc @mahadao/arth-lib-base#ReadableLiquity.getFrontendStatus} */
@@ -489,20 +431,6 @@ export class EthersLiquity implements ReadableEthersLiquity, TransactableLiquity
   }
 
   /**
-   * {@inheritDoc @mahadao/arth-lib-base#TransactableLiquity.sendLQTY}
-   *
-   * @throws
-   * Throws {@link EthersTransactionFailedError} in case of transaction failure.
-   */
-  sendLQTY(
-    toAddress: string,
-    amount: Decimalish,
-    overrides?: EthersTransactionOverrides
-  ): Promise<void> {
-    return this.send.sendLQTY(toAddress, amount, overrides).then(waitForSuccess);
-  }
-
-  /**
    * {@inheritDoc @mahadao/arth-lib-base#TransactableLiquity.redeemLUSD}
    *
    * @throws
@@ -527,36 +455,6 @@ export class EthersLiquity implements ReadableEthersLiquity, TransactableLiquity
   }
 
   /**
-   * {@inheritDoc @mahadao/arth-lib-base#TransactableLiquity.stakeLQTY}
-   *
-   * @throws
-   * Throws {@link EthersTransactionFailedError} in case of transaction failure.
-   */
-  stakeLQTY(amount: Decimalish, overrides?: EthersTransactionOverrides): Promise<void> {
-    return this.send.stakeLQTY(amount, overrides).then(waitForSuccess);
-  }
-
-  /**
-   * {@inheritDoc @mahadao/arth-lib-base#TransactableLiquity.unstakeLQTY}
-   *
-   * @throws
-   * Throws {@link EthersTransactionFailedError} in case of transaction failure.
-   */
-  unstakeLQTY(amount: Decimalish, overrides?: EthersTransactionOverrides): Promise<void> {
-    return this.send.unstakeLQTY(amount, overrides).then(waitForSuccess);
-  }
-
-  /**
-   * {@inheritDoc @mahadao/arth-lib-base#TransactableLiquity.withdrawGainsFromStaking}
-   *
-   * @throws
-   * Throws {@link EthersTransactionFailedError} in case of transaction failure.
-   */
-  withdrawGainsFromStaking(overrides?: EthersTransactionOverrides): Promise<void> {
-    return this.send.withdrawGainsFromStaking(overrides).then(waitForSuccess);
-  }
-
-  /**
    * {@inheritDoc @mahadao/arth-lib-base#TransactableLiquity.registerFrontend}
    *
    * @throws
@@ -564,65 +462,6 @@ export class EthersLiquity implements ReadableEthersLiquity, TransactableLiquity
    */
   registerFrontend(kickbackRate: Decimalish, overrides?: EthersTransactionOverrides): Promise<void> {
     return this.send.registerFrontend(kickbackRate, overrides).then(waitForSuccess);
-  }
-
-  /** @internal */
-  _mintUniToken(
-    amount: Decimalish,
-    address?: string,
-    overrides?: EthersTransactionOverrides
-  ): Promise<void> {
-    return this.send._mintUniToken(amount, address, overrides).then(waitForSuccess);
-  }
-
-  /**
-   * {@inheritDoc @mahadao/arth-lib-base#TransactableLiquity.approveUniTokens}
-   *
-   * @throws
-   * Throws {@link EthersTransactionFailedError} in case of transaction failure.
-   */
-  approveUniTokens(allowance?: Decimalish, overrides?: EthersTransactionOverrides): Promise<void> {
-    return this.send.approveUniTokens(allowance, overrides).then(waitForSuccess);
-  }
-
-  /**
-   * {@inheritDoc @mahadao/arth-lib-base#TransactableLiquity.stakeUniTokens}
-   *
-   * @throws
-   * Throws {@link EthersTransactionFailedError} in case of transaction failure.
-   */
-  stakeUniTokens(amount: Decimalish, overrides?: EthersTransactionOverrides): Promise<void> {
-    return this.send.stakeUniTokens(amount, overrides).then(waitForSuccess);
-  }
-
-  /**
-   * {@inheritDoc @mahadao/arth-lib-base#TransactableLiquity.unstakeUniTokens}
-   *
-   * @throws
-   * Throws {@link EthersTransactionFailedError} in case of transaction failure.
-   */
-  unstakeUniTokens(amount: Decimalish, overrides?: EthersTransactionOverrides): Promise<void> {
-    return this.send.unstakeUniTokens(amount, overrides).then(waitForSuccess);
-  }
-
-  /**
-   * {@inheritDoc @mahadao/arth-lib-base#TransactableLiquity.withdrawLQTYRewardFromLiquidityMining}
-   *
-   * @throws
-   * Throws {@link EthersTransactionFailedError} in case of transaction failure.
-   */
-  withdrawLQTYRewardFromLiquidityMining(overrides?: EthersTransactionOverrides): Promise<void> {
-    return this.send.withdrawLQTYRewardFromLiquidityMining(overrides).then(waitForSuccess);
-  }
-
-  /**
-   * {@inheritDoc @mahadao/arth-lib-base#TransactableLiquity.exitLiquidityMining}
-   *
-   * @throws
-   * Throws {@link EthersTransactionFailedError} in case of transaction failure.
-   */
-  exitLiquidityMining(overrides?: EthersTransactionOverrides): Promise<void> {
-    return this.send.exitLiquidityMining(overrides).then(waitForSuccess);
   }
 }
 
@@ -639,8 +478,7 @@ export interface EthersLiquityWithStore<T extends LiquityStore = LiquityStore>
 
 class _EthersLiquityWithStore<T extends LiquityStore = LiquityStore>
   extends EthersLiquity
-  implements EthersLiquityWithStore<T>
-{
+  implements EthersLiquityWithStore<T> {
   readonly store: T;
 
   constructor(readable: ReadableEthersLiquityWithStore<T>) {
