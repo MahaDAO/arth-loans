@@ -22,6 +22,8 @@ abstract contract RewardsDistributorRecipient {
     }
 }
 
+
+// todo: make this a part of governance instead
  contract IncentivePool is TransferableOwnable, RewardsDistributorRecipient, ReentrancyGuard, IIncentivePool {
     using SafeMath for uint256;
 

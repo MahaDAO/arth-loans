@@ -15,7 +15,7 @@ const DEPLOYER_ADDRS = {
 const PRICEFEED_CONFIGS = {
   "BUSD-V2": "0x97651d5188af954ce1402Ca7288D6F74A6F5f09e",
   "BUSDUSDT-APE-LP-S": "0x2658140C0981e1d179482226b0e382350C9C8b18",
-  "BUSDUSDC-APE-LP-S": "0x6852F8bB8a476fCAD8D6a54aF4a1A61B29146484"
+  "BUSDUSDC-APE-LP-S": "0x120da5c69E7B00618AC648Da5ea33ec60aA210ed"
 };
 
 const e18 = ethers.BigNumber.from(10).pow(18);
@@ -33,7 +33,7 @@ const waitFunction = async () => delay(90000); // Wait 90s.
 const TX_CONFIRMATIONS = 1;
 const GAS_PRICE = 5 * 1000000000; // 5.1 gwei
 const NETWORK_NAME = "bsc";
-const COLLATERLAS = ["BUSD-V2"];
+const COLLATERLAS = ["BUSDUSDC-APE-LP-S"];
 const OUTPUT_FILE = "./output/bsc.json";
 const ETHERSCAN_BASE_URL = "https://bscscan.com/address";
 
