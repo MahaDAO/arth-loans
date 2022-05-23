@@ -269,6 +269,19 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "address",
+        "name": "_newLUSDTokenAddress",
+        "type": "address"
+      }
+    ],
+    "name": "LUSDTokenAddressChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "_depositor",
@@ -277,11 +290,11 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "_LQTY",
+        "name": "_MAHA",
         "type": "uint256"
       }
     ],
-    "name": "LQTYPaidToDepositor",
+    "name": "MAHAPaidToDepositor",
     "type": "event"
   },
   {
@@ -296,24 +309,11 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "_LQTY",
+        "name": "_MAHA",
         "type": "uint256"
       }
     ],
-    "name": "LQTYPaidToFrontEnd",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "_newLUSDTokenAddress",
-        "type": "address"
-      }
-    ],
-    "name": "LUSDTokenAddressChanged",
+    "name": "MAHAPaidToFrontEnd",
     "type": "event"
   },
   {
@@ -619,6 +619,19 @@
     "outputs": [
       {
         "internalType": "contract IBorrowerOperations",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "communityIssuance",
+    "outputs": [
+      {
+        "internalType": "contract ICommunityIssuance",
         "name": "",
         "type": "address"
       }
@@ -936,7 +949,7 @@
         "type": "address"
       }
     ],
-    "name": "getDepositorLQTYGain",
+    "name": "getDepositorMAHAGain",
     "outputs": [
       {
         "internalType": "uint256",
@@ -994,7 +1007,7 @@
         "type": "address"
       }
     ],
-    "name": "getFrontEndLQTYGain",
+    "name": "getFrontEndMAHAGain",
     "outputs": [
       {
         "internalType": "uint256",
@@ -1098,7 +1111,7 @@
   },
   {
     "inputs": [],
-    "name": "lastLQTYError",
+    "name": "lastLUSDLossError_Offset",
     "outputs": [
       {
         "internalType": "uint256",
@@ -1111,7 +1124,7 @@
   },
   {
     "inputs": [],
-    "name": "lastLUSDLossError_Offset",
+    "name": "lastMAHAError",
     "outputs": [
       {
         "internalType": "uint256",

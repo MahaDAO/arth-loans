@@ -5,15 +5,15 @@ pragma solidity 0.8.0;
 interface ICommunityIssuance {
     // --- Events ---
 
-    event LQTYTokenAddressSet(address _lqtyTokenAddress);
+    event MAHATokenAddressSet(address _mahaTokenAddress);
     event StabilityPoolAddressSet(address _stabilityPoolAddress);
-    event TotalLQTYIssuedUpdated(uint256 _totalLQTYIssued);
+    event TotalMAHAIssuedUpdated(uint256 _totalMAHAIssued);
 
     // --- Functions ---
 
-    function setAddresses(address _lqtyTokenAddress, address _stabilityPoolAddress) external;
+    function setAddresses(address _mahaTokenAddress, address _stabilityPoolAddress) external;
 
-    function issueLQTY() external returns (uint256);
+    function issueMAHA() external returns (uint256);
 
-    function sendLQTY(address _account, uint256 _LQTYamount) external;
+    function sendMAHA(address _account, uint256 _MAHAamount) external;
 }

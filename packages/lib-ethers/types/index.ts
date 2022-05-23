@@ -494,6 +494,7 @@ interface StabilityPoolCalls {
   _100pct(_overrides?: CallOverrides): Promise<BigNumber>;
   activePool(_overrides?: CallOverrides): Promise<string>;
   borrowerOperations(_overrides?: CallOverrides): Promise<string>;
+  communityIssuance(_overrides?: CallOverrides): Promise<string>;
   currentEpoch(_overrides?: CallOverrides): Promise<BigNumber>;
   currentScale(_overrides?: CallOverrides): Promise<BigNumber>;
   defaultPool(_overrides?: CallOverrides): Promise<string>;
@@ -508,11 +509,11 @@ interface StabilityPoolCalls {
   getCompoundedFrontEndStake(_frontEnd: string, _overrides?: CallOverrides): Promise<BigNumber>;
   getCompoundedLUSDDeposit(_depositor: string, _overrides?: CallOverrides): Promise<BigNumber>;
   getDepositorETHGain(_depositor: string, _overrides?: CallOverrides): Promise<BigNumber>;
-  getDepositorLQTYGain(_depositor: string, _overrides?: CallOverrides): Promise<BigNumber>;
+  getDepositorMAHAGain(_depositor: string, _overrides?: CallOverrides): Promise<BigNumber>;
   getETH(_overrides?: CallOverrides): Promise<BigNumber>;
   getEntireSystemColl(_overrides?: CallOverrides): Promise<BigNumber>;
   getEntireSystemDebt(_overrides?: CallOverrides): Promise<BigNumber>;
-  getFrontEndLQTYGain(_frontEnd: string, _overrides?: CallOverrides): Promise<BigNumber>;
+  getFrontEndMAHAGain(_frontEnd: string, _overrides?: CallOverrides): Promise<BigNumber>;
   getMaxBorrowingFee(_overrides?: CallOverrides): Promise<BigNumber>;
   getPriceFeed(_overrides?: CallOverrides): Promise<string>;
   getRedemptionFeeFloor(_overrides?: CallOverrides): Promise<BigNumber>;
@@ -520,8 +521,8 @@ interface StabilityPoolCalls {
   governance(_overrides?: CallOverrides): Promise<string>;
   isOwner(_overrides?: CallOverrides): Promise<boolean>;
   lastETHError_Offset(_overrides?: CallOverrides): Promise<BigNumber>;
-  lastLQTYError(_overrides?: CallOverrides): Promise<BigNumber>;
   lastLUSDLossError_Offset(_overrides?: CallOverrides): Promise<BigNumber>;
+  lastMAHAError(_overrides?: CallOverrides): Promise<BigNumber>;
   lusdToken(_overrides?: CallOverrides): Promise<string>;
   owner(_overrides?: CallOverrides): Promise<string>;
   sortedTroves(_overrides?: CallOverrides): Promise<string>;
@@ -557,9 +558,9 @@ export interface StabilityPool
     FrontEndTagSet(_depositor?: string | null, _frontEnd?: string | null): EventFilter;
     G_Updated(_G?: null, _epoch?: null, _scale?: null): EventFilter;
     GovernanceAddressChanged(_governanceAddress?: null): EventFilter;
-    LQTYPaidToDepositor(_depositor?: string | null, _LQTY?: null): EventFilter;
-    LQTYPaidToFrontEnd(_frontEnd?: string | null, _LQTY?: null): EventFilter;
     LUSDTokenAddressChanged(_newLUSDTokenAddress?: null): EventFilter;
+    MAHAPaidToDepositor(_depositor?: string | null, _MAHA?: null): EventFilter;
+    MAHAPaidToFrontEnd(_frontEnd?: string | null, _MAHA?: null): EventFilter;
     OwnershipTransferred(previousOwner?: string | null, newOwner?: string | null): EventFilter;
     P_Updated(_P?: null): EventFilter;
     S_Updated(_S?: null, _epoch?: null, _scale?: null): EventFilter;
@@ -584,9 +585,9 @@ export interface StabilityPool
   extractEvents(logs: Log[], name: "FrontEndTagSet"): _TypedLogDescription<{ _depositor: string; _frontEnd: string }>[];
   extractEvents(logs: Log[], name: "G_Updated"): _TypedLogDescription<{ _G: BigNumber; _epoch: BigNumber; _scale: BigNumber }>[];
   extractEvents(logs: Log[], name: "GovernanceAddressChanged"): _TypedLogDescription<{ _governanceAddress: string }>[];
-  extractEvents(logs: Log[], name: "LQTYPaidToDepositor"): _TypedLogDescription<{ _depositor: string; _LQTY: BigNumber }>[];
-  extractEvents(logs: Log[], name: "LQTYPaidToFrontEnd"): _TypedLogDescription<{ _frontEnd: string; _LQTY: BigNumber }>[];
   extractEvents(logs: Log[], name: "LUSDTokenAddressChanged"): _TypedLogDescription<{ _newLUSDTokenAddress: string }>[];
+  extractEvents(logs: Log[], name: "MAHAPaidToDepositor"): _TypedLogDescription<{ _depositor: string; _MAHA: BigNumber }>[];
+  extractEvents(logs: Log[], name: "MAHAPaidToFrontEnd"): _TypedLogDescription<{ _frontEnd: string; _MAHA: BigNumber }>[];
   extractEvents(logs: Log[], name: "OwnershipTransferred"): _TypedLogDescription<{ previousOwner: string; newOwner: string }>[];
   extractEvents(logs: Log[], name: "P_Updated"): _TypedLogDescription<{ _P: BigNumber }>[];
   extractEvents(logs: Log[], name: "S_Updated"): _TypedLogDescription<{ _S: BigNumber; _epoch: BigNumber; _scale: BigNumber }>[];
