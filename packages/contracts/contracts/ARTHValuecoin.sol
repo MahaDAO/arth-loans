@@ -5,34 +5,15 @@ pragma solidity 0.8.0;
 import "./Interfaces/IARTHValuecoin.sol";
 import "./Dependencies/SafeMath.sol";
 import "./Dependencies/CheckContract.sol";
-
 import "./Dependencies/TransferableOwnable.sol";
-
-/*
-*
-* Based upon OpenZeppelin's ERC20 contract:
-* https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol
-*
-* and their EIP2612 (ERC20Permit / ERC712) functionality:
-* https://github.com/OpenZeppelin/openzeppelin-contracts/blob/53516bc555a454862470e7860a9b5254db4d00f5/contracts/token/ERC20/ERC20Permit.sol
-*
-*
-* --- Functionality added specific to the ARTHToken ---
-*
-* 1) Transfer protection: blacklist of addresses that are invalid recipients (i.e. core Liquity contracts) in external
-* transfer() and transferFrom() calls. The purpose is to protect users from losing tokens by mistakenly sending ARTH directly to a Liquity
-* core contract, when they should rather call the right function.
-*
-* 2) sendToPool() and returnFromPool(): functions callable only Liquity core contracts, which move ARTH tokens between Liquity <-> user.
-*/
 
 contract ARTHValuecoin is CheckContract, TransferableOwnable, IARTHValuecoin {
     using SafeMath for uint256;
 
     uint256 private _totalSupply;
     string constant internal _NAME = "ARTH Valuecoin";
-    string constant internal _SYMBOL = "ARTH";
-    string constant internal _VERSION = "2";
+    string constant internal _SYMBOL = "ARTH.bsc";
+    string constant internal _VERSION = "3";
     uint8 constant internal _DECIMALS = 18;
 
     // --- Data for EIP2612 ---
@@ -210,8 +191,8 @@ contract ARTHValuecoin is CheckContract, TransferableOwnable, IARTHValuecoin {
     // Warning: sanity checks (for sender and recipient) should have been done before calling these internal functions
 
     function _transfer(address sender, address recipient, uint256 amount) internal {
-        assert(sender != address(0));
-        assert(recipient != address(0));
+        require(sender != address(0), 'sender is 0x0');
+        require(recipient != address(0), 'recipient is 0x0');
 
         _balances[sender] = _balances[sender].sub(amount, "ARTH: transfer amount exceeds balance");
         _balances[recipient] = _balances[recipient].add(amount);
@@ -219,7 +200,7 @@ contract ARTHValuecoin is CheckContract, TransferableOwnable, IARTHValuecoin {
     }
 
     function _mint(address account, uint256 amount) internal {
-        assert(account != address(0));
+        require(account != address(0), 'account is 0x0');
 
         _totalSupply = _totalSupply.add(amount);
         _balances[account] = _balances[account].add(amount);
@@ -227,7 +208,7 @@ contract ARTHValuecoin is CheckContract, TransferableOwnable, IARTHValuecoin {
     }
 
     function _burn(address account, uint256 amount) internal {
-        assert(account != address(0));
+        require(account != address(0), 'account is 0x0');
 
         _balances[account] = _balances[account].sub(amount, "ARTH: burn amount exceeds balance");
         _totalSupply = _totalSupply.sub(amount);
