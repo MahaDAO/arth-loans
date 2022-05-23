@@ -1,11 +1,5 @@
 const { network, ethers } = require("hardhat");
 
-const oracles = [
-  "UniswapPairOracle_ARTH_ARTHX",
-  "UniswapPairOracle_ARTH_MAHA",
-  "UniswapPairOracle_ARTH_USDC"
-];
-
 async function main() {
   console.log("network", network.name);
 
