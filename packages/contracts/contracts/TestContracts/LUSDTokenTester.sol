@@ -5,6 +5,10 @@ pragma solidity 0.8.0;
 import "../ARTHValuecoin.sol";
 
 contract LUSDTokenTester is ARTHValuecoin {
+    constructor () ARTHValuecoin(address(0)) {
+
+    }
+
     function unprotectedMint(address _account, uint256 _amount) external {
         // No check on caller here
         _mint(_account, _amount);

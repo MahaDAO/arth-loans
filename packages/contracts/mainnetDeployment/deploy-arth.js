@@ -9,15 +9,15 @@ const oracles = [
 async function main() {
   console.log("network", network.name);
 
-  const governance = "0x6357EDbfE5aDA570005ceB8FAd3139eF5A8863CC";
+  const governance = "0x9a66fC7a20f21fB72d9f229984109246e9c9F4a5";
 
-  const ARTHToken = await ethers.getContractFactory("ARTHToken");
-  const instance = await ARTHToken.deploy(governance);
-  await instance.deployed();
-  console.log("created", instance.address);
+  // const ARTHValuecoin = await ethers.getContractFactory("ARTHValuecoin");
+  // const instance = await ARTHValuecoin.deploy(governance);
+  // await instance.deployed();
+  // console.log("created", instance.address);
 
   await this.hre.run("verify:verify", {
-    address: instance.address,
+    address: "0xA5C40F510dd2EdB8d8F8cBb425dACC5180458d1A",
     constructorArguments: [governance]
   });
 }

@@ -57,7 +57,7 @@ contract EchidnaTester {
         defaultPool = new DefaultPool();
         stabilityPool = new StabilityPool();
         gasPool = new GasPool();
-        lusdToken = new ARTHValuecoin();
+        lusdToken = new ARTHValuecoin(address(0));
         priceFeedTestnet = new PriceFeedTestnet();
         pool = new IncentivePool(
             msg.sender,

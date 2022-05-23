@@ -11,7 +11,7 @@ contract ARTHValuecoin is CheckContract, TransferableOwnable, IARTHValuecoin {
     using SafeMath for uint256;
 
     uint256 private _totalSupply;
-    string constant internal _NAME = "ARTH Valuecoin";
+    string constant internal _NAME = "ARTH Valuecoin (BSC)";
     string constant internal _SYMBOL = "ARTH.bsc";
     string constant internal _VERSION = "3";
     uint8 constant internal _DECIMALS = 18;
@@ -44,7 +44,7 @@ contract ARTHValuecoin is CheckContract, TransferableOwnable, IARTHValuecoin {
     // --- Events ---
 
 
-    constructor() {
+    constructor(address _governance) {
         bytes32 hashedName = keccak256(bytes(_NAME));
         bytes32 hashedVersion = keccak256(bytes(_VERSION));
 
@@ -52,6 +52,8 @@ contract ARTHValuecoin is CheckContract, TransferableOwnable, IARTHValuecoin {
         _HASHED_VERSION = hashedVersion;
         _CACHED_CHAIN_ID = _chainID();
         _CACHED_DOMAIN_SEPARATOR = _buildDomainSeparator(_TYPE_HASH, hashedName, hashedVersion);
+
+        transferOwnership(_governance);
     }
 
     // -- Functions to manage access control ---
