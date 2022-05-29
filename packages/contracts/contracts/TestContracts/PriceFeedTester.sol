@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.0;
 
-import "../PriceFeed.sol";
+import "../PriceFeedChainlinkGMU.sol";
 
-contract PriceFeedTester is PriceFeed {
+contract PriceFeedTester is PriceFeedChainlinkGMU {
     string public name = "tester";
 }

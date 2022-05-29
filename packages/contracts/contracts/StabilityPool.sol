@@ -145,8 +145,6 @@ import "./Interfaces/IARTHValuecoin.sol";
  * We use the same mathematical product-sum approach to track MAHA gains for depositors, where 'G' is the sum corresponding to MAHA gains.
  * The product P (and snapshot P_t) is re-used, as the ratio P/P_t tracks a deposit's depletion due to liquidations.
  *
- */
-/*
  * The Stability Pool holds LUSD tokens deposited by Stability Pool depositors.
  *
  * When a trove is liquidated, then depending on system conditions, some of its LUSD debt gets offset with
