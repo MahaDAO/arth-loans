@@ -25,16 +25,14 @@ import "./Dependencies/IUMBRegistry.sol";
  * switching oracles based on oracle failures, timeouts, and conditions for returning to the primary
  * Chainlink oracle.
  */
-contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
+contract PriceFeedChainlinkGMU is Ownable, CheckContract, BaseMath, IPriceFeed {
     using SafeMath for uint256;
 
-    string public constant NAME = "PriceFeed";
+    string public constant NAME = "PriceFeedChainlinkGMU";
 
     AggregatorV3Interface public priceAggregator;
     IOracle public gmuOracle;
-    IUMBRegistry public umbRegistry;
 
-    bytes32 public umbFCDKey;
     // Use to convert a price answer to an 18-digit precision uint.
     uint256 public constant TARGET_DIGITS = 18;
 
@@ -50,19 +48,13 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
 
     function setAddresses(
         address _priceAggregatorAddress,
-        address _gmuOracle,
-        address _umbRegistry,
-        bytes32 _umbFCDKey
+        address _gmuOracle
     ) external onlyOwner {
-        checkContract(_umbRegistry);
         checkContract(_priceAggregatorAddress);
         checkContract(_gmuOracle);
 
-        umbRegistry = IUMBRegistry(_umbRegistry);
         priceAggregator = AggregatorV3Interface(_priceAggregatorAddress);
         gmuOracle = IOracle(_gmuOracle);
-
-        umbFCDKey = _umbFCDKey;
 
         _renounceOwnership();
     }
@@ -81,27 +73,16 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
      * it uses the last good price seen by Liquity.
      *
      */
-    function fetchPrice() external override returns (uint256) {
+    function fetchPrice() external view override returns (uint256) {
         return _fetchPrice();
     }
 
     // --- Helper functions ---
 
     function _fetchPrice() internal view returns (uint256) {
-        if (address(priceAggregator) == address(0)) return _fetchWithUMB();
         return _fetchWithChainlink();
     }
 
-    function _fetchWithUMB() internal view returns (uint256) {
-        uint256 gmuPrice = _fetchGMUPrice();
-        uint256 umbPrice = _fetchUMBPrice();
-
-        return (
-            umbPrice
-                .mul(10 ** TARGET_DIGITS)
-                .div(gmuPrice)
-        );
-    }
 
     function _fetchWithChainlink() internal view returns (uint256) {
         uint256 gmuPrice = _fetchGMUPrice();
@@ -148,20 +129,6 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
             chainlinkResponse.decimals
         );
         return scaledChainlinkPrice;
-    }
-
-    function _fetchUMBPrice()
-        internal
-        view
-        returns (uint256)
-    {
-        IUMBOracle umbOracle = IUMBOracle(umbRegistry.getAddressByString("Chain"));
-        IUMBOracle.FirstClassData memory fcd = umbOracle.fcds(umbFCDKey);
-
-        return _scalePriceByDigits(
-            uint256(fcd.value),
-            18
-        );
     }
 
     // --- Oracle response wrapper functions ---
