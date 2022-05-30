@@ -18,50 +18,24 @@ contract CommunityIssuance is ICommunityIssuance, Ownable, CheckContract, BaseMa
 
     string constant public NAME = "CommunityIssuance";
 
-    uint constant public SECONDS_IN_ONE_MINUTE = 60;
-
-   /* The issuance factor F determines the curvature of the issuance curve.
-    *
-    * Minutes in one year: 60*24*365 = 525600
-    *
-    * For 50% of remaining tokens issued each year, with minutes as time units, we have:
-    *
-    * F ** 525600 = 0.5
-    *
-    * Re-arranging:
-    *
-    * 525600 * ln(F) = ln(0.5)
-    * F = 0.5 ** (1/525600)
-    * F = 0.999998681227695000
-    */
-    uint constant public ISSUANCE_FACTOR = 999998681227695000;
-
-    /*
-    * The community MAHA supply cap is the starting balance of the Community Issuance contract.
-    * It should be minted to this contract by MAHAToken, when the token is deployed.
-    *
-    * Set to 32M (slightly less than 1/3) of total MAHA supply.
-    */
-    uint constant public MAHASupplyCap = 32e24; // 32 million
+    uint256 public periodFinish = 0;
+    uint256 public rewardRate = 0;
+    uint256 public rewardsDuration;
+    uint256 public lastUpdateTime;
 
     IERC20 public mahaToken;
 
     address public stabilityPoolAddress;
 
-    uint public totalMAHAIssued;
-    uint public immutable deploymentTime;
-
+    uint256 totalMAHAIssued;
 
     // --- Functions ---
-
-    constructor()   {
-        deploymentTime = block.timestamp;
-    }
 
     function setAddresses
     (
         address _mahaTokenAddress,
-        address _stabilityPoolAddress
+        address _stabilityPoolAddress,
+        uint256 _rewardsDuration
     )
         external
         onlyOwner
@@ -73,43 +47,65 @@ contract CommunityIssuance is ICommunityIssuance, Ownable, CheckContract, BaseMa
         mahaToken = IERC20(_mahaTokenAddress);
         stabilityPoolAddress = _stabilityPoolAddress;
 
-        // When MAHAToken deployed, it should have transferred CommunityIssuance's MAHA entitlement
-        uint MAHABalance = mahaToken.balanceOf(address(this));
-        assert(MAHABalance >= MAHASupplyCap);
+        lastUpdateTime = block.timestamp;
+        rewardsDuration = _rewardsDuration;
+        periodFinish = block.timestamp.add(rewardsDuration);
+        rewardRate = mahaToken.balanceOf(address(this)).div(rewardsDuration);
 
         emit MAHATokenAddressSet(_mahaTokenAddress);
         emit StabilityPoolAddressSet(_stabilityPoolAddress);
+    }
 
-        _renounceOwnership();
+    function lastTimeRewardApplicable() public view override returns (uint256) {
+        return LiquityMath._min(block.timestamp, periodFinish);
     }
 
     function issueMAHA() external override returns (uint) {
         _requireCallerIsStabilityPool();
+        
+        uint issuance  = _getCumulativeIssuance();
+        emit IssueMAHA(issuance);
 
-        uint latestTotalMAHAIssued = MAHASupplyCap.mul(_getCumulativeIssuanceFraction()).div(DECIMAL_PRECISION);
-        uint issuance = latestTotalMAHAIssued.sub(totalMAHAIssued);
+        totalMAHAIssued += issuance;
+        emit TotalMAHAIssuedUpdated(totalMAHAIssued);
 
-        totalMAHAIssued = latestTotalMAHAIssued;
-        emit TotalMAHAIssuedUpdated(latestTotalMAHAIssued);
+        lastUpdateTime = block.timestamp;
 
         return issuance;
     }
+    
+    function notifyRewardAmount(uint256 reward)
+        external
+        override
+        onlyOwner
+    {
+        if (block.timestamp >= periodFinish) {
+            rewardRate = reward.div(rewardsDuration);
+        } else {
+            uint256 remaining = periodFinish.sub(block.timestamp);
+            uint256 leftover = remaining.mul(rewardRate);
+            rewardRate = reward.add(leftover).div(rewardsDuration);
+        }
 
-    /* Gets 1-f^t    where: f < 1
-    f: issuance factor that determines the shape of the curve
-    t:  time passed since last MAHA issuance event  */
-    function _getCumulativeIssuanceFraction() internal view returns (uint) {
-        // Get the time passed since deployment
-        uint timePassedInMinutes = block.timestamp.sub(deploymentTime).div(SECONDS_IN_ONE_MINUTE);
+        // Ensure the provided reward amount is not more than the balance in the contract.
+        // This keeps the reward rate in the right range, preventing overflows due to
+        // very high values of rewardRate in the earned and rewardsPerToken functions;
+        // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
+        uint256 balance = mahaToken.balanceOf(address(this));
+        require(
+            rewardRate <= balance.div(rewardsDuration),
+            'Provided reward too high'
+        );
 
-        // f^t
-        uint power = LiquityMath._decPow(ISSUANCE_FACTOR, timePassedInMinutes);
+        lastUpdateTime = block.timestamp;
+        periodFinish = block.timestamp.add(rewardsDuration);
+        emit RewardAdded(reward);
+    }
 
-        //  (1 - f^t)
-        uint cumulativeIssuanceFraction = (uint(DECIMAL_PRECISION).sub(power));
-        assert(cumulativeIssuanceFraction <= DECIMAL_PRECISION); // must be in range [0,1]
+    function _getCumulativeIssuance() internal view returns (uint) {
+        uint256 rewards = rewardRate.mul(lastTimeRewardApplicable().sub(lastUpdateTime));
 
-        return cumulativeIssuanceFraction;
+        return LiquityMath._min(rewards, mahaToken.balanceOf(address(this)));
     }
 
     function sendMAHA(address _account, uint _MAHAamount) external override {
