@@ -27,7 +27,7 @@ contract CommunityIssuance is ICommunityIssuance, Ownable, CheckContract, BaseMa
 
     address public stabilityPoolAddress;
 
-    uint256 totalMAHAIssued;
+    uint256 public totalMAHAIssued;
 
     // --- Functions ---
 
