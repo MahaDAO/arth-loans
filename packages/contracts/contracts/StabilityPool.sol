@@ -375,7 +375,8 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         address _lusdTokenAddress,
         address _sortedTrovesAddress,
         address _wethAddress,
-        address _governanceAddress
+        address _governanceAddress,
+        address _communityIssuance
     ) external override onlyOwner {
         checkContract(_borrowerOperationsAddress);
         checkContract(_troveManagerAddress);
@@ -384,6 +385,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         checkContract(_sortedTrovesAddress);
         checkContract(_wethAddress);
         checkContract(_governanceAddress);
+        checkContract(_communityIssuance);
 
         borrowerOperations = IBorrowerOperations(_borrowerOperationsAddress);
         troveManager = ITroveManager(_troveManagerAddress);
@@ -392,6 +394,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
         weth = IERC20(_wethAddress);
         governance = IGovernance(_governanceAddress);
+        communityIssuance = ICommunityIssuance(_communityIssuance);
 
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
         emit TroveManagerAddressChanged(_troveManagerAddress);
@@ -399,7 +402,8 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         emit LUSDTokenAddressChanged(_lusdTokenAddress);
         emit SortedTrovesAddressChanged(_sortedTrovesAddress);
         emit GovernanceAddressChanged(_governanceAddress);
-
+        emit CommunityIssuanceAddressChanged(_communityIssuance);
+        
         _renounceOwnership();
     }
 

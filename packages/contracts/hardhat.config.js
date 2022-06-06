@@ -115,6 +115,7 @@ module.exports = {
   },
   etherscan: {
     apiKey: {
+      bscTestnet: getSecret("BSCSCAN_API_KEY"),
       bsc: getSecret("BSCSCAN_API_KEY"),
       mainnet: getSecret("ETHERSCAN_API_KEY")
     }

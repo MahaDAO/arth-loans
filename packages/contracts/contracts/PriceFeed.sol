@@ -87,12 +87,12 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
 
     // --- Helper functions ---
 
-    function _fetchPrice() internal view returns (uint256) {
+    function _fetchPrice() internal returns (uint256) {
         if (address(priceAggregator) == address(0)) return _fetchWithUMB();
         return _fetchWithChainlink();
     }
 
-    function _fetchWithUMB() internal view returns (uint256) {
+    function _fetchWithUMB() internal returns (uint256) {
         uint256 gmuPrice = _fetchGMUPrice();
         uint256 umbPrice = _fetchUMBPrice();
 
@@ -103,7 +103,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
         );
     }
 
-    function _fetchWithChainlink() internal view returns (uint256) {
+    function _fetchWithChainlink() internal returns (uint256) {
         uint256 gmuPrice = _fetchGMUPrice();
         uint256 chainlinkPrice = _fetchChainlinkPrice();
 
@@ -131,7 +131,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
         return price;
     }
 
-    function _fetchGMUPrice() internal view returns (uint256) {
+    function _fetchGMUPrice() internal returns (uint256) {
         uint256 gmuPrice = gmuOracle.getPrice();
         uint256 gmuPricePrecision = gmuOracle.getDecimalPercision();
 
