@@ -31,7 +31,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     ICollSurplusPool collSurplusPool;
 
     IARTHValuecoin public lusdToken;
-    IERC20 public weth;
 
     // A doubly linked list of Troves, sorted by their collateral ratios
     ISortedTroves public sortedTroves;
@@ -90,7 +89,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _collSurplusPoolAddress,
         address _sortedTrovesAddress,
         address _lusdTokenAddress,
-        address _wethAddress,
         address _governanceAddress,
         address _incentivePool
     ) external override onlyOwner {
@@ -105,7 +103,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         checkContract(_collSurplusPoolAddress);
         checkContract(_sortedTrovesAddress);
         checkContract(_lusdTokenAddress);
-        checkContract(_wethAddress);
         checkContract(_governanceAddress);
 
         troveManager = ITroveManager(_troveManagerAddress);
@@ -116,7 +113,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         collSurplusPool = ICollSurplusPool(_collSurplusPoolAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
         lusdToken = IARTHValuecoin(_lusdTokenAddress);
-        weth = IERC20(_wethAddress);
         governance = IGovernance(_governanceAddress);
         incentivePool = IIncentivePool(_incentivePool);
 
@@ -146,14 +142,14 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     function openTrove(
         uint256 _maxFeePercentage,
         uint256 _LUSDAmount,
-        uint256 _ETHAmount,
         address _upperHint,
         address _lowerHint,
         address _frontEndTag
     ) external override {
         _requireFrontEndIsRegisteredOrZero(_frontEndTag);
         _requireFrontEndNotRegistered(msg.sender);
-
+        
+        uint256 _ETHAmount = msg.value;
         ContractsCache memory contractsCache = ContractsCache(
             troveManager,
             activePool,
@@ -249,22 +245,20 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     // Send ETH as collateral to a trove
     function addColl(
-        uint256 _ETHAmount,
         address _upperHint,
         address _lowerHint
     ) external override {
-        _adjustTrove(msg.sender, 0, 0, _ETHAmount, false, _upperHint, _lowerHint, 0);
+        _adjustTrove(msg.sender, 0, 0, false, _upperHint, _lowerHint, 0);
     }
 
     // Send ETH as collateral to a trove. Called by only the Stability Pool.
     function moveETHGainToTrove(
-        uint256 _ETHAmount,
         address _borrower,
         address _upperHint,
         address _lowerHint
     ) external override {
         _requireCallerIsStabilityPool();
-        _adjustTrove(_borrower, 0, 0, _ETHAmount, false, _upperHint, _lowerHint, 0);
+        _adjustTrove(_borrower, 0, 0, false, _upperHint, _lowerHint, 0);
     }
 
     // Withdraw ETH collateral from a trove
@@ -273,7 +267,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _upperHint,
         address _lowerHint
     ) external override {
-        _adjustTrove(msg.sender, _collWithdrawal, 0, 0, false, _upperHint, _lowerHint, 0);
+        _adjustTrove(msg.sender, _collWithdrawal, 0, false, _upperHint, _lowerHint, 0);
     }
 
     // Withdraw LUSD tokens from a trove: mint new LUSD tokens to the owner, and increase the trove's debt accordingly
@@ -283,7 +277,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _upperHint,
         address _lowerHint
     ) external override {
-        _adjustTrove(msg.sender, 0, _LUSDAmount, 0, true, _upperHint, _lowerHint, _maxFeePercentage);
+        _adjustTrove(msg.sender, 0, _LUSDAmount, true, _upperHint, _lowerHint, _maxFeePercentage);
     }
 
     // Repay LUSD tokens to a Trove: Burn the repaid LUSD tokens, and reduce the trove's debt accordingly
@@ -292,14 +286,13 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _upperHint,
         address _lowerHint
     ) external override {
-        _adjustTrove(msg.sender, 0, _LUSDAmount, 0, false, _upperHint, _lowerHint, 0);
+        _adjustTrove(msg.sender, 0, _LUSDAmount, false, _upperHint, _lowerHint, 0);
     }
 
     function adjustTrove(
         uint256 _maxFeePercentage,
         uint256 _collWithdrawal,
         uint256 _LUSDChange,
-        uint256 _ETHAmount,
         bool _isDebtIncrease,
         address _upperHint,
         address _lowerHint
@@ -308,7 +301,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
             msg.sender,
             _collWithdrawal,
             _LUSDChange,
-            _ETHAmount,
             _isDebtIncrease,
             _upperHint,
             _lowerHint,
@@ -327,12 +319,12 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _borrower,
         uint256 _collWithdrawal,
         uint256 _LUSDChange,
-        uint256 _ETHAmount,
         bool _isDebtIncrease,
         address _upperHint,
         address _lowerHint,
         uint256 _maxFeePercentage
     ) internal {
+        uint256 _ETHAmount = msg.value;
         ContractsCache memory contractsCache = ContractsCache(
             troveManager,
             activePool,
@@ -591,9 +583,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     // Send ETH to Active Pool and increase its recorded ETH balance
     function _activePoolAddColl(IActivePool _activePool, uint256 _amount) internal {
-        weth.transferFrom(msg.sender, address(this), _amount);
-        weth.approve(address(_activePool), _amount);
-        _activePool.receiveETH(_amount);
+        (bool success, ) = address(_activePool).call{value: _amount}("");
+        require(success, "BorrowerOps: Sending ETH to ActivePool failed");
     }
 
     // Issue the specified amount of LUSD to _account and increases the total active debt (_netDebtIncrease potentially includes a LUSDFee)

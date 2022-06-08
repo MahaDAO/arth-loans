@@ -82,8 +82,8 @@ interface IStabilityPool {
         address _activePoolAddress,
         address _lusdTokenAddress,
         address _sortedTrovesAddress,
-        address _wethAddress,
-        address _governanceAddress
+        address _governanceAddress,
+        address _communityIssuance
     ) external;
 
     /*
@@ -196,5 +196,4 @@ interface IStabilityPool {
      * Only callable by Active Pool, it just accounts for ETH received
      * receive() external payable;
      */
-    function receiveETH(uint256 _amount) external;
 }

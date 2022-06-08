@@ -15,7 +15,7 @@ contract GMUOracle is TransferableOwnable, IOracle {
         price = startingPrice;
     }
 
-    function getPrice() public view override returns (uint256) {
+    function getPrice() public override returns (uint256) {
         return price;
     }
 

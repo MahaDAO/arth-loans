@@ -19,7 +19,6 @@ contract CollSurplusPool is Ownable, CheckContract, ICollSurplusPool {
     address public activePoolAddress;
 
     // deposited ether tracker
-    IERC20 public weth;
     uint256 public ETH;
     // Collateral surplus claimable by trove owners
     mapping(address => uint256) internal balances;
@@ -29,18 +28,15 @@ contract CollSurplusPool is Ownable, CheckContract, ICollSurplusPool {
     function setAddresses(
         address _borrowerOperationsAddress,
         address _troveManagerAddress,
-        address _activePoolAddress,
-        address _wethAddress
+        address _activePoolAddress
     ) external override onlyOwner {
         checkContract(_borrowerOperationsAddress);
         checkContract(_troveManagerAddress);
         checkContract(_activePoolAddress);
-        checkContract(_wethAddress);
 
         borrowerOperationsAddress = _borrowerOperationsAddress;
         troveManagerAddress = _troveManagerAddress;
         activePoolAddress = _activePoolAddress;
-        weth = IERC20(_wethAddress);
 
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
         emit TroveManagerAddressChanged(_troveManagerAddress);
@@ -81,7 +77,8 @@ contract CollSurplusPool is Ownable, CheckContract, ICollSurplusPool {
         ETH = ETH.sub(claimableColl);
         emit EtherSent(_account, claimableColl);
 
-        weth.transfer(_account, claimableColl);
+        (bool success, ) = _account.call{ value: claimableColl }("");
+        require(success, "CollSurplusPool: sending ETH failed");
     }
 
     // --- 'require' functions ---
@@ -103,14 +100,8 @@ contract CollSurplusPool is Ownable, CheckContract, ICollSurplusPool {
 
     // --- Fallback function ---
 
-    // receive() external payable {
-    //     _requireCallerIsActivePool();
-    //     ETH = ETH.add(msg.value);
-    // }
-
-    function receiveETH(uint256 _amount) external override {
+    receive() external payable {
         _requireCallerIsActivePool();
-        weth.transferFrom(msg.sender, address(this), _amount);
-        ETH = ETH.add(_amount);
+        ETH = ETH.add(msg.value);
     }
 }

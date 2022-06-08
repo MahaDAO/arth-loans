@@ -24,7 +24,6 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool {
 
     address public troveManagerAddress;
     address public activePoolAddress;
-    address public wethAddress;
     uint256 internal ETH; // deposited ETH tracker
     uint256 internal LUSDDebt; // debt
 
@@ -36,16 +35,13 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool {
 
     function setAddresses(
         address _troveManagerAddress,
-        address _activePoolAddress,
-        address _wethAddress
+        address _activePoolAddress
     ) external onlyOwner {
         checkContract(_troveManagerAddress);
         checkContract(_activePoolAddress);
-        checkContract(_wethAddress);
 
         troveManagerAddress = _troveManagerAddress;
         activePoolAddress = _activePoolAddress;
-        wethAddress = _wethAddress;
 
         emit TroveManagerAddressChanged(_troveManagerAddress);
         emit ActivePoolAddressChanged(_activePoolAddress);
@@ -77,8 +73,8 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool {
         emit DefaultPoolETHBalanceUpdated(ETH);
         emit EtherSent(activePool, _amount);
 
-        IERC20(wethAddress).approve(activePool, _amount);
-        IActivePool(activePool).receiveETH(_amount);
+        (bool success, ) = activePool.call{ value: _amount }("");
+        require(success, "DefaultPool: sending ETH failed");
     }
 
     function increaseLUSDDebt(uint256 _amount) external override {
@@ -105,9 +101,9 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool {
 
     // --- Fallback function ---
 
-    function receiveETH(uint256 _amount) external override {
+    receive() external payable {
         _requireCallerIsActivePool();
-        IERC20(wethAddress).transferFrom(msg.sender, address(this), _amount);
-        ETH = ETH.add(_amount);
+        ETH = ETH.add(msg.value);
+        emit DefaultPoolETHBalanceUpdated(ETH);
     }
 }

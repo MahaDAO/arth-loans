@@ -16,6 +16,7 @@ import "./EchidnaProxy.sol";
 import "../IncentivePool.sol";
 import "../Dependencies/WETH.sol";
 import "../Governance.sol";
+import "../CommunityIssuance.sol";
 
 //
 
@@ -45,6 +46,7 @@ contract EchidnaTester {
     WETH public weth;
     IncentivePool public pool;
     Governance public governance;
+    CommunityIssuance public communityIssuance;
 
     EchidnaProxy[NUMBER_OF_ACTORS] public echidnaProxies;
 
@@ -57,6 +59,7 @@ contract EchidnaTester {
         defaultPool = new DefaultPool();
         stabilityPool = new StabilityPool();
         gasPool = new GasPool();
+        communityIssuance = new CommunityIssuance();
         lusdToken = new ARTHValuecoin();
         priceFeedTestnet = new PriceFeedTestnet();
         pool = new IncentivePool(
@@ -133,7 +136,8 @@ contract EchidnaTester {
             address(lusdToken),
             address(sortedTroves),
             address(weth),
-            address(governance)
+            address(governance),
+            address(communityIssuance)
         );
 
         collSurplusPool.setAddresses(

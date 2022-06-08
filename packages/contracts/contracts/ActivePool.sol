@@ -28,9 +28,7 @@ contract ActivePool is AccessControl, Ownable, CheckContract, IActivePool {
     address public troveManagerAddress;
     address public stabilityPoolAddress;
     address public defaultPoolAddress;
-    address public collSurplusPoolAddress;
 
-    IERC20 public weth;
     uint256 public ETH; // deposited ether tracker
     uint256 public LUSDDebt;
 
@@ -46,23 +44,17 @@ contract ActivePool is AccessControl, Ownable, CheckContract, IActivePool {
         address _troveManagerAddress,
         address _stabilityPoolAddress,
         address _defaultPoolAddress,
-        address _collSurplusPoolAddress,
         address _governance,
-        address _wethAddress
     ) external onlyOwner {
         checkContract(_borrowerOperationsAddress);
         checkContract(_troveManagerAddress);
         checkContract(_stabilityPoolAddress);
         checkContract(_defaultPoolAddress);
-        checkContract(_wethAddress);
-        checkContract(_collSurplusPoolAddress);
 
         borrowerOperationsAddress = _borrowerOperationsAddress;
         troveManagerAddress = _troveManagerAddress;
         stabilityPoolAddress = _stabilityPoolAddress;
         defaultPoolAddress = _defaultPoolAddress;
-        collSurplusPoolAddress = _collSurplusPoolAddress;
-        weth = IERC20(_wethAddress);
 
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
         emit TroveManagerAddressChanged(_troveManagerAddress);
@@ -97,12 +89,8 @@ contract ActivePool is AccessControl, Ownable, CheckContract, IActivePool {
         emit ActivePoolETHBalanceUpdated(ETH);
         emit EtherSent(_account, _amount);
 
-        if (!_getShouldUseReceiveETH(_account)) {
-            weth.transfer(_account, _amount);
-        } else {
-            weth.approve(_account, _amount);
-            IActivePool(_account).receiveETH(_amount);
-        }
+        (bool success, ) = _account.call{ value: _amount }("");
+        require(success, "ActivePool: sending ETH failed");
     }
 
     function increaseLUSDDebt(uint256 _amount) external override {
@@ -119,11 +107,14 @@ contract ActivePool is AccessControl, Ownable, CheckContract, IActivePool {
 
     function borrow(uint256 amount) external override onlyAMOS {
         require(
-            weth.balanceOf(address(this)) > amount,
+            address(this).balance > amount,
             'ActivePool: Insufficent funds in the pool'
         );
+
+        address _account = msg.sender;
+        (bool success, ) = _account.call{ value: amount }("");
         require(
-            weth.transfer(msg.sender, amount),
+            success,
             'ActivePool: transfer failed'
         );
 
@@ -131,24 +122,20 @@ contract ActivePool is AccessControl, Ownable, CheckContract, IActivePool {
     }
 
     function repay(uint256 amount) external override onlyAMOS {
+        address _account = msg.sender;
         require(
-            weth.balanceOf(msg.sender) >= amount,
+            _account.balance >= amount,
             'ActivePool: balance < required'
         );
-         require(
-            weth.transferFrom(msg.sender, address(this), amount),
-            'ARTHPool: transfer from failed'
+        require(
+            msg.value == amount && amount > 0,
+            'ARTHPool: repay failed'
         );
 
         emit Repay(msg.sender, amount);
     }
-    // --- 'require' functions ---
 
-    function _getShouldUseReceiveETH(address _account) internal view returns (bool) {
-        return (_account == defaultPoolAddress ||
-            _account == stabilityPoolAddress ||
-            _account == collSurplusPoolAddress);
-    }
+    // --- 'require' functions ---
 
     function _requireCallerIsBorrowerOperationsOrDefaultPool() internal view {
         require(
@@ -175,10 +162,9 @@ contract ActivePool is AccessControl, Ownable, CheckContract, IActivePool {
 
     // --- Fallback function ---
 
-    function receiveETH(uint256 _amount) external override {
+    receive() external payable {
         _requireCallerIsBorrowerOperationsOrDefaultPool();
-        weth.transferFrom(msg.sender, address(this), _amount);
-        ETH = ETH.add(_amount);
+        ETH = ETH.add(msg.value);
         emit ActivePoolETHBalanceUpdated(ETH);
     }
 }
