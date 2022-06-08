@@ -12,6 +12,4 @@ interface IDefaultPool is IPool {
 
     // --- Functions ---
     function sendETHToActivePool(uint256 _amount) external;
-
-    function receiveETH(uint256 _amount) external;
 }
