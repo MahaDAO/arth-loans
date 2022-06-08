@@ -292,7 +292,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
     ICommunityIssuance public communityIssuance;
 
-    IERC20 public weth;
     uint256 public ETH;  // deposited ether tracker
 
     // Tracker for LUSD held in the pool. Changes when users deposit/withdraw, and when Trove debt is offset.
@@ -374,7 +373,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         address _activePoolAddress,
         address _lusdTokenAddress,
         address _sortedTrovesAddress,
-        address _wethAddress,
         address _governanceAddress,
         address _communityIssuance
     ) external override onlyOwner {
@@ -383,7 +381,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         checkContract(_activePoolAddress);
         checkContract(_lusdTokenAddress);
         checkContract(_sortedTrovesAddress);
-        checkContract(_wethAddress);
         checkContract(_governanceAddress);
         checkContract(_communityIssuance);
 
@@ -392,7 +389,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         activePool = IActivePool(_activePoolAddress);
         lusdToken = IARTHValuecoin(_lusdTokenAddress);
         sortedTroves = ISortedTroves(_sortedTrovesAddress);
-        weth = IERC20(_wethAddress);
         governance = IGovernance(_governanceAddress);
         communityIssuance = ICommunityIssuance(_communityIssuance);
 
@@ -557,7 +553,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         emit EtherSent(msg.sender, depositorETHGain);
 
         weth.approve(address(borrowerOperations), depositorETHGain);
-        borrowerOperations.moveETHGainToTrove(depositorETHGain, msg.sender, _upperHint, _lowerHint);
+        borrowerOperations.moveETHGainToTrove{ value: depositorETHGain }(msg.sender, _upperHint, _lowerHint);
     }
 
     // --- MAHA issuance functions ---
@@ -935,7 +931,8 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         emit StabilityPoolETHBalanceUpdated(newETH);
         emit EtherSent(msg.sender, _amount);
 
-        weth.transfer(msg.sender, _amount);
+        (bool success, ) = msg.sender.call{ value: _amount }("");
+        require(success, "StabilityPool: sending ETH failed");
     }
 
     // Send LUSD to user and decrease LUSD in Pool
@@ -1100,10 +1097,9 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
     // --- Fallback function ---
 
-    function receiveETH(uint256 _amount) external override {
+    receive() external payable {
         _requireCallerIsActivePool();
-        weth.transferFrom(msg.sender, address(this), _amount);
-        ETH = ETH.add(_amount);
-        emit StabilityPoolETHBalanceUpdated(ETH);
+        ETH = ETH.add(msg.value);
+        StabilityPoolETHBalanceUpdated(ETH);
     }
 }
