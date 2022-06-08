@@ -44,7 +44,6 @@ interface IBorrowerOperations {
         address _collSurplusPoolAddress,
         address _sortedTrovesAddress,
         address _lusdTokenAddress,
-        address _wethAddress,
         address _governanceAddress,
         address _incentive
     ) external;
@@ -54,20 +53,17 @@ interface IBorrowerOperations {
     function openTrove(
         uint256 _maxFee,
         uint256 _LUSDAmount,
-        uint256 _ETHAmount,
         address _upperHint,
         address _lowerHint,
         address _frontEndTag
     ) external;
 
     function addColl(
-        uint256 _ETHAmount,
         address _upperHint,
         address _lowerHint
     ) external;
 
     function moveETHGainToTrove(
-        uint256 _ETHAmount,
         address _user,
         address _upperHint,
         address _lowerHint
@@ -98,7 +94,6 @@ interface IBorrowerOperations {
         uint256 _maxFee,
         uint256 _collWithdrawal,
         uint256 _debtChange,
-        uint256 _ETHAmount,
         bool isDebtIncrease,
         address _upperHint,
         address _lowerHint

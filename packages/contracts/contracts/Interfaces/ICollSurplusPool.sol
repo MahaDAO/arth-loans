@@ -17,13 +17,10 @@ interface ICollSurplusPool {
     function setAddresses(
         address _borrowerOperationsAddress,
         address _troveManagerAddress,
-        address _activePoolAddress,
-        address _wethAddress
+        address _activePoolAddress
     ) external;
 
     function getETH() external view returns (uint256);
-
-    function receiveETH(uint256 _amount) external;
 
     function getCollateral(address _account) external view returns (uint256);
 
